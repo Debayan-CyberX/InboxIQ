@@ -50,7 +50,7 @@ export const emailConnectionsApi = {
     userId: string,
     redirectUri?: string
   ): Promise<{ authUrl: string }> {
-    const authServerUrl = import.meta.env.VITE_BETTER_AUTH_URL || "http://localhost:3001";
+    const authServerUrl = import.meta.env.VITE_BETTER_AUTH_URL || "https://inboxiq-psi.vercel.app";
 
     const params = new URLSearchParams({
       userId,
@@ -76,7 +76,7 @@ export const emailConnectionsApi = {
     betterAuthUserId: string,
     connection: ConnectEmailRequest
   ): Promise<EmailConnection> {
-    const authServerUrl = import.meta.env.VITE_BETTER_AUTH_URL || "http://localhost:3001";
+    const authServerUrl = import.meta.env.VITE_BETTER_AUTH_URL || "https://inboxiq-psi.vercel.app";
 
     // Get user UUID
     const { getUserIdFromBetterAuth } = await import("./utils");
@@ -203,7 +203,7 @@ export const emailConnectionsApi = {
 
   // Sync emails from a connected account
   async sync(connectionId: string): Promise<{ success: boolean; message: string; threadsSynced?: number }> {
-    const authServerUrl = import.meta.env.VITE_BETTER_AUTH_URL || "http://localhost:3001";
+    const authServerUrl = import.meta.env.VITE_BETTER_AUTH_URL || "https://inboxiq-psi.vercel.app";
 
     // For Gmail, use the new /gmail/sync endpoint
     const response = await fetch(`${authServerUrl}/gmail/sync`, {

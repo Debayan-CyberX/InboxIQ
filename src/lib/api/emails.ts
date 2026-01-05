@@ -266,7 +266,7 @@ export const emailsApi = {
     }
 
     // Get auth server URL
-    const authServerUrl = import.meta.env.VITE_BETTER_AUTH_URL || "http://localhost:3001";
+    const authServerUrl = import.meta.env.VITE_BETTER_AUTH_URL || "https://inboxiq-psi.vercel.app";
 
     // Send email via backend API
     const response = await fetch(`${authServerUrl}/api/emails/send`, {

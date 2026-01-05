@@ -62,9 +62,9 @@ After adding environment variables:
 
 You should see:
 ```
-✅ Better Auth server running on http://localhost:3001
-📡 Auth API available at http://localhost:3001/api/auth
-📧 Email API available at http://localhost:3001/api/emails/send
+✅ Better Auth server running on https://inboxiq-psi.vercel.app
+📡 Auth API available at https://inboxiq-psi.vercel.app/api/auth
+📧 Email API available at https://inboxiq-psi.vercel.app/api/emails/send
 ```
 
 ---
