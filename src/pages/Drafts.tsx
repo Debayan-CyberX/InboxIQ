@@ -1,0 +1,686 @@
+import { useState, useMemo, useEffect } from "react";
+import { 
+  Send, 
+  Search, 
+  Filter, 
+  Sparkles,
+  Mail,
+  Edit3,
+  Trash2,
+  Archive,
+  Clock,
+  TrendingUp,
+  CheckCircle2,
+  X,
+  MoreVertical,
+  Copy,
+  RefreshCw,
+  AlertCircle
+} from "lucide-react";
+import DashboardLayout from "@/components/layout/DashboardLayout";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
+// EmailDraft type definition (removed mock import)
+interface EmailDraft {
+  id: string;
+  to: string;
+  toName: string;
+  company: string;
+  subject: string;
+  draft: string;
+  reason: string;
+  tone: string;
+  confidence: number;
+  createdAt: string;
+  leadId?: string;
+  threadId?: string;
+  status: "draft" | "reviewed" | "sent" | "archived";
+  priority: "high" | "medium" | "low";
+  tags?: string[];
+}
+import { LoadingState } from "@/components/LoadingState";
+import { ErrorState } from "@/components/ErrorState";
+import { useUserId } from "@/hooks/useUserId";
+import { emailsApi } from "@/lib/api";
+import type { Email } from "@/types/database";
+import { toast } from "sonner";
+import EmailPreviewPanel from "@/components/dashboard/EmailPreviewPanel";
+import { formatDistanceToNow } from "date-fns";
+
+type FilterType = "all" | "high" | "medium" | "low" | "reviewed";
+type SortOption = "recent" | "confidence" | "priority" | "company";
+
+// Transform database Email to component EmailDraft format
+const transformDraft = (email: Email & { lead_company?: string; lead_contact_name?: string }): EmailDraft => {
+  const contactName = email.lead_contact_name || "Unknown";
+  const toEmail = email.to_email || "";
+  
+  // Derive priority from tone or default to medium
+  // In a real app, this might come from lead status or AI analysis
+  let priority: "high" | "medium" | "low" = "medium";
+  if (email.tone === "sales-focused" || email.tone === "confident") {
+    priority = "high";
+  } else if (email.tone === "short") {
+    priority = "low";
+  }
+
+  // Calculate confidence (default 85% for AI drafts, could be from AI analysis)
+  const confidence = 85; // TODO: Get from AI analysis or metadata
+
+  return {
+    id: email.id,
+    to: toEmail,
+    toName: contactName,
+    company: email.lead_company || "Unknown",
+    subject: email.subject || "No subject",
+    draft: email.body_text || email.body_html || "",
+    reason: email.ai_reason || "AI-generated draft",
+    tone: email.tone || "professional",
+    confidence,
+    createdAt: formatDistanceToNow(new Date(email.created_at), { addSuffix: true }),
+    leadId: email.lead_id || undefined,
+    threadId: email.thread_id || undefined,
+    status: email.status === "draft" ? "draft" : email.status === "sent" ? "sent" : "draft",
+    priority,
+    tags: [],
+  };
+};
+
+const Drafts = () => {
+  const userId = useUserId();
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<Error | null>(null);
+  const [drafts, setDrafts] = useState<Email[]>([]);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState<FilterType>("all");
+  const [sortBy, setSortBy] = useState<SortOption>("recent");
+  const [selectedDrafts, setSelectedDrafts] = useState<Set<string>>(new Set());
+  const [selectedDraft, setSelectedDraft] = useState<EmailDraft | null>(null);
+  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+
+  // Fetch drafts from database
+  useEffect(() => {
+    if (!userId) {
+      setLoading(false);
+      return;
+    }
+
+    async function fetchDrafts() {
+      try {
+        setLoading(true);
+        setError(null);
+
+        const draftsData = await emailsApi.getDrafts(userId);
+        setDrafts(draftsData);
+      } catch (err) {
+        console.error("Error fetching drafts:", err);
+        setError(err instanceof Error ? err : new Error("Failed to load drafts"));
+        toast.error("Failed to load drafts", {
+          description: err instanceof Error ? err.message : "Unknown error",
+        });
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchDrafts();
+  }, [userId]);
+
+  // Transform drafts
+  const transformedDrafts = useMemo(() => {
+    return drafts.map(transformDraft);
+  }, [drafts]);
+
+  // Filter and sort drafts
+  const filteredAndSortedDrafts = useMemo(() => {
+    let filteredDrafts = [...transformedDrafts];
+
+    // Apply status filter
+    if (statusFilter !== "all") {
+      if (statusFilter === "reviewed") {
+        filteredDrafts = filteredDrafts.filter(d => d.status === "reviewed");
+      } else {
+        filteredDrafts = filteredDrafts.filter(d => d.priority === statusFilter);
+      }
+    }
+
+    // Filter out archived
+    filteredDrafts = filteredDrafts.filter(d => d.status !== "archived");
+
+    // Apply search
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      filteredDrafts = filteredDrafts.filter(d =>
+        d.subject.toLowerCase().includes(query) ||
+        d.toName.toLowerCase().includes(query) ||
+        d.to.toLowerCase().includes(query) ||
+        d.company.toLowerCase().includes(query) ||
+        d.reason.toLowerCase().includes(query)
+      );
+    }
+
+    // Apply sorting
+    filteredDrafts.sort((a, b) => {
+      let comparison = 0;
+      switch (sortBy) {
+        case "confidence":
+          comparison = b.confidence - a.confidence;
+          break;
+        case "priority":
+          const priorityOrder = { high: 1, medium: 2, low: 3 };
+          comparison = priorityOrder[a.priority] - priorityOrder[b.priority];
+          break;
+        case "company":
+          comparison = a.company.localeCompare(b.company);
+          break;
+        case "recent":
+        default:
+          // Sort by creation time
+          const dateA = drafts.find(d => d.id === a.id)?.created_at || "";
+          const dateB = drafts.find(d => d.id === b.id)?.created_at || "";
+          comparison = new Date(dateB).getTime() - new Date(dateA).getTime();
+          break;
+      }
+      return comparison;
+    });
+
+    return filteredDrafts;
+  }, [transformedDrafts, drafts, searchQuery, statusFilter, sortBy]);
+
+  const stats = {
+    total: transformedDrafts.filter(d => d.status !== "archived").length,
+    high: transformedDrafts.filter(d => d.priority === "high" && d.status !== "archived").length,
+    medium: transformedDrafts.filter(d => d.priority === "medium" && d.status !== "archived").length,
+    low: transformedDrafts.filter(d => d.priority === "low" && d.status !== "archived").length,
+    reviewed: transformedDrafts.filter(d => d.status === "reviewed").length,
+    avgConfidence: transformedDrafts.filter(d => d.status !== "archived").length > 0
+      ? Math.round(
+          transformedDrafts
+            .filter(d => d.status !== "archived")
+            .reduce((sum, d) => sum + d.confidence, 0) / 
+          transformedDrafts.filter(d => d.status !== "archived").length
+        )
+      : 0,
+  };
+
+  const handleDraftClick = (draft: EmailDraft) => {
+    setSelectedDraft(draft);
+    setIsPreviewOpen(true);
+  };
+
+  const handleSend = async (draft: EmailDraft) => {
+    if (!userId) {
+      toast.error("User not authenticated");
+      return;
+    }
+
+    try {
+      // Show loading toast
+      const loadingToast = toast.loading("Sending email...", {
+        description: `Sending to ${draft.toName} at ${draft.company}`,
+      });
+
+      // Send email via API
+      await emailsApi.sendEmail(draft.id, userId, {
+        to: draft.to,
+        subject: draft.subject,
+        body: draft.draft,
+      });
+
+      // Dismiss loading toast and show success
+      toast.dismiss(loadingToast);
+      toast.success("Email sent!", {
+        description: `Sent to ${draft.toName} at ${draft.company}`,
+      });
+      
+      // Update local state - remove sent draft
+      setDrafts(prev => prev.filter(d => d.id !== draft.id));
+      setIsPreviewOpen(false);
+      setSelectedDraft(null);
+    } catch (err) {
+      console.error("Error sending email:", err);
+      toast.error("Failed to send email", {
+        description: err instanceof Error ? err.message : "Unknown error occurred",
+      });
+    }
+  };
+
+  const handleReview = async (draftId: string) => {
+    try {
+      // TODO: Implement review status update in database
+      // For now, just update local state
+      const draft = transformedDrafts.find(d => d.id === draftId);
+      if (draft) {
+        const newStatus = draft.status === "reviewed" ? "draft" : "reviewed";
+        // Update the email status in database
+        // await emailsApi.update(draftId, userId, { status: newStatus });
+        toast.success(newStatus === "reviewed" ? "Marked as reviewed" : "Marked as draft");
+      }
+    } catch (err) {
+      toast.error("Failed to update draft");
+    }
+  };
+
+  const handleArchive = async (draftId: string) => {
+    try {
+      // TODO: Implement archive in database
+      // await emailsApi.update(draftId, userId, { status: "archived" });
+      
+      // Update local state
+      setDrafts(prev => prev.filter(d => d.id !== draftId));
+      toast.success("Draft archived");
+    } catch (err) {
+      toast.error("Failed to archive draft");
+    }
+  };
+
+  const handleDelete = async (draftId: string) => {
+    try {
+      // TODO: Implement delete in database
+      // await emailsApi.delete(draftId, userId);
+      
+      // Update local state
+      setDrafts(prev => prev.filter(d => d.id !== draftId));
+      toast.success("Draft deleted");
+    } catch (err) {
+      toast.error("Failed to delete draft");
+    }
+  };
+
+  const handleCreateTestDrafts = async () => {
+    if (!userId) {
+      toast.error("User not authenticated");
+      return;
+    }
+
+    try {
+      const loadingToast = toast.loading("Creating test drafts...");
+      
+      const result = await emailsApi.createTestDrafts(userId);
+      
+      toast.dismiss(loadingToast);
+      toast.success(`Created ${result.count} test drafts!`, {
+        description: "Refresh the page to see them",
+      });
+
+      // Refresh drafts
+      const draftsData = await emailsApi.getDrafts(userId);
+      setDrafts(draftsData);
+    } catch (err) {
+      console.error("Error creating test drafts:", err);
+      toast.error("Failed to create test drafts", {
+        description: err instanceof Error ? err.message : "Unknown error",
+      });
+    }
+  };
+
+  const getPriorityColor = (priority: string) => {
+    switch (priority) {
+      case "high":
+        return "text-status-hot border-status-hot bg-status-hot-bg";
+      case "medium":
+        return "text-status-warm border-status-warm bg-status-warm-bg";
+      case "low":
+        return "text-muted-foreground border-border bg-muted";
+      default:
+        return "text-muted-foreground border-border bg-muted";
+    }
+  };
+
+  const getToneColor = (tone: string) => {
+    switch (tone) {
+      case "professional":
+        return "bg-blue-500/10 text-blue-400 border-blue-500/20";
+      case "confident":
+        return "bg-purple-500/10 text-purple-400 border-purple-500/20";
+      case "sales-focused":
+        return "bg-green-500/10 text-green-400 border-green-500/20";
+      case "polite":
+        return "bg-pink-500/10 text-pink-400 border-pink-500/20";
+      default:
+        return "bg-muted text-muted-foreground border-border";
+    }
+  };
+
+  if (loading) {
+    return (
+      <DashboardLayout>
+        <LoadingState message="Loading drafts..." />
+      </DashboardLayout>
+    );
+  }
+
+  if (error) {
+    return (
+      <DashboardLayout>
+        <ErrorState 
+          error={error} 
+          onRetry={() => window.location.reload()} 
+        />
+      </DashboardLayout>
+    );
+  }
+
+  return (
+    <DashboardLayout>
+      <div className="space-y-6 max-w-[1600px] mx-auto">
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
+              <Sparkles className="w-6 h-6 text-accent" />
+              AI Drafts
+            </h1>
+            <p className="text-sm text-muted-foreground mt-1">
+              {filteredAndSortedDrafts.length} {filteredAndSortedDrafts.length === 1 ? "draft" : "drafts"} ready for review
+            </p>
+          </div>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" size="sm" className="gap-2">
+              <Filter className="w-4 h-4" />
+              Filters
+            </Button>
+          </div>
+        </div>
+
+        {/* Stats Cards */}
+        <div className="grid grid-cols-5 gap-4">
+          <div className="card-elevated p-4">
+            <div className="text-2xl font-bold text-foreground">{stats.total}</div>
+            <div className="text-xs text-muted-foreground mt-1">Total Drafts</div>
+          </div>
+          <div className="card-elevated p-4 border-l-4 border-l-status-hot">
+            <div className="text-2xl font-bold text-status-hot">{stats.high}</div>
+            <div className="text-xs text-muted-foreground mt-1">High Priority</div>
+          </div>
+          <div className="card-elevated p-4 border-l-4 border-l-status-warm">
+            <div className="text-2xl font-bold text-status-warm">{stats.medium}</div>
+            <div className="text-xs text-muted-foreground mt-1">Medium</div>
+          </div>
+          <div className="card-elevated p-4">
+            <div className="text-2xl font-bold text-foreground">{stats.low}</div>
+            <div className="text-xs text-muted-foreground mt-1">Low Priority</div>
+          </div>
+          <div className="card-elevated p-4">
+            <div className="text-2xl font-bold text-foreground">{stats.avgConfidence}%</div>
+            <div className="text-xs text-muted-foreground mt-1">Avg Confidence</div>
+          </div>
+        </div>
+
+        {/* Search and Filters */}
+        <div className="card-elevated p-4">
+          <div className="flex items-center gap-4">
+            {/* Search */}
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <input
+                type="text"
+                placeholder="Search drafts by subject, recipient, or company..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full h-9 pl-9 pr-4 rounded-lg bg-secondary/50 border border-border text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:bg-background transition-all"
+              />
+            </div>
+
+            {/* Priority Filter */}
+            <div className="flex items-center gap-2">
+              <Button
+                variant={statusFilter === "all" ? "default" : "outline"}
+                size="sm"
+                onClick={() => setStatusFilter("all")}
+              >
+                All
+              </Button>
+              <Button
+                variant={statusFilter === "high" ? "default" : "outline"}
+                size="sm"
+                onClick={() => setStatusFilter("high")}
+                className={statusFilter === "high" ? "bg-status-hot-bg text-status-hot border-status-hot" : ""}
+              >
+                High
+              </Button>
+              <Button
+                variant={statusFilter === "medium" ? "default" : "outline"}
+                size="sm"
+                onClick={() => setStatusFilter("medium")}
+                className={statusFilter === "medium" ? "bg-status-warm-bg text-status-warm border-status-warm" : ""}
+              >
+                Medium
+              </Button>
+              <Button
+                variant={statusFilter === "low" ? "default" : "outline"}
+                size="sm"
+                onClick={() => setStatusFilter("low")}
+              >
+                Low
+              </Button>
+            </div>
+
+            {/* Sort */}
+            <div className="flex items-center gap-2">
+              <select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value as SortOption)}
+                className="h-9 px-3 rounded-lg bg-secondary/50 border border-border text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+              >
+                <option value="recent">Recent</option>
+                <option value="confidence">Confidence</option>
+                <option value="priority">Priority</option>
+                <option value="company">Company</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        {/* Drafts Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          {filteredAndSortedDrafts.length === 0 ? (
+            <div className="col-span-2 p-12 text-center card-elevated">
+              <Send className="w-12 h-12 text-muted-foreground mx-auto mb-4 opacity-50" />
+              <p className="text-muted-foreground mb-4">
+                {searchQuery ? "No drafts found matching your search" : "No drafts yet. Generate a follow-up from a lead."}
+              </p>
+              {!searchQuery && (
+                <p className="text-sm text-muted-foreground">
+                  Go to the Leads page and click "Generate Follow-up" on any lead to create your first draft.
+                </p>
+              )}
+            </div>
+          ) : (
+            filteredAndSortedDrafts.map((draft) => {
+              const priorityColor = getPriorityColor(draft.priority);
+              const toneColor = getToneColor(draft.tone);
+
+              return (
+                <div
+                  key={draft.id}
+                  className="card-elevated p-5 hover:border-accent/40 transition-all cursor-pointer group"
+                  onClick={() => handleDraftClick(draft)}
+                >
+                  <div className="space-y-4">
+                    {/* Header */}
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-2">
+                          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-violet-500 flex items-center justify-center text-white font-semibold text-sm shrink-0">
+                            {draft.toName.split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase()}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <h3 className="font-semibold text-foreground truncate">{draft.toName}</h3>
+                            <p className="text-sm text-muted-foreground truncate">{draft.company}</p>
+                          </div>
+                        </div>
+                        <p className="text-sm font-medium text-foreground line-clamp-1 mb-1">
+                          {draft.subject}
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-1.5 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleReview(draft.id);
+                          }}
+                          className={cn(
+                            "p-1.5 rounded hover:bg-muted transition-colors",
+                            draft.status === "reviewed" && "text-green-400"
+                          )}
+                          title={draft.status === "reviewed" ? "Mark as draft" : "Mark as reviewed"}
+                        >
+                          <CheckCircle2 className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleArchive(draft.id);
+                          }}
+                          className="p-1.5 rounded hover:bg-muted transition-colors"
+                          title="Archive"
+                        >
+                          <Archive className="w-4 h-4 text-muted-foreground" />
+                        </button>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDelete(draft.id);
+                          }}
+                          className="p-1.5 rounded hover:bg-muted transition-colors"
+                          title="Delete"
+                        >
+                          <Trash2 className="w-4 h-4 text-muted-foreground" />
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Draft Preview */}
+                    <div className="p-3 rounded-lg bg-muted/30 border border-border">
+                      <p className="text-sm text-muted-foreground line-clamp-3">
+                        {draft.draft.split('\n').slice(0, 3).join(' ')}
+                      </p>
+                    </div>
+
+                    {/* Metadata */}
+                    <div className="flex items-center justify-between flex-wrap gap-2">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className={cn(
+                          "inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium border",
+                          priorityColor
+                        )}>
+                          <AlertCircle className="w-3 h-3" />
+                          {draft.priority}
+                        </span>
+                        <span className={cn(
+                          "inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium border",
+                          toneColor
+                        )}>
+                          {draft.tone}
+                        </span>
+                        {draft.tags?.map((tag, i) => (
+                          <span
+                            key={i}
+                            className="text-xs px-2 py-0.5 rounded bg-muted text-muted-foreground"
+                          >
+                            {tag}
+                          </span>
+                        ))}
+                      </div>
+                      <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                        <div className="flex items-center gap-1">
+                          <TrendingUp className="w-3 h-3" />
+                          <span>{draft.confidence}%</span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <Clock className="w-3 h-3" />
+                          <span>{draft.createdAt}</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* AI Reason */}
+                    <div className="p-2 rounded-md bg-accent/5 border border-accent/10">
+                      <div className="flex items-start gap-2">
+                        <Sparkles className="w-3.5 h-3.5 text-accent shrink-0 mt-0.5" />
+                        <p className="text-xs text-accent font-medium">{draft.reason}</p>
+                      </div>
+                    </div>
+
+                    {/* Actions */}
+                    <div className="flex items-center gap-2 pt-2 border-t border-border">
+                      <Button
+                        variant="accent"
+                        size="sm"
+                        className="flex-1 gap-2"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDraftClick(draft);
+                        }}
+                      >
+                        <Send className="w-4 h-4" />
+                        Review & Send
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDraftClick(draft);
+                        }}
+                      >
+                        <Edit3 className="w-4 h-4" />
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          navigator.clipboard.writeText(draft.draft);
+                          toast.success("Draft copied to clipboard");
+                        }}
+                      >
+                        <Copy className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              );
+            })
+          )}
+        </div>
+      </div>
+
+      {/* Email Preview Panel */}
+      {selectedDraft && (
+        <EmailPreviewPanel
+          isOpen={isPreviewOpen}
+          onClose={() => {
+            setIsPreviewOpen(false);
+            setSelectedDraft(null);
+          }}
+          onSend={() => handleSend(selectedDraft)}
+          email={{
+            to: selectedDraft.to,
+            subject: selectedDraft.subject,
+            draft: selectedDraft.draft,
+            reason: selectedDraft.reason,
+            company: selectedDraft.company,
+          }}
+        />
+      )}
+
+      {/* Overlay when panel is open */}
+      {isPreviewOpen && (
+        <div 
+          className="fixed inset-0 bg-foreground/10 z-40"
+          onClick={() => {
+            setIsPreviewOpen(false);
+            setSelectedDraft(null);
+          }}
+        />
+      )}
+    </DashboardLayout>
+  );
+};
+
+export default Drafts;
+
+
+

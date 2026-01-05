@@ -1,0 +1,157 @@
+/* InboxIQ Design System - Purple/Black Futuristic Hi-Fi */
+
+/* Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* =========================
+   BASE LAYER
+   ========================= */
+@layer base {
+  :root {
+    --background: 265 30% 4%;
+    --foreground: 270 20% 92%;
+
+    --card: 265 35% 8%;
+    --card-foreground: 270 20% 92%;
+
+    --popover: 265 35% 8%;
+    --popover-foreground: 270 20% 92%;
+
+    --primary: 275 85% 55%;
+    --primary-foreground: 265 30% 4%;
+
+    --secondary: 270 40% 12%;
+    --secondary-foreground: 270 20% 85%;
+
+    --muted: 265 35% 10%;
+    --muted-foreground: 270 15% 50%;
+
+    --accent: 285 90% 58%;
+    --accent-foreground: 265 30% 4%;
+
+    --destructive: 0 80% 50%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 270 40% 15%;
+    --input: 270 40% 12%;
+    --ring: 275 85% 55%;
+
+    --radius: 0.75rem;
+
+    --status-hot: 330 100% 65%;
+    --status-hot-bg: 330 100% 15%;
+    --status-warm: 45 100% 55%;
+    --status-warm-bg: 45 100% 12%;
+    --status-cold: 200 80% 55%;
+    --status-cold-bg: 200 80% 12%;
+    --status-risk: 0 85% 60%;
+    --status-risk-bg: 0 85% 12%;
+    --status-success: 160 100% 45%;
+    --status-success-bg: 160 100% 12%;
+
+    --sidebar-background: 265 40% 3%;
+    --sidebar-foreground: 270 20% 75%;
+    --sidebar-primary: 285 90% 58%;
+    --sidebar-primary-foreground: 265 30% 4%;
+    --sidebar-accent: 270 45% 10%;
+    --sidebar-accent-foreground: 270 20% 92%;
+    --sidebar-border: 270 40% 12%;
+    --sidebar-ring: 285 90% 58%;
+
+    --gradient-primary: linear-gradient(135deg, hsl(275 85% 55%), hsl(310 90% 50%));
+    --gradient-accent: linear-gradient(135deg, hsl(285 90% 58%), hsl(220 90% 55%));
+    --gradient-card: linear-gradient(180deg, hsl(265 35% 10%), hsl(265 40% 5%));
+    --gradient-glow: radial-gradient(ellipse at center, hsl(285 90% 58% / 0.1), transparent 70%);
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  html {
+    font-family: 'Space Grotesk', 'Inter', system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    background-image: var(--gradient-glow);
+    background-attachment: fixed;
+  }
+}
+
+/* =========================
+   COMPONENTS
+   ========================= */
+@layer components {
+  .card-elevated {
+    @apply bg-card rounded-xl border border-border;
+    background-image: var(--gradient-card);
+  }
+
+  .card-interactive {
+    @apply card-elevated transition-all duration-300 hover:-translate-y-0.5;
+  }
+
+  .text-gradient {
+    @apply bg-clip-text text-transparent;
+    background-image: linear-gradient(135deg, hsl(275 85% 55%), hsl(310 90% 50%), hsl(275 85% 55%));
+    background-size: 200% auto;
+  }
+
+  .glass {
+    @apply bg-card/60 backdrop-blur-xl border border-border/50;
+  }
+}
+
+/* =========================
+   UTILITIES
+   ========================= */
+@layer utilities {
+  .animate-fade-in {
+    animation: fade-in 0.4s ease-out forwards;
+  }
+
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+      transform: translateY(12px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes shimmer {
+    0% {
+      background-position: 0% 50%;
+    }
+    50% {
+      background-position: 100% 50%;
+    }
+    100% {
+      background-position: 0% 50%;
+    }
+  }
+
+  .animate-shimmer {
+    background-size: 200% auto;
+    animation: shimmer 3s linear infinite;
+  }
+
+  /* 3D Transform Utilities */
+  .preserve-3d {
+    transform-style: preserve-3d;
+  }
+
+  .perspective-1000 {
+    perspective: 1000px;
+  }
+}

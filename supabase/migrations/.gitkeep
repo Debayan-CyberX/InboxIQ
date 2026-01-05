@@ -1,0 +1,16 @@
+# Migrations Directory
+
+Place your migration files here with the naming convention:
+YYYYMMDDHHMMSS_description.sql
+
+Example:
+20240115120000_add_email_tracking.sql
+
+
+
+
+
+
+
+
+

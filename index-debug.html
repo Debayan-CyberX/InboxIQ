@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>InboxAI Assistant - Debug</title>
+  </head>
+  <body>
+    <div id="root">
+      <div style="padding: 2rem; font-family: system-ui; background: #000; color: #0f0;">
+        <h1>HTML Loaded - Waiting for React...</h1>
+        <p>If you see this, HTML is working but React hasn't loaded yet.</p>
+        <p id="status">Checking...</p>
+      </div>
+    </div>
+    
+    <script>
+      // Inline script to verify JavaScript works
+      console.log("✅ Inline script executed");
+      document.getElementById('status').textContent = 'JavaScript is working!';
+      
+      // Check if root element exists
+      const root = document.getElementById('root');
+      console.log("Root element:", root);
+      
+      // Monitor for errors
+      window.addEventListener('error', function(e) {
+        console.error('Global error:', e.error, e.filename, e.lineno);
+        document.getElementById('root').innerHTML = `
+          <div style="padding: 2rem; font-family: system-ui; background: #1f2937; color: #ef4444;">
+            <h1>JavaScript Error Detected</h1>
+            <p><strong>Message:</strong> ${e.message}</p>
+            <p><strong>File:</strong> ${e.filename}</p>
+            <p><strong>Line:</strong> ${e.lineno}</p>
+            <pre style="background: #000; padding: 1rem; border-radius: 0.5rem; overflow: auto;">${e.error?.stack || e.error}</pre>
+          </div>
+        `;
+      });
+      
+      // Monitor for unhandled promise rejections
+      window.addEventListener('unhandledrejection', function(e) {
+        console.error('Unhandled promise rejection:', e.reason);
+        document.getElementById('root').innerHTML = `
+          <div style="padding: 2rem; font-family: system-ui; background: #1f2937; color: #ef4444;">
+            <h1>Promise Rejection</h1>
+            <pre style="background: #000; padding: 1rem; border-radius: 0.5rem; overflow: auto;">${e.reason}</pre>
+          </div>
+        `;
+      });
+    </script>
+    
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
+
+
+
+
+
+
+
+
+
