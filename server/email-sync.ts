@@ -227,7 +227,7 @@ export async function syncGmailEmails(
     const oauth2Client = new google.auth.OAuth2(
       googleClientId,
       googleClientSecret,
-      `${process.env.BETTER_AUTH_URL || process.env.VITE_BETTER_AUTH_URL || "https://inboxiq-qq72.onrender.com"}/api/email-connections/callback?provider=gmail`
+      `${process.env.BETTER_AUTH_URL || process.env.VITE_BETTER_AUTH_URL || "http://localhost:3001"}/api/email-connections/callback?provider=gmail`
     );
 
     oauth2Client.setCredentials({

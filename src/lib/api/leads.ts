@@ -203,7 +203,7 @@ export const leadsApi = {
 
   // Detect leads from email threads
   async detectLeads(betterAuthUserId: string): Promise<{ success: boolean; leadsCreated: number; threadsUpdated: number }> {
-    const authServerUrl = import.meta.env.VITE_BETTER_AUTH_URL || "https://inboxiq-qq72.onrender.com";
+    const authServerUrl = import.meta.env.VITE_BETTER_AUTH_URL || "http://localhost:3001";
 
     const response = await fetch(`${authServerUrl}/api/leads/detect`, {
       method: "POST",
@@ -255,7 +255,7 @@ export const leadsApi = {
 
   // Generate AI follow-up for a lead
   async generateFollowUp(leadId: string, betterAuthUserId: string): Promise<{ id: string; subject: string; body: string }> {
-    const authServerUrl = import.meta.env.VITE_BETTER_AUTH_URL || "https://inboxiq-qq72.onrender.com";
+    const authServerUrl = import.meta.env.VITE_BETTER_AUTH_URL || "http://localhost:3001";
 
     const response = await fetch(`${authServerUrl}/api/leads/${leadId}/generate-followup`, {
       method: "POST",

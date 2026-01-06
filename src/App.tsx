@@ -38,9 +38,7 @@ const App = () => {
                   <Route path="/test" element={<Test />} />
                   
                   {/* Protected routes */}
-                  <Route
-                    path="/dashboard"
-                    element={
+                  <Route path="/dashboard" element={
                       <ProtectedRoute>
                         <Index />
                       </ProtectedRoute>

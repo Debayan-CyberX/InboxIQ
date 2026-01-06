@@ -1,3 +1,5 @@
+// Express server for Better Auth API routes
+// Run this server alongside your Vite dev server
 import dotenv from "dotenv";
 import express, { Request as ExpressRequest, Response as ExpressResponse } from "express";
 import cors from "cors";
@@ -7,40 +9,47 @@ import { detectLeadsFromEmailThreads } from "./lead-detection.js";
 import { generateFollowUpForLead } from "./ai-followup.js";
 import { updateAllLeadsContactInfo } from "./update-lead-contact.js";
 
-dotenv.config();
+// Load .env.local file (dotenv by default loads .env, but we want .env.local)
+dotenv.config({ path: ".env.local" });
+dotenv.config(); // Also load .env if it exists (lower priority)
 
 const app = express();
-const PORT = process.env.PORT || process.env.AUTH_PORT || 3001;
+const PORT = process.env.AUTH_PORT || 3001;
+const VITE_PORT = process.env.VITE_PORT || 8081;
 
-// CORS
+// Middleware - CORS configuration for development and production
+const productionFrontendUrl = "https://inboxiq-psi.vercel.app";
 const allowedOrigins = [
+  // Development URLs
   "http://localhost:8080",
   "http://localhost:8081",
   "http://localhost:5173",
   "http://127.0.0.1:8080",
   "http://127.0.0.1:8081",
   "http://127.0.0.1:5173",
-  process.env.FRONTEND_URL,
+  `http://localhost:${VITE_PORT}`,
+  // Production URLs
+  productionFrontendUrl,
+  process.env.VITE_APP_URL || process.env.FRONTEND_URL || productionFrontendUrl
 ].filter(Boolean);
 
-app.use(
-  cors({
-    origin: (origin, callback) => {
-      if (!origin) return callback(null, true);
-      if (allowedOrigins.includes(origin)) {
-        return callback(null, true);
-      }
-      console.error("❌ CORS blocked:", origin);
-      return callback(new Error("Not allowed by CORS"));
-    },
-    credentials: true,
-    methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization", "Cookie"],
-  })
-);
-
+app.use(cors({
+  origin: (origin, callback) => {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+    
+    if (allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      console.warn(`⚠️ Blocked CORS request from: ${origin}`);
+      callback(new Error("Not allowed by CORS"));
+    }
+  },
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization", "Cookie"],
+}));
 app.use(express.json());
-
 
 // Convert Express request to Web API Request for Better Auth
 async function expressToWebRequest(req: ExpressRequest): Promise<Request> {
@@ -285,7 +294,9 @@ app.get("/api/email-connections/oauth/:provider", async (req, res) => {
 
       // Gmail OAuth URL
       const scopes = encodeURIComponent("https://www.googleapis.com/auth/gmail.readonly https://www.googleapis.com/auth/gmail.send");
-      const authServerUrl = process.env.BETTER_AUTH_URL || process.env.VITE_BETTER_AUTH_URL || "https://inboxiq-qq72.onrender.com";
+      const productionBackendUrl = "https://inboxiq-qq72.onrender.com";
+      const authServerUrl = process.env.BETTER_AUTH_URL || process.env.VITE_BETTER_AUTH_URL || 
+        (process.env.NODE_ENV === "production" ? productionBackendUrl : "http://localhost:3001");
       const redirect = `${authServerUrl}/api/email-connections/callback?provider=gmail`;
       authUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${googleClientId}&redirect_uri=${encodeURIComponent(redirect)}&response_type=code&scope=${scopes}&access_type=offline&prompt=consent&state=${userId}`;
     } else if (provider === "outlook") {
@@ -298,7 +309,10 @@ app.get("/api/email-connections/oauth/:provider", async (req, res) => {
 
       // Outlook OAuth URL
       const scopes = encodeURIComponent("https://graph.microsoft.com/Mail.Read https://graph.microsoft.com/Mail.Send offline_access");
-      const redirect = `${process.env.FRONTEND_URL}/api/email-connections/callback?provider=outlook`;
+      const productionBackendUrl = "https://inboxiq-qq72.onrender.com";
+      const authServerUrl = process.env.BETTER_AUTH_URL || process.env.VITE_BETTER_AUTH_URL || 
+        (process.env.NODE_ENV === "production" ? productionBackendUrl : "http://localhost:3001");
+      const redirect = `${authServerUrl}/api/email-connections/callback?provider=outlook`;
       authUrl = `https://login.microsoftonline.com/common/oauth2/v2.0/authorize?client_id=${outlookClientId}&response_type=code&redirect_uri=${encodeURIComponent(redirect)}&response_mode=query&scope=${scopes}&state=${userId}`;
     } else {
       return res.status(400).json({ error: "Unsupported provider", supported: ["gmail", "outlook"] });
@@ -323,8 +337,10 @@ app.get("/api/email-connections/callback", async (req, res) => {
   try {
     const { code, state, error: oauthError } = req.query;
 
-    // Get frontend URL from environment (default to port 8081)
-    const frontendUrl = process.env.FRONTEND_URL;
+    // Get frontend URL from environment (production or development)
+    const productionFrontendUrl = "https://inboxiq-psi.vercel.app";
+    const frontendUrl = process.env.FRONTEND_URL || process.env.VITE_APP_URL || 
+      (process.env.NODE_ENV === "production" ? productionFrontendUrl : "http://localhost:8081");
 
     if (oauthError) {
       // Redirect back to settings with error
@@ -352,7 +368,9 @@ app.get("/api/email-connections/callback", async (req, res) => {
     if (provider === "gmail") {
       const googleClientId = process.env.GOOGLE_CLIENT_ID;
       const googleClientSecret = process.env.GOOGLE_CLIENT_SECRET;
-      const authServerUrl = process.env.BETTER_AUTH_URL || process.env.VITE_BETTER_AUTH_URL || "https://inboxiq-qq72.onrender.com";
+      const productionBackendUrl = "https://inboxiq-qq72.onrender.com";
+      const authServerUrl = process.env.BETTER_AUTH_URL || process.env.VITE_BETTER_AUTH_URL || 
+        (process.env.NODE_ENV === "production" ? productionBackendUrl : "http://localhost:3001");
       const redirectUri = `${authServerUrl}/api/email-connections/callback?provider=gmail`;
 
       if (!googleClientId || !googleClientSecret) {
@@ -379,7 +397,7 @@ app.get("/api/email-connections/callback", async (req, res) => {
       if (!tokenResponse.ok) {
         const errorText = await tokenResponse.text();
         console.error("❌ Token exchange failed:", errorText);
-        const redirectUrl = `${process.env.FRONTEND_URL}/settings?tab=email&error=${encodeURIComponent("Failed to exchange authorization code")}`;
+        const redirectUrl = `${process.env.VITE_APP_URL || "http://localhost:8080"}/settings?tab=email&error=${encodeURIComponent("Failed to exchange authorization code")}`;
         return res.redirect(redirectUrl);
       }
 
@@ -424,7 +442,7 @@ app.get("/api/email-connections/callback", async (req, res) => {
     } else if (provider === "outlook") {
       const outlookClientId = process.env.OUTLOOK_CLIENT_ID;
       const outlookClientSecret = process.env.OUTLOOK_CLIENT_SECRET;
-      const authServerUrl = process.env.BETTER_AUTH_URL || process.env.VITE_BETTER_AUTH_URL || "https://inboxiq-qq72.onrender.com";
+      const authServerUrl = process.env.BETTER_AUTH_URL || process.env.VITE_BETTER_AUTH_URL || "http://localhost:3001";
       const redirectUri = `${authServerUrl}/api/email-connections/callback?provider=outlook`;
 
       if (!outlookClientId || !outlookClientSecret) {
@@ -451,7 +469,7 @@ app.get("/api/email-connections/callback", async (req, res) => {
       if (!tokenResponse.ok) {
         const errorText = await tokenResponse.text();
         console.error("❌ Token exchange failed:", errorText);
-        const redirectUrl = `${process.env.FRONTEND_URL}/settings?tab=email&error=${encodeURIComponent("Failed to exchange authorization code")}`;
+        const redirectUrl = `${process.env.VITE_APP_URL || "http://localhost:8080"}/settings?tab=email&error=${encodeURIComponent("Failed to exchange authorization code")}`;
         return res.redirect(redirectUrl);
       }
 
@@ -558,7 +576,7 @@ app.get("/api/email-connections/callback", async (req, res) => {
     }
   } catch (error) {
     console.error("❌ OAuth callback error:", error);
-    const frontendUrl = process.env.FRONTEND_URL;
+    const frontendUrl = process.env.FRONTEND_URL || process.env.VITE_APP_URL || "http://localhost:8081";
     const redirectUrl = `${frontendUrl}/settings?tab=email&error=${encodeURIComponent(error instanceof Error ? error.message : "Unknown error")}`;
     console.log("🔀 Redirecting to:", redirectUrl);
     return res.redirect(redirectUrl);
@@ -778,7 +796,7 @@ app.post("/api/leads/detect", async (req, res) => {
   try {
     // Get session from Better Auth
     // Create a proper request object with all required fields
-    const baseUrl = process.env.FRONTEND_URL;
+    const baseUrl = process.env.FRONTEND_URL || process.env.VITE_APP_URL || "http://localhost:8081";
     const authServerUrl = process.env.BETTER_AUTH_URL || process.env.VITE_BETTER_AUTH_URL || `http://localhost:${PORT}`;
     const sessionUrl = `${authServerUrl}/api/auth/get-session`;
     
@@ -969,7 +987,7 @@ app.post("/gmail/sync", async (req, res) => {
       const { google } = await import("googleapis");
       const googleClientId = process.env.GOOGLE_CLIENT_ID;
       const googleClientSecret = process.env.GOOGLE_CLIENT_SECRET;
-      const authServerUrl = process.env.BETTER_AUTH_URL || process.env.VITE_BETTER_AUTH_URL || "https://inboxiq-qq72.onrender.com";
+      const authServerUrl = process.env.BETTER_AUTH_URL || process.env.VITE_BETTER_AUTH_URL || "http://localhost:3001";
       const redirectUri = `${authServerUrl}/api/email-connections/callback?provider=gmail`;
 
       if (!googleClientId || !googleClientSecret) {
