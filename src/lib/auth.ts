@@ -6,6 +6,10 @@ import { prismaAdapter } from "better-auth/adapters/prisma";
 // Better Auth configuration
 // See: https://www.better-auth.com/docs/configuration
 export const auth = betterAuth({
+  cookies: {
+  secure: true,
+  sameSite: "none",
+},
   database: {
     // You can use Supabase PostgreSQL with Better Auth
     // For now, using in-memory (development only)
@@ -31,7 +35,8 @@ export const auth = betterAuth({
 });
 
 // React client for Better Auth
-export const authClient = auth.$client;
+// `authClient` is created in `src/lib/auth-client.ts` for React usage.
+// The server-side `auth` object does not expose a `$client` property.
 
 
 

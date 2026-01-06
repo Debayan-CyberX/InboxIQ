@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "start": "tsx server/index.ts",
     "dev:auth": "tsx server/index.ts",
     "dev:all": "concurrently \"npm run dev\" \"npm run dev:auth\"",
     "build": "vite build",
