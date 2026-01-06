@@ -53,7 +53,7 @@ AND table_name = 'email_connections';
 3. Click on your **OAuth 2.0 Client ID**
 4. Under **Authorized redirect URIs**, add:
    ```
-   https://inboxiq-psi.vercel.app/api/email-connections/callback?provider=gmail
+   https://inboxiq-qq72.onrender.com/api/email-connections/callback?provider=gmail
    ```
 5. **Remove** any old redirect URI that points to `/settings?tab=email`
 6. Click **Save**
@@ -79,7 +79,7 @@ AND table_name = 'email_connections';
    ```
 
 3. **Verify it's running**
-   - Should see: `✅ Better Auth server running on https://inboxiq-psi.vercel.app`
+   - Should see: `✅ Better Auth server running on https://inboxiq-qq72.onrender.com`
    - Check for any error messages
 
 ---
@@ -186,7 +186,7 @@ SELECT p.proname FROM pg_proc p WHERE p.proname = 'get_user_email_connections';
 
 **Check 4: Redirect URI**
 - Must match exactly in Google Cloud Console:
-  - `https://inboxiq-psi.vercel.app/api/email-connections/callback?provider=gmail`
+  - `https://inboxiq-qq72.onrender.com/api/email-connections/callback?provider=gmail`
 - Check for typos or extra spaces
 
 ### If You See Database Connection Errors

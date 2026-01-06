@@ -278,7 +278,7 @@ app.get("/api/email-connections/oauth/:provider", async (req, res) => {
 
       // Gmail OAuth URL
       const scopes = encodeURIComponent("https://www.googleapis.com/auth/gmail.readonly https://www.googleapis.com/auth/gmail.send");
-      const authServerUrl = process.env.BETTER_AUTH_URL || process.env.VITE_BETTER_AUTH_URL || "https://inboxiq-psi.vercel.app";
+      const authServerUrl = process.env.BETTER_AUTH_URL || process.env.VITE_BETTER_AUTH_URL || "https://inboxiq-qq72.onrender.com";
       const redirect = `${authServerUrl}/api/email-connections/callback?provider=gmail`;
       authUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${googleClientId}&redirect_uri=${encodeURIComponent(redirect)}&response_type=code&scope=${scopes}&access_type=offline&prompt=consent&state=${userId}`;
     } else if (provider === "outlook") {
@@ -345,7 +345,7 @@ app.get("/api/email-connections/callback", async (req, res) => {
     if (provider === "gmail") {
       const googleClientId = process.env.GOOGLE_CLIENT_ID;
       const googleClientSecret = process.env.GOOGLE_CLIENT_SECRET;
-      const authServerUrl = process.env.BETTER_AUTH_URL || process.env.VITE_BETTER_AUTH_URL || "https://inboxiq-psi.vercel.app";
+      const authServerUrl = process.env.BETTER_AUTH_URL || process.env.VITE_BETTER_AUTH_URL || "https://inboxiq-qq72.onrender.com";
       const redirectUri = `${authServerUrl}/api/email-connections/callback?provider=gmail`;
 
       if (!googleClientId || !googleClientSecret) {
@@ -417,7 +417,7 @@ app.get("/api/email-connections/callback", async (req, res) => {
     } else if (provider === "outlook") {
       const outlookClientId = process.env.OUTLOOK_CLIENT_ID;
       const outlookClientSecret = process.env.OUTLOOK_CLIENT_SECRET;
-      const authServerUrl = process.env.BETTER_AUTH_URL || process.env.VITE_BETTER_AUTH_URL || "https://inboxiq-psi.vercel.app";
+      const authServerUrl = process.env.BETTER_AUTH_URL || process.env.VITE_BETTER_AUTH_URL || "https://inboxiq-qq72.onrender.com";
       const redirectUri = `${authServerUrl}/api/email-connections/callback?provider=outlook`;
 
       if (!outlookClientId || !outlookClientSecret) {
@@ -962,7 +962,7 @@ app.post("/gmail/sync", async (req, res) => {
       const { google } = await import("googleapis");
       const googleClientId = process.env.GOOGLE_CLIENT_ID;
       const googleClientSecret = process.env.GOOGLE_CLIENT_SECRET;
-      const authServerUrl = process.env.BETTER_AUTH_URL || process.env.VITE_BETTER_AUTH_URL || "https://inboxiq-psi.vercel.app";
+      const authServerUrl = process.env.BETTER_AUTH_URL || process.env.VITE_BETTER_AUTH_URL || "https://inboxiq-qq72.onrender.com";
       const redirectUri = `${authServerUrl}/api/email-connections/callback?provider=gmail`;
 
       if (!googleClientId || !googleClientSecret) {

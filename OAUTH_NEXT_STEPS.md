@@ -60,10 +60,10 @@ http://localhost:8080/settings?tab=email&provider=gmail
 3. **Verify it's running:**
    You should see:
    ```
-   ✅ Better Auth server running on https://inboxiq-psi.vercel.app
-   📡 Auth API available at https://inboxiq-psi.vercel.app/api/auth
-   📧 Email API available at https://inboxiq-psi.vercel.app/api/emails/send
-   🔗 Email Connections API available at https://inboxiq-psi.vercel.app/api/email-connections
+   ✅ Better Auth server running on https://inboxiq-qq72.onrender.com
+   📡 Auth API available at https://inboxiq-qq72.onrender.com/api/auth
+   📧 Email API available at https://inboxiq-qq72.onrender.com/api/emails/send
+   🔗 Email Connections API available at https://inboxiq-qq72.onrender.com/api/email-connections
    ```
 
 ---

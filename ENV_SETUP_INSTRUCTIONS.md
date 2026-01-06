@@ -36,7 +36,7 @@ After updating `.env.local`:
 
 You should now see:
 ```
-✅ Better Auth server running on https://inboxiq-psi.vercel.app
+✅ Better Auth server running on https://inboxiq-qq72.onrender.com
 ```
 
 **No more DATABASE_URL warnings!** ✅

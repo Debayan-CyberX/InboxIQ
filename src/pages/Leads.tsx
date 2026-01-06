@@ -70,7 +70,7 @@ const Leads = () => {
         // Update contact info first to ensure accurate days_since_contact
         // This recalculates based on outgoing emails only
         try {
-          const authServerUrl = import.meta.env.VITE_BETTER_AUTH_URL || "https://inboxiq-psi.vercel.app";
+          const authServerUrl = import.meta.env.VITE_BETTER_AUTH_URL || "https://inboxiq-qq72.onrender.com";
           await fetch(`${authServerUrl}/api/leads/update-contact-info`, {
             method: "POST",
             credentials: "include",

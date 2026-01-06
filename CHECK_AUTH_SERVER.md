@@ -10,15 +10,15 @@ npm run dev:auth
 
 You should see:
 ```
-✅ Better Auth server running on https://inboxiq-psi.vercel.app
-📡 Auth API available at https://inboxiq-psi.vercel.app/api/auth
+✅ Better Auth server running on https://inboxiq-qq72.onrender.com
+📡 Auth API available at https://inboxiq-qq72.onrender.com/api/auth
 ```
 
 ## Step 2: Test the Server
 
 Open your browser and go to:
 ```
-https://inboxiq-psi.vercel.app/health
+https://inboxiq-qq72.onrender.com/health
 ```
 
 You should see:
@@ -33,7 +33,7 @@ If you see this, the server is working! ✅
 Make sure `.env.local` exists and has:
 
 ```env
-VITE_BETTER_AUTH_URL=https://inboxiq-psi.vercel.app
+VITE_BETTER_AUTH_URL=https://inboxiq-qq72.onrender.com
 ```
 
 ## Step 4: Restart Vite Server
@@ -53,7 +53,7 @@ After setting environment variables:
 - Auth server not running OR wrong URL
 - **Fix:** 
   1. Start auth server: `npm run dev:auth`
-  2. Check `.env.local` has `VITE_BETTER_AUTH_URL=https://inboxiq-psi.vercel.app`
+  2. Check `.env.local` has `VITE_BETTER_AUTH_URL=https://inboxiq-qq72.onrender.com`
   3. Restart Vite server
 
 ### Port 3001 already in use

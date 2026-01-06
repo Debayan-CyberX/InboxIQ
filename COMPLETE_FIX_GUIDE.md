@@ -90,7 +90,7 @@ npm run dev:auth
    - Click your OAuth 2.0 Client ID
    - Add to **Authorized redirect URIs**:
      ```
-     https://inboxiq-psi.vercel.app/api/email-connections/callback?provider=gmail
+     https://inboxiq-qq72.onrender.com/api/email-connections/callback?provider=gmail
      ```
    - **Save**
 

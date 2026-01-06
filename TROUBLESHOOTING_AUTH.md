@@ -13,8 +13,8 @@ npm run dev:auth
 
 You should see:
 ```
-✅ Better Auth server running on https://inboxiq-psi.vercel.app
-📡 Auth API available at https://inboxiq-psi.vercel.app/api/auth
+✅ Better Auth server running on https://inboxiq-qq72.onrender.com
+📡 Auth API available at https://inboxiq-qq72.onrender.com/api/auth
 ```
 
 **Fix:** Start the auth server in a separate terminal.
@@ -25,12 +25,12 @@ You should see:
 
 In `.env.local`:
 ```env
-VITE_BETTER_AUTH_URL=https://inboxiq-psi.vercel.app
+VITE_BETTER_AUTH_URL=https://inboxiq-qq72.onrender.com
 ```
 
 **Fix:** 
 1. Create/update `.env.local` file
-2. Add `VITE_BETTER_AUTH_URL=https://inboxiq-psi.vercel.app`
+2. Add `VITE_BETTER_AUTH_URL=https://inboxiq-qq72.onrender.com`
 3. Restart Vite dev server
 
 ### 3. Port Conflict
@@ -72,7 +72,7 @@ DATABASE_URL=postgresql://postgres:password@db.xxxxx.supabase.co:5432/postgres
 
 1. **Check if auth server is running:**
    ```bash
-   curl https://inboxiq-psi.vercel.app/health
+   curl https://inboxiq-qq72.onrender.com/health
    ```
    Should return: `{"status":"ok","service":"better-auth"}`
 
@@ -94,13 +94,13 @@ DATABASE_URL=postgresql://postgres:password@db.xxxxx.supabase.co:5432/postgres
    ```
 
 2. **Verify it's running:**
-   - Open `https://inboxiq-psi.vercel.app/health` in browser
+   - Open `https://inboxiq-qq72.onrender.com/health` in browser
    - Should see `{"status":"ok"}`
 
 3. **Check environment variables:**
    ```bash
    # Make sure .env.local exists and has:
-   VITE_BETTER_AUTH_URL=https://inboxiq-psi.vercel.app
+   VITE_BETTER_AUTH_URL=https://inboxiq-qq72.onrender.com
    ```
 
 4. **Restart Vite server:**

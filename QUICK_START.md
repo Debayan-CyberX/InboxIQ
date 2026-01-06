@@ -21,8 +21,8 @@ VITE_SUPABASE_URL=https://your-project.supabase.co
 VITE_SUPABASE_ANON_KEY=your-anon-key
 
 # Better Auth
-VITE_BETTER_AUTH_URL=https://inboxiq-psi.vercel.app
-BETTER_AUTH_URL=https://inboxiq-psi.vercel.app
+VITE_BETTER_AUTH_URL=https://inboxiq-qq72.onrender.com
+BETTER_AUTH_URL=https://inboxiq-qq72.onrender.com
 BETTER_AUTH_SECRET=your-32-character-secret-key-here
 
 # Database

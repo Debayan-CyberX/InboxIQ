@@ -74,8 +74,8 @@ After updating `.env.local`:
 
 The auth server should now show:
 ```
-✅ Better Auth server running on https://inboxiq-psi.vercel.app
-📡 Auth API available at https://inboxiq-psi.vercel.app/api/auth
+✅ Better Auth server running on https://inboxiq-qq72.onrender.com
+📡 Auth API available at https://inboxiq-qq72.onrender.com/api/auth
 ```
 
 **No more warnings about DATABASE_URL!** ✅
@@ -88,8 +88,8 @@ VITE_SUPABASE_URL=https://iqfbjamdwnkbxattpqbw.supabase.co
 VITE_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 
 # Better Auth
-VITE_BETTER_AUTH_URL=https://inboxiq-psi.vercel.app
-BETTER_AUTH_URL=https://inboxiq-psi.vercel.app
+VITE_BETTER_AUTH_URL=https://inboxiq-qq72.onrender.com
+BETTER_AUTH_URL=https://inboxiq-qq72.onrender.com
 BETTER_AUTH_SECRET=dev-secret-key-for-better-auth-min-32-chars-12345
 
 # Database (REPLACE YOUR_PASSWORD with actual password)

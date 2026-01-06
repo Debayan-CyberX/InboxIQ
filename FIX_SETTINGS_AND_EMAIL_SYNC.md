@@ -58,7 +58,7 @@ If you've already set up Google OAuth, you need to update the redirect URI:
 2. Navigate to **APIs & Services** → **Credentials**
 3. Click on your OAuth 2.0 Client ID
 4. Under **Authorized redirect URIs**, add/update:
-   - `https://inboxiq-psi.vercel.app/api/email-connections/callback?provider=gmail` (development)
+   - `https://inboxiq-qq72.onrender.com/api/email-connections/callback?provider=gmail` (development)
    - `https://your-domain.com/api/email-connections/callback?provider=gmail` (production)
    
    **Note**: The callback URL is on port 3001 (auth server), not 8081 (frontend)
@@ -149,7 +149,7 @@ AND table_name = 'email_connections';
 3. **Check server logs** for OAuth callback errors
 
 4. **Verify redirect URI** in Google Cloud Console matches:
-   - `https://inboxiq-psi.vercel.app/api/email-connections/callback?provider=gmail` (dev)
+   - `https://inboxiq-qq72.onrender.com/api/email-connections/callback?provider=gmail` (dev)
    - Or your production URL
 
 5. **Check browser console** for API errors when loading connections

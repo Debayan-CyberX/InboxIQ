@@ -50,7 +50,7 @@
 3. **Update Authorized Redirect URIs**
    - Under **Authorized redirect URIs**, add:
      ```
-     https://inboxiq-psi.vercel.app/api/email-connections/callback?provider=gmail
+     https://inboxiq-qq72.onrender.com/api/email-connections/callback?provider=gmail
      ```
    - If you have production, also add:
      ```
@@ -77,7 +77,7 @@
    ```
 
 3. **Verify auth server is running**
-   - Should see: `✅ Better Auth server running on https://inboxiq-psi.vercel.app`
+   - Should see: `✅ Better Auth server running on https://inboxiq-qq72.onrender.com`
    - Check terminal for any errors
 
 4. **Restart your frontend** (if needed)
@@ -169,7 +169,7 @@
    - Look for errors when redirecting back from Google
 
 2. **Verify redirect URI** in Google Cloud Console
-   - Must match exactly: `https://inboxiq-psi.vercel.app/api/email-connections/callback?provider=gmail`
+   - Must match exactly: `https://inboxiq-qq72.onrender.com/api/email-connections/callback?provider=gmail`
 
 3. **Check if connection was saved:**
    ```sql

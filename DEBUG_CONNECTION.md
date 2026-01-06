@@ -6,7 +6,7 @@
 
 Open browser and go to:
 ```
-https://inboxiq-psi.vercel.app/health
+https://inboxiq-qq72.onrender.com/health
 ```
 
 Should see: `{"status":"ok","service":"better-auth"}`
@@ -15,7 +15,7 @@ Should see: `{"status":"ok","service":"better-auth"}`
 
 Open browser console (F12) and run:
 ```javascript
-fetch('https://inboxiq-psi.vercel.app/api/test', {
+fetch('https://inboxiq-qq72.onrender.com/api/test', {
   credentials: 'include',
   mode: 'cors'
 })
@@ -64,7 +64,7 @@ Look for incoming requests:
 
 **Fix:** Check `.env.local` has:
 ```env
-VITE_BETTER_AUTH_URL=https://inboxiq-psi.vercel.app
+VITE_BETTER_AUTH_URL=https://inboxiq-qq72.onrender.com
 ```
 
 Then restart Vite server.

@@ -48,7 +48,7 @@ if (databaseUrl) {
 // Better Auth configuration
 // Better Auth accepts Pool directly for PostgreSQL
 export const auth = betterAuth({
-  baseURL: process.env.BETTER_AUTH_URL || process.env.VITE_BETTER_AUTH_URL || "https://inboxiq-psi.vercel.app",
+  baseURL: process.env.BETTER_AUTH_URL || process.env.VITE_BETTER_AUTH_URL || "https://inboxiq-qq72.onrender.com",
   secret: process.env.BETTER_AUTH_SECRET || "change-this-secret-key-in-production-min-32-chars",
   trustedOrigins: [
     "http://localhost:8080",
