@@ -49,12 +49,6 @@ const Landing = () => {
   const { data, isPending } = useSession();
   const session = data?.session;
 
-  if (isPending) return null;
-
-  if (session) {
-  return <Navigate to="/dashboard" replace />;
-}
-
   const containerRef = useRef<HTMLDivElement>(null);
   const heroRef = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({
@@ -75,6 +69,13 @@ const Landing = () => {
     window.addEventListener("mousemove", handleMouseMove);
     return () => window.removeEventListener("mousemove", handleMouseMove);
   }, []);
+
+  if (isPending) return null;
+
+  if (session) {
+  return <Navigate to="/dashboard" replace />;
+}
+
 
   return (
     <div ref={containerRef} className="min-h-screen bg-background overflow-hidden">
