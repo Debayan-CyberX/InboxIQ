@@ -46,7 +46,7 @@ This works right away without any setup, but requires an App Password.
    - **Authorized redirect URIs:** Add these:
      ```
      http://localhost:8080/settings?tab=email&provider=gmail
-     https://inboxiq-qq72.onrender.com/api/email-connections/callback
+     https://api.inboxiq.debx.co.in/api/email-connections/callback
      ```
      (For production, also add your production URL)
    - Click **Create**

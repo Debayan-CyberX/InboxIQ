@@ -17,7 +17,7 @@ The redirect URI in Google Console needs to match the backend callback endpoint:
 1. **Go to Google Cloud Console** → **Credentials** → Your OAuth Client
 2. **Update Authorized redirect URIs** to include:
    ```
-   https://inboxiq-qq72.onrender.com/api/email-connections/callback?provider=gmail
+   https://api.inboxiq.debx.co.in/api/email-connections/callback?provider=gmail
    ```
    (For production, use your production backend URL)
 
@@ -48,7 +48,7 @@ npm run dev:auth
 
 1. **User clicks "Connect Email"** → Selects Gmail
 2. **Redirects to Google** → User authorizes
-3. **Google redirects to:** `https://inboxiq-qq72.onrender.com/api/email-connections/callback?provider=gmail&code=...&state=...`
+3. **Google redirects to:** `https://api.inboxiq.debx.co.in/api/email-connections/callback?provider=gmail&code=...&state=...`
 4. **Backend:**
    - Exchanges code for access/refresh tokens
    - Gets user email from Google

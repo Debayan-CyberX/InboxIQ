@@ -18,7 +18,7 @@ const PORT = process.env.AUTH_PORT || 3001;
 const VITE_PORT = process.env.VITE_PORT || 8081;
 
 // Middleware - CORS configuration for development and production
-const productionFrontendUrl = "https://inboxiq-psi.vercel.app";
+const productionFrontendUrl = "https://inboxiq.debx.co.in";
 const allowedOrigins = [
   // Development URLs
     "http://localhost:8080",
@@ -362,7 +362,7 @@ app.get("/api/email-connections/oauth/:provider", async (req, res) => {
 
       // Gmail OAuth URL
       const scopes = encodeURIComponent("https://www.googleapis.com/auth/gmail.readonly https://www.googleapis.com/auth/gmail.send");
-      const productionBackendUrl = "https://inboxiq-qq72.onrender.com";
+      const productionBackendUrl = "https://api.inboxiq.debx.co.in";
       const authServerUrl = process.env.BETTER_AUTH_URL || process.env.VITE_BETTER_AUTH_URL || 
         (process.env.NODE_ENV === "production" ? productionBackendUrl : "http://localhost:3001");
       const redirect = `${authServerUrl}/api/email-connections/callback?provider=gmail`;
@@ -377,7 +377,7 @@ app.get("/api/email-connections/oauth/:provider", async (req, res) => {
 
       // Outlook OAuth URL
       const scopes = encodeURIComponent("https://graph.microsoft.com/Mail.Read https://graph.microsoft.com/Mail.Send offline_access");
-      const productionBackendUrl = "https://inboxiq-qq72.onrender.com";
+      const productionBackendUrl = "https://api.inboxiq.debx.co.in";
       const authServerUrl = process.env.BETTER_AUTH_URL || process.env.VITE_BETTER_AUTH_URL || 
         (process.env.NODE_ENV === "production" ? productionBackendUrl : "http://localhost:3001");
       const redirect = `${authServerUrl}/api/email-connections/callback?provider=outlook`;
@@ -406,7 +406,7 @@ app.get("/api/email-connections/callback", async (req, res) => {
     const { code, state, error: oauthError } = req.query;
 
     // Get frontend URL from environment (production or development)
-    const productionFrontendUrl = "https://inboxiq-psi.vercel.app";
+    const productionFrontendUrl = "https://inboxiq.debx.co.in";
     const frontendUrl = process.env.FRONTEND_URL || process.env.VITE_APP_URL || 
       (process.env.NODE_ENV === "production" ? productionFrontendUrl : "http://localhost:8081");
 
@@ -436,7 +436,7 @@ app.get("/api/email-connections/callback", async (req, res) => {
     if (provider === "gmail") {
       const googleClientId = process.env.GOOGLE_CLIENT_ID;
       const googleClientSecret = process.env.GOOGLE_CLIENT_SECRET;
-      const productionBackendUrl = "https://inboxiq-qq72.onrender.com";
+      const productionBackendUrl = "https://api.inboxiq.debx.co.in";
       const authServerUrl = process.env.BETTER_AUTH_URL || process.env.VITE_BETTER_AUTH_URL || 
         (process.env.NODE_ENV === "production" ? productionBackendUrl : "http://localhost:3001");
       const redirectUri = `${authServerUrl}/api/email-connections/callback?provider=gmail`;

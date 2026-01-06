@@ -267,7 +267,7 @@ export const emailsApi = {
 
     // Get auth server URL (production or development)
     const authServerUrl = import.meta.env.VITE_BETTER_AUTH_URL || 
-      (import.meta.env.PROD ? "https://inboxiq-qq72.onrender.com" : "http://localhost:3001");
+      (import.meta.env.PROD ? "https://api.inboxiq.debx.co.in" : "http://localhost:3001");
 
     // Send email via backend API
     const response = await fetch(`${authServerUrl}/api/emails/send`, {

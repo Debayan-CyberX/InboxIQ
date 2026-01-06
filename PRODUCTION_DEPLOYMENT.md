@@ -1,8 +1,8 @@
 # Production Deployment Guide
 
 This guide will help you deploy InboxIQ to production with:
-- **Frontend**: Vercel (https://inboxiq-psi.vercel.app)
-- **Backend/Auth**: Render (https://inboxiq-qq72.onrender.com)
+- **Frontend**: Vercel (https://inboxiq.debx.co.in)
+- **Backend/Auth**: Render (https://api.inboxiq.debx.co.in)
 
 ---
 
@@ -16,8 +16,8 @@ This guide will help you deploy InboxIQ to production with:
    ```
    VITE_SUPABASE_URL=https://your-project.supabase.co
    VITE_SUPABASE_ANON_KEY=your-supabase-anon-key
-   VITE_BETTER_AUTH_URL=https://inboxiq-qq72.onrender.com
-   VITE_APP_URL=https://inboxiq-psi.vercel.app
+   VITE_BETTER_AUTH_URL=https://api.inboxiq.debx.co.in
+   VITE_APP_URL=https://inboxiq.debx.co.in
    ```
 
 3. **Redeploy** your frontend (or push a new commit)
@@ -30,9 +30,9 @@ This guide will help you deploy InboxIQ to production with:
 
 2. **Add these variables:**
    ```
-   BETTER_AUTH_URL=https://inboxiq-qq72.onrender.com
+   BETTER_AUTH_URL=https://api.inboxiq.debx.co.in
    BETTER_AUTH_SECRET=your-production-secret-key-min-32-characters
-   FRONTEND_URL=https://inboxiq-psi.vercel.app
+   FRONTEND_URL=https://inboxiq.debx.co.in
    DATABASE_URL=postgresql://postgres:password@db.project.supabase.co:5432/postgres
    NODE_ENV=production
    ```
@@ -62,7 +62,7 @@ If you're using Gmail OAuth:
 2. **Click on your OAuth 2.0 Client ID**
 3. **Add to Authorized redirect URIs:**
    ```
-   https://inboxiq-qq72.onrender.com/api/email-connections/callback?provider=gmail
+   https://api.inboxiq.debx.co.in/api/email-connections/callback?provider=gmail
    ```
 4. **Save** the changes
 
@@ -76,7 +76,7 @@ If you're using Outlook OAuth:
 2. **Go to Authentication**
 3. **Add Redirect URI:**
    ```
-   https://inboxiq-qq72.onrender.com/api/email-connections/callback?provider=outlook
+   https://api.inboxiq.debx.co.in/api/email-connections/callback?provider=outlook
    ```
 4. **Save** the changes
 
@@ -85,12 +85,12 @@ If you're using Outlook OAuth:
 ## ✅ Verify Deployment
 
 ### Test Frontend:
-1. Visit https://inboxiq-psi.vercel.app
+1. Visit https://inboxiq.debx.co.in
 2. Try signing up/signing in
 3. Should redirect to `/dashboard` after successful auth
 
 ### Test Backend:
-1. Visit https://inboxiq-qq72.onrender.com/api/auth/session
+1. Visit https://api.inboxiq.debx.co.in/api/auth/session
 2. Should return JSON (may be empty if not logged in)
 
 ### Test OAuth (if configured):
@@ -137,7 +137,7 @@ If you're using Outlook OAuth:
 **Solution:**
 - Verify redirect URI in Google/Azure matches exactly:
   ```
-  https://inboxiq-qq72.onrender.com/api/email-connections/callback?provider=gmail
+  https://api.inboxiq.debx.co.in/api/email-connections/callback?provider=gmail
   ```
 - Check Render logs for OAuth errors
 - Verify `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` are set correctly
@@ -151,15 +151,15 @@ If you're using Outlook OAuth:
 |----------|------------|---------|
 | `VITE_SUPABASE_URL` | Supabase project URL | `https://xxx.supabase.co` |
 | `VITE_SUPABASE_ANON_KEY` | Supabase anon key | `eyJhbGc...` |
-| `VITE_BETTER_AUTH_URL` | Backend URL | `https://inboxiq-qq72.onrender.com` |
-| `VITE_APP_URL` | Frontend URL | `https://inboxiq-psi.vercel.app` |
+| `VITE_BETTER_AUTH_URL` | Backend URL | `https://api.inboxiq.debx.co.in` |
+| `VITE_APP_URL` | Frontend URL | `https://inboxiq.debx.co.in` |
 
 ### Backend (Render)
 | Variable | Description | Example |
 |----------|------------|---------|
-| `BETTER_AUTH_URL` | Backend URL | `https://inboxiq-qq72.onrender.com` |
+| `BETTER_AUTH_URL` | Backend URL | `https://api.inboxiq.debx.co.in` |
 | `BETTER_AUTH_SECRET` | Auth secret (32+ chars) | `your-secret-key...` |
-| `FRONTEND_URL` | Frontend URL | `https://inboxiq-psi.vercel.app` |
+| `FRONTEND_URL` | Frontend URL | `https://inboxiq.debx.co.in` |
 | `DATABASE_URL` | PostgreSQL connection string | `postgresql://...` |
 | `NODE_ENV` | Environment | `production` |
 | `GOOGLE_CLIENT_ID` | Gmail OAuth client ID | `xxx.apps.googleusercontent.com` |

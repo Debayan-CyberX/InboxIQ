@@ -47,8 +47,8 @@ if (databaseUrl) {
 
 // Better Auth configuration
 // Better Auth accepts Pool directly for PostgreSQL
-const productionFrontendUrl = "https://inboxiq-psi.vercel.app";
-const productionBackendUrl = "https://inboxiq-qq72.onrender.com";
+const productionFrontendUrl = "https://inboxiq.debx.co.in";
+const productionBackendUrl = "https://api.inboxiq.debx.co.in";
 
 export const auth = betterAuth({
   baseURL: process.env.BETTER_AUTH_URL || process.env.VITE_BETTER_AUTH_URL || productionBackendUrl,

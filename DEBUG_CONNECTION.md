@@ -6,7 +6,7 @@
 
 Open browser and go to:
 ```
-https://inboxiq-qq72.onrender.com/health
+https://api.inboxiq.debx.co.in/health
 ```
 
 Should see: `{"status":"ok","service":"better-auth"}`
@@ -15,7 +15,7 @@ Should see: `{"status":"ok","service":"better-auth"}`
 
 Open browser console (F12) and run:
 ```javascript
-fetch('https://inboxiq-qq72.onrender.com/api/test', {
+fetch('https://api.inboxiq.debx.co.in/api/test', {
   credentials: 'include',
   mode: 'cors'
 })
@@ -64,7 +64,7 @@ Look for incoming requests:
 
 **Fix:** Check `.env.local` has:
 ```env
-VITE_BETTER_AUTH_URL=https://inboxiq-qq72.onrender.com
+VITE_BETTER_AUTH_URL=https://api.inboxiq.debx.co.in
 ```
 
 Then restart Vite server.

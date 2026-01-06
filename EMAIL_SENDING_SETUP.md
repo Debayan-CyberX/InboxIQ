@@ -62,9 +62,9 @@ After adding environment variables:
 
 You should see:
 ```
-✅ Better Auth server running on https://inboxiq-qq72.onrender.com
-📡 Auth API available at https://inboxiq-qq72.onrender.com/api/auth
-📧 Email API available at https://inboxiq-qq72.onrender.com/api/emails/send
+✅ Better Auth server running on https://api.inboxiq.debx.co.in
+📡 Auth API available at https://api.inboxiq.debx.co.in/api/auth
+📧 Email API available at https://api.inboxiq.debx.co.in/api/emails/send
 ```
 
 ---

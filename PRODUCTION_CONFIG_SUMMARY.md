@@ -3,8 +3,8 @@
 ## ✅ Changes Made
 
 ### 1. Server Configuration (`server/auth.ts`)
-- ✅ Added production frontend URL (`https://inboxiq-psi.vercel.app`) to `trustedOrigins`
-- ✅ Updated `baseURL` to use production backend URL (`https://inboxiq-qq72.onrender.com`) when in production
+- ✅ Added production frontend URL (`https://inboxiq.debx.co.in`) to `trustedOrigins`
+- ✅ Updated `baseURL` to use production backend URL (`https://api.inboxiq.debx.co.in`) when in production
 - ✅ Maintains backward compatibility with development URLs
 
 ### 2. Backend CORS (`server/index.ts`)
@@ -14,7 +14,7 @@
 - ✅ Updated OAuth redirect URI generation to use production backend URL
 
 ### 3. Frontend Auth Client (`src/lib/auth-client.ts`)
-- ✅ Updated to use production backend URL (`https://inboxiq-qq72.onrender.com`) in production
+- ✅ Updated to use production backend URL (`https://api.inboxiq.debx.co.in`) in production
 - ✅ Falls back to `localhost:3001` in development
 - ✅ Added production mode logging
 
@@ -38,17 +38,17 @@ Set these in **Vercel Dashboard → Settings → Environment Variables**:
 ```env
 VITE_SUPABASE_URL=https://your-project.supabase.co
 VITE_SUPABASE_ANON_KEY=your-anon-key
-VITE_BETTER_AUTH_URL=https://inboxiq-qq72.onrender.com
-VITE_APP_URL=https://inboxiq-psi.vercel.app
+VITE_BETTER_AUTH_URL=https://api.inboxiq.debx.co.in
+VITE_APP_URL=https://inboxiq.debx.co.in
 ```
 
 ### Backend (Render)
 Set these in **Render Dashboard → Environment**:
 
 ```env
-BETTER_AUTH_URL=https://inboxiq-qq72.onrender.com
+BETTER_AUTH_URL=https://api.inboxiq.debx.co.in
 BETTER_AUTH_SECRET=your-32-character-secret-key
-FRONTEND_URL=https://inboxiq-psi.vercel.app
+FRONTEND_URL=https://inboxiq.debx.co.in
 DATABASE_URL=postgresql://postgres:password@db.project.supabase.co:5432/postgres
 NODE_ENV=production
 
@@ -67,13 +67,13 @@ OPENAI_API_KEY=sk-your-api-key
 ### Google Cloud Console
 Add this redirect URI:
 ```
-https://inboxiq-qq72.onrender.com/api/email-connections/callback?provider=gmail
+https://api.inboxiq.debx.co.in/api/email-connections/callback?provider=gmail
 ```
 
 ### Azure Portal (Outlook)
 Add this redirect URI:
 ```
-https://inboxiq-qq72.onrender.com/api/email-connections/callback?provider=outlook
+https://api.inboxiq.debx.co.in/api/email-connections/callback?provider=outlook
 ```
 
 ---
@@ -83,7 +83,7 @@ https://inboxiq-qq72.onrender.com/api/email-connections/callback?provider=outloo
 After deployment, test:
 
 1. **Sign Up / Sign In**
-   - [ ] Visit https://inboxiq-psi.vercel.app
+   - [ ] Visit https://inboxiq.debx.co.in
    - [ ] Sign up with new account
    - [ ] Should redirect to `/dashboard` after sign up
    - [ ] Sign out and sign in again
