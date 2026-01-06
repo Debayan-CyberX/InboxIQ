@@ -53,6 +53,11 @@ const productionBackendUrl = "https://inboxiq-qq72.onrender.com";
 export const auth = betterAuth({
   baseURL: process.env.BETTER_AUTH_URL || process.env.VITE_BETTER_AUTH_URL || productionBackendUrl,
   secret: process.env.BETTER_AUTH_SECRET || "change-this-secret-key-in-production-min-32-chars",
+  cookies: {
+  secure: true,
+  sameSite: "none",
+  domain: ".onrender.com",
+},
   trustedOrigins: [
     // Development URLs
     "http://localhost:8080",

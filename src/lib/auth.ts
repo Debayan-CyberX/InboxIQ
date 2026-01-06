@@ -6,10 +6,12 @@ import { prismaAdapter } from "better-auth/adapters/prisma";
 // Better Auth configuration
 // See: https://www.better-auth.com/docs/configuration
 export const auth = betterAuth({
-  cookies: {
+ cookies: {
   secure: true,
   sameSite: "none",
+  domain: ".onrender.com",
 },
+
   database: {
     // You can use Supabase PostgreSQL with Better Auth
     // For now, using in-memory (development only)
