@@ -8,7 +8,9 @@ interface ProtectedRouteProps {
 }
 
 const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
-  const { data: session, isPending } = useSession();
+  const { data, isPending } = useSession();
+  const session = data?.session;
+
 
   if (isPending) {
     return (

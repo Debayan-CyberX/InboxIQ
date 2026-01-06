@@ -1,6 +1,7 @@
 import { motion, useScroll, useTransform, useInView } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
+
 import { 
   Sparkles, 
   Zap, 
@@ -41,9 +42,19 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useSession } from "@/lib/auth-client";
+import { Navigate } from "react-router-dom";
 
 const Landing = () => {
-  const { data: session } = useSession();
+  
+  const { data, isPending } = useSession();
+const session = data?.session;
+
+if (isPending) return null;
+
+if (session) {
+  return <Navigate to="/dashboard" replace />;
+}
+
   const containerRef = useRef<HTMLDivElement>(null);
   const heroRef = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({

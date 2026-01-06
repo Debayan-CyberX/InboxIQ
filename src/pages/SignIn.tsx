@@ -8,6 +8,8 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Sparkles, Mail, Lock, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
+import { useEffect } from "react";
+import { useSession } from "@/lib/auth-client";
 
 const SignIn = () => {
   const [email, setEmail] = useState("");
@@ -15,6 +17,17 @@ const SignIn = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
+  const { data, isPending } = useSession();
+const session = data?.session;
+useEffect(() => {
+  if (isPending) return; // wait for auth to resolve
+
+  if (session) {
+    navigate("/dashboard", { replace: true });
+  }
+}, [session, isPending, navigate]);
+
+
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -37,7 +50,7 @@ const SignIn = () => {
         });
       } else {
         toast.success("Signed in successfully!");
-        navigate("/");
+        
       }
     } catch (err) {
       console.error("❌ Sign in error:", err);
