@@ -298,7 +298,7 @@ app.get("/api/email-connections/oauth/:provider", async (req, res) => {
 
       // Outlook OAuth URL
       const scopes = encodeURIComponent("https://graph.microsoft.com/Mail.Read https://graph.microsoft.com/Mail.Send offline_access");
-      const redirect = `${process.env.VITE_APP_URL || "http://localhost:8080"}/api/email-connections/callback?provider=outlook`;
+      const redirect = `${process.env.FRONTEND_URL}/api/email-connections/callback?provider=outlook`;
       authUrl = `https://login.microsoftonline.com/common/oauth2/v2.0/authorize?client_id=${outlookClientId}&response_type=code&redirect_uri=${encodeURIComponent(redirect)}&response_mode=query&scope=${scopes}&state=${userId}`;
     } else {
       return res.status(400).json({ error: "Unsupported provider", supported: ["gmail", "outlook"] });
@@ -324,7 +324,7 @@ app.get("/api/email-connections/callback", async (req, res) => {
     const { code, state, error: oauthError } = req.query;
 
     // Get frontend URL from environment (default to port 8081)
-    const frontendUrl = process.env.FRONTEND_URL || process.env.VITE_APP_URL || "http://localhost:8081";
+    const frontendUrl = process.env.FRONTEND_URL;
 
     if (oauthError) {
       // Redirect back to settings with error
@@ -379,7 +379,7 @@ app.get("/api/email-connections/callback", async (req, res) => {
       if (!tokenResponse.ok) {
         const errorText = await tokenResponse.text();
         console.error("❌ Token exchange failed:", errorText);
-        const redirectUrl = `${process.env.VITE_APP_URL || "http://localhost:8080"}/settings?tab=email&error=${encodeURIComponent("Failed to exchange authorization code")}`;
+        const redirectUrl = `${process.env.FRONTEND_URL}/settings?tab=email&error=${encodeURIComponent("Failed to exchange authorization code")}`;
         return res.redirect(redirectUrl);
       }
 
@@ -451,7 +451,7 @@ app.get("/api/email-connections/callback", async (req, res) => {
       if (!tokenResponse.ok) {
         const errorText = await tokenResponse.text();
         console.error("❌ Token exchange failed:", errorText);
-        const redirectUrl = `${process.env.VITE_APP_URL || "http://localhost:8080"}/settings?tab=email&error=${encodeURIComponent("Failed to exchange authorization code")}`;
+        const redirectUrl = `${process.env.FRONTEND_URL}/settings?tab=email&error=${encodeURIComponent("Failed to exchange authorization code")}`;
         return res.redirect(redirectUrl);
       }
 
@@ -558,7 +558,7 @@ app.get("/api/email-connections/callback", async (req, res) => {
     }
   } catch (error) {
     console.error("❌ OAuth callback error:", error);
-    const frontendUrl = process.env.FRONTEND_URL || process.env.VITE_APP_URL || "http://localhost:8081";
+    const frontendUrl = process.env.FRONTEND_URL;
     const redirectUrl = `${frontendUrl}/settings?tab=email&error=${encodeURIComponent(error instanceof Error ? error.message : "Unknown error")}`;
     console.log("🔀 Redirecting to:", redirectUrl);
     return res.redirect(redirectUrl);
@@ -778,7 +778,7 @@ app.post("/api/leads/detect", async (req, res) => {
   try {
     // Get session from Better Auth
     // Create a proper request object with all required fields
-    const baseUrl = process.env.FRONTEND_URL || process.env.VITE_APP_URL || "http://localhost:8081";
+    const baseUrl = process.env.FRONTEND_URL;
     const authServerUrl = process.env.BETTER_AUTH_URL || process.env.VITE_BETTER_AUTH_URL || `http://localhost:${PORT}`;
     const sessionUrl = `${authServerUrl}/api/auth/get-session`;
     
