@@ -1,43 +1,58 @@
-import { useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
-import { signIn } from "@/lib/auth-client";
+import { useState, useEffect } from "react";
+import { useNavigate, Link, Navigate } from "react-router-dom";
+import { signIn, useSession } from "@/lib/auth-client";
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+
 import { Sparkles, Mail, Lock, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
-import { useEffect } from "react";
-import { useSession } from "@/lib/auth-client";
 
-const SignIn = () => {
-  
+export default function SignIn() {
+  /* -------------------- AUTH STATE -------------------- */
   const navigate = useNavigate();
   const { data, isPending } = useSession();
   const session = data?.session;
+
+  /* -------------------- FORM STATE -------------------- */
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  
+  /* -------------------- REDIRECT WHEN LOGGED IN -------------------- */
   useEffect(() => {
     if (isPending) return;
+
     if (session) {
       navigate("/dashboard", { replace: true });
     }
   }, [session, isPending, navigate]);
 
+  /* -------------------- BLOCK SIGN-IN PAGE WHEN LOGGED IN -------------------- */
+  if (!isPending && session) {
+    return <Navigate to="/dashboard" replace />;
+  }
 
-
+  /* -------------------- SUBMIT HANDLER -------------------- */
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
-    setIsLoading(true);
+    setIsSubmitting(true);
 
     try {
       console.log("🔄 Attempting to sign in...");
+
       const result = await signIn.email({
         email,
         password,
@@ -45,63 +60,56 @@ const SignIn = () => {
 
       console.log("📥 Sign in result:", result);
 
-      if (result.error) {
-        setError(result.error.message || "Failed to sign in");
-        toast.error("Sign in failed", {
-          description: result.error.message,
-        });
+      if (result?.error) {
+        const message = result.error.message || "Failed to sign in";
+        setError(message);
+        toast.error("Sign in failed", { description: message });
       } else {
         toast.success("Signed in successfully!");
-        
+        // ❗ DO NOT navigate here — redirect happens via useSession
       }
     } catch (err) {
       console.error("❌ Sign in error:", err);
-      const errorMessage = err instanceof Error ? err.message : "An unexpected error occurred";
-      
-      // Check if it's a network error
-      if (errorMessage.includes("fetch") || errorMessage.includes("Failed to fetch")) {
-        setError("Cannot connect to auth server. Make sure the auth server is running on port 3001.");
-        toast.error("Connection failed", {
-          description: "Please start the auth server: npm run dev:auth",
-        });
-      } else {
-        setError(errorMessage);
-        toast.error("Sign in failed", {
-          description: errorMessage,
-        });
-      }
+
+      const message =
+        err instanceof Error
+          ? err.message
+          : "Unexpected error during sign in";
+
+      setError(message);
+      toast.error("Sign in failed", { description: message });
     } finally {
-      setIsLoading(false);
+      setIsSubmitting(false);
     }
   };
 
+  /* -------------------- UI -------------------- */
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center p-4">
+    <div className="min-h-screen flex items-center justify-center bg-background px-4">
       <Card className="w-full max-w-md">
-        <CardHeader className="space-y-1">
-          <div className="flex items-center justify-center mb-4">
-            <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-primary to-accent flex items-center justify-center">
-              <Sparkles className="w-6 h-6 text-primary-foreground" />
-            </div>
+        <CardHeader className="space-y-2 text-center">
+          <div className="flex justify-center">
+            <Sparkles className="h-8 w-8 text-primary" />
           </div>
-          <CardTitle className="text-2xl font-bold text-center">Welcome back</CardTitle>
-          <CardDescription className="text-center">
-            Sign in to your InboxAI Assistant account
+          <CardTitle className="text-2xl">Sign in to InboxIQ</CardTitle>
+          <CardDescription>
+            Welcome back. Enter your credentials to continue.
           </CardDescription>
         </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
+
+        <form onSubmit={handleSubmit}>
+          <CardContent className="space-y-4">
             {error && (
               <Alert variant="destructive">
                 <AlertCircle className="h-4 w-4" />
                 <AlertDescription>{error}</AlertDescription>
               </Alert>
             )}
-            
+
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
               <div className="relative">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 <Input
                   id="email"
                   type="email"
@@ -110,7 +118,6 @@ const SignIn = () => {
                   onChange={(e) => setEmail(e.target.value)}
                   className="pl-9"
                   required
-                  disabled={isLoading}
                 />
               </div>
             </div>
@@ -118,41 +125,40 @@ const SignIn = () => {
             <div className="space-y-2">
               <Label htmlFor="password">Password</Label>
               <div className="relative">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 <Input
                   id="password"
                   type="password"
-                  placeholder="••••••••"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className="pl-9"
                   required
-                  disabled={isLoading}
                 />
               </div>
             </div>
+          </CardContent>
 
+          <CardFooter className="flex flex-col gap-4">
             <Button
               type="submit"
               className="w-full"
-              disabled={isLoading}
+              disabled={isSubmitting || isPending}
             >
-              {isLoading ? "Signing in..." : "Sign In"}
+              {isSubmitting ? "Signing in..." : "Sign In"}
             </Button>
-          </form>
-        </CardContent>
-        <CardFooter className="flex flex-col space-y-4">
-          <div className="text-sm text-center text-muted-foreground">
-            Don't have an account?{" "}
-            <Link to="/sign-up" className="text-primary hover:underline font-medium">
-              Sign up
-            </Link>
-          </div>
-        </CardFooter>
+
+            <p className="text-sm text-muted-foreground">
+              Don’t have an account?{" "}
+              <Link
+                to="/sign-up"
+                className="text-primary hover:underline"
+              >
+                Sign up
+              </Link>
+            </p>
+          </CardFooter>
+        </form>
       </Card>
     </div>
   );
-};
-
-export default SignIn;
-
+}
