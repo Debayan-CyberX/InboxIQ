@@ -56,7 +56,7 @@ export const auth = betterAuth({
   cookies: {
   secure: true,
   sameSite: "none",
-  domain: ".onrender.com",
+  domain: ".debx.co.in",
 },
   trustedOrigins: [
     // Development URLs
