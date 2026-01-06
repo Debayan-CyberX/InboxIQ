@@ -1,5 +1,3 @@
-// Express server for Better Auth API routes
-// Run this server alongside your Vite dev server
 import dotenv from "dotenv";
 import express, { Request as ExpressRequest, Response as ExpressResponse } from "express";
 import cors from "cors";
@@ -9,31 +7,40 @@ import { detectLeadsFromEmailThreads } from "./lead-detection.js";
 import { generateFollowUpForLead } from "./ai-followup.js";
 import { updateAllLeadsContactInfo } from "./update-lead-contact.js";
 
-// Load .env.local file (dotenv by default loads .env, but we want .env.local)
-dotenv.config({ path: ".env.local" });
-dotenv.config(); // Also load .env if it exists (lower priority)
+dotenv.config();
 
 const app = express();
-const PORT = process.env.AUTH_PORT || 3001;
-const VITE_PORT = process.env.VITE_PORT || 8081;
+const PORT = process.env.PORT || process.env.AUTH_PORT || 3001;
 
-// Middleware - Allow all localhost origins for development
-app.use(cors({
-  origin: [
-    "http://localhost:8080",
-    "http://localhost:8081", // Your Vite port
-    "http://localhost:5173",
-    "http://127.0.0.1:8080",
-    "http://127.0.0.1:8081",
-    "http://127.0.0.1:5173",
-    `http://localhost:${VITE_PORT}`,
-    process.env.VITE_APP_URL || "http://localhost:8081"
-  ],
-  credentials: true,
-  methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization", "Cookie"],
-}));
+// CORS
+const allowedOrigins = [
+  "http://localhost:8080",
+  "http://localhost:8081",
+  "http://localhost:5173",
+  "http://127.0.0.1:8080",
+  "http://127.0.0.1:8081",
+  "http://127.0.0.1:5173",
+  process.env.FRONTEND_URL,
+].filter(Boolean);
+
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      if (!origin) return callback(null, true);
+      if (allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+      console.error("❌ CORS blocked:", origin);
+      return callback(new Error("Not allowed by CORS"));
+    },
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization", "Cookie"],
+  })
+);
+
 app.use(express.json());
+
 
 // Convert Express request to Web API Request for Better Auth
 async function expressToWebRequest(req: ExpressRequest): Promise<Request> {
