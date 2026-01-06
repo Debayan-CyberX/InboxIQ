@@ -73,6 +73,13 @@ export const auth = betterAuth({
   session: {
     expiresIn: 60 * 60 * 24 * 7, // 7 days
     updateAge: 60 * 60 * 24, // 1 day
+    cookieCache: {
+      enabled: true,
+    },
+  },
+  advanced: {
+    cookiePrefix: "better-auth",
+    generateId: undefined, // Use default UUID generation
   },
   // User configuration
   user: {

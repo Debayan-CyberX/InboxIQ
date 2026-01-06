@@ -30,10 +30,12 @@ export default function SignIn() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  
-  if (!isPending && session) {
-    return <Navigate to="/dashboard" replace />;
-  }
+  // Redirect if already signed in
+  useEffect(() => {
+    if (!isPending && session) {
+      navigate("/dashboard", { replace: true });
+    }
+  }, [session, isPending, navigate]);
 
   /* -------------------- SUBMIT HANDLER -------------------- */
   const handleSubmit = async (e: React.FormEvent) => {
@@ -57,7 +59,21 @@ export default function SignIn() {
         toast.error("Sign in failed", { description: message });
       } else {
         toast.success("Signed in successfully!");
-        // ❗ DO NOT navigate here — redirect happens via useSession
+        
+        // Wait a moment for the session cookie to be set, then navigate
+        // This ensures the session is available when ProtectedRoute checks it
+        setTimeout(async () => {
+          // Try to verify session is available
+          try {
+            // Small delay to allow cookie to be set
+            await new Promise(resolve => setTimeout(resolve, 200));
+            navigate("/dashboard", { replace: true });
+          } catch (navError) {
+            console.error("Navigation error:", navError);
+            // Navigate anyway - ProtectedRoute will handle session check
+            navigate("/dashboard", { replace: true });
+          }
+        }, 100);
       }
     } catch (err) {
       console.error("❌ Sign in error:", err);
