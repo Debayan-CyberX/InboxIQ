@@ -30,16 +30,7 @@ export default function SignIn() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  /* -------------------- REDIRECT WHEN LOGGED IN -------------------- */
-  useEffect(() => {
-    if (isPending) return;
-
-    if (session) {
-      navigate("/dashboard", { replace: true });
-    }
-  }, [session, isPending, navigate]);
-
-  /* -------------------- BLOCK SIGN-IN PAGE WHEN LOGGED IN -------------------- */
+  
   if (!isPending && session) {
     return <Navigate to="/dashboard" replace />;
   }
