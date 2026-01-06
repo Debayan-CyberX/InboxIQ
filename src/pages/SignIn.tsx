@@ -12,20 +12,22 @@ import { useEffect } from "react";
 import { useSession } from "@/lib/auth-client";
 
 const SignIn = () => {
+  
+  const navigate = useNavigate();
+  const { data, isPending } = useSession();
+  const session = data?.session;
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const navigate = useNavigate();
-  const { data, isPending } = useSession();
-const session = data?.session;
-useEffect(() => {
-  if (isPending) return; // wait for auth to resolve
 
-  if (session) {
-    navigate("/dashboard", { replace: true });
-  }
-}, [session, isPending, navigate]);
+  
+  useEffect(() => {
+    if (isPending) return;
+    if (session) {
+      navigate("/dashboard", { replace: true });
+    }
+  }, [session, isPending, navigate]);
 
 
 

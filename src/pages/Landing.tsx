@@ -47,11 +47,11 @@ import { Navigate } from "react-router-dom";
 const Landing = () => {
   
   const { data, isPending } = useSession();
-const session = data?.session;
+  const session = data?.session;
 
-if (isPending) return null;
+  if (isPending) return null;
 
-if (session) {
+  if (session) {
   return <Navigate to="/dashboard" replace />;
 }
 
