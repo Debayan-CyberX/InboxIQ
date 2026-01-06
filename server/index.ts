@@ -21,13 +21,13 @@ const VITE_PORT = process.env.VITE_PORT || 8081;
 const productionFrontendUrl = "https://inboxiq-psi.vercel.app";
 const allowedOrigins = [
   // Development URLs
-  "http://localhost:8080",
+    "http://localhost:8080",
   "http://localhost:8081",
-  "http://localhost:5173",
-  "http://127.0.0.1:8080",
-  "http://127.0.0.1:8081",
-  "http://127.0.0.1:5173",
-  `http://localhost:${VITE_PORT}`,
+    "http://localhost:5173",
+    "http://127.0.0.1:8080",
+    "http://127.0.0.1:8081",
+    "http://127.0.0.1:5173",
+    `http://localhost:${VITE_PORT}`,
   // Production URLs
   productionFrontendUrl,
   process.env.VITE_APP_URL || process.env.FRONTEND_URL || productionFrontendUrl
@@ -53,12 +53,39 @@ app.use(express.json());
 
 // Convert Express request to Web API Request for Better Auth
 async function expressToWebRequest(req: ExpressRequest): Promise<Request> {
-  const protocol = req.protocol || 'http';
-  const host = req.get('host') || 'localhost:3001';
-  const url = `${protocol}://${host}${req.originalUrl}`;
+  // Use the baseURL from Better Auth config or construct from request
+  const authBaseURL = process.env.BETTER_AUTH_URL || process.env.VITE_BETTER_AUTH_URL || 
+    (req.secure ? 'https' : 'http') + '://' + (req.get('host') || 'localhost:3001');
+  
+  // Construct full URL - Better Auth expects the full path
+  const url = `${authBaseURL}${req.originalUrl}`;
   
   const headers = new Headers();
+  
+  // Explicitly handle cookies - critical for session management
+  if (req.headers.cookie) {
+    const cookieValue = Array.isArray(req.headers.cookie) 
+      ? req.headers.cookie.join('; ') 
+      : req.headers.cookie;
+    headers.set('Cookie', cookieValue);
+  }
+  
+  // Copy other headers that Better Auth might need
+  const importantHeaders = ['origin', 'referer', 'user-agent', 'accept', 'accept-language'];
+  importantHeaders.forEach(key => {
+    const value = req.headers[key];
+    if (value) {
+      headers.set(key, Array.isArray(value) ? value.join(', ') : value);
+    }
+  });
+  
+  // Copy remaining headers
   Object.keys(req.headers).forEach(key => {
+    // Skip cookie header as we already handled it
+    if (key.toLowerCase() === 'cookie') return;
+    // Skip already handled headers
+    if (importantHeaders.includes(key.toLowerCase())) return;
+    
     const value = req.headers[key];
     if (value) {
       headers.set(key, Array.isArray(value) ? value.join(', ') : value);
@@ -68,7 +95,9 @@ async function expressToWebRequest(req: ExpressRequest): Promise<Request> {
   let body: string | undefined;
   if (req.method !== 'GET' && req.method !== 'HEAD' && req.body) {
     body = JSON.stringify(req.body);
-    headers.set('Content-Type', 'application/json');
+    if (!headers.has('Content-Type')) {
+      headers.set('Content-Type', 'application/json');
+    }
   }
 
   const init: RequestInit = {
@@ -83,9 +112,24 @@ async function expressToWebRequest(req: ExpressRequest): Promise<Request> {
 // Convert Web API Response to Express response
 async function webToExpressResponse(webResponse: Response, expressRes: ExpressResponse) {
   expressRes.status(webResponse.status);
+  
+  // Copy all headers, especially Set-Cookie for session management
   webResponse.headers.forEach((value, key) => {
+    // Handle Set-Cookie specially - it can have multiple values
+    if (key.toLowerCase() === 'set-cookie') {
+      // Get all Set-Cookie headers
+      const setCookieHeaders = webResponse.headers.getSetCookie();
+      if (setCookieHeaders && setCookieHeaders.length > 0) {
+        // Express expects Set-Cookie as an array
+        expressRes.setHeader('Set-Cookie', setCookieHeaders);
+      } else {
     expressRes.setHeader(key, value);
+      }
+    } else {
+      expressRes.setHeader(key, value);
+    }
   });
+  
   const body = await webResponse.text();
   expressRes.send(body);
 }
@@ -97,14 +141,36 @@ app.use("/api/auth", async (req: ExpressRequest, res: ExpressResponse) => {
     console.log(`📥 ${req.method} ${req.originalUrl}`);
     console.log(`   Origin: ${req.get('origin') || 'none'}`);
     
+    // Log cookies for debugging
+    if (req.headers.cookie) {
+      console.log(`   🍪 Cookies received: ${req.headers.cookie.substring(0, 100)}...`);
+    } else {
+      console.log(`   ⚠️ No cookies in request`);
+    }
+    
     // Convert Express request to Web API Request
     const webRequest = await expressToWebRequest(req);
+    
+    // Log cookies in Web API Request
+    const cookieHeader = webRequest.headers.get('Cookie');
+    if (cookieHeader) {
+      console.log(`   🍪 Cookies in Web Request: ${cookieHeader.substring(0, 100)}...`);
+    }
     
     // Call Better Auth handler
     const webResponse = await auth.handler(webRequest);
     
     // Log response status
     console.log(`   Response: ${webResponse.status} ${webResponse.statusText}`);
+    
+    // Log Set-Cookie headers
+    const setCookieHeaders = webResponse.headers.getSetCookie();
+    if (setCookieHeaders && setCookieHeaders.length > 0) {
+      console.log(`   🍪 Set-Cookie headers: ${setCookieHeaders.length} cookie(s) being set`);
+      setCookieHeaders.forEach((cookie, index) => {
+        console.log(`      Cookie ${index + 1}: ${cookie.substring(0, 80)}...`);
+      });
+    }
     
     // Log response body for debugging
     const responseClone = webResponse.clone();
@@ -119,6 +185,8 @@ app.use("/api/auth", async (req: ExpressRequest, res: ExpressResponse) => {
       } catch {
         console.log(`   Response body (text):`, responseText.substring(0, 200));
       }
+    } else {
+      console.log(`   Response body: null`);
     }
     
     // Convert Web API Response back to Express response

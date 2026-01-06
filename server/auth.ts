@@ -76,6 +76,13 @@ export const auth = betterAuth({
     cookieCache: {
       enabled: true,
     },
+    cookieOptions: {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production", // Secure in production (HTTPS only)
+      sameSite: "none", // Required for cross-origin (Vercel → Render)
+      domain: undefined, // Let browser handle domain
+      path: "/",
+    },
   },
   advanced: {
     cookiePrefix: "better-auth",
