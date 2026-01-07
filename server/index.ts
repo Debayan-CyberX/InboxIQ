@@ -1167,80 +1167,93 @@ app.post("/gmail/sync", async (req, res) => {
           };
 
           const senderEmail = fromHeader ? extractEmail(fromHeader) : "";
-          const senderName = fromHeader ? extractName(fromHeader) : null;
-          const toEmail = toHeader ? extractEmail(toHeader) : "";
-          const threadId = thread.id || "";
-          const lastMessageTimestamp = dateHeader ? new Date(dateHeader) : new Date(parseInt(latestMessage.internalDate || "0"));
-          
-          // Get user's email from connection
-          const userEmail = connection.email || "";
+const senderName = fromHeader ? extractName(fromHeader) : null;
+const toEmail = toHeader ? extractEmail(toHeader) : "";
+const threadId = thread.id || "";
+const lastMessageTimestamp = dateHeader
+  ? new Date(dateHeader)
+  : new Date(parseInt(latestMessage.internalDate || "0"));
 
-          // Check if thread already exists
-          const existingThread = await pool.query(
-            `SELECT id FROM public.email_threads 
-             WHERE user_id = $1 AND thread_identifier = $2
-             LIMIT 1`,
-            [userUuid, threadId]
-          );
+// Get user's email from connection
+const userEmail = connection.email || "";
 
-          let emailThreadId: string;
+// ✅ FIX 1: declare leadId ONCE here (thread scope)
+let leadId: string | null = null;
 
-          if (existingThread.rows.length > 0) {
-            emailThreadId = existingThread.rows[0].id;
-            // Update thread updated_at
-            await pool.query(
-              `UPDATE public.email_threads 
-               SET updated_at = $1
-               WHERE id = $2`,
-              [lastMessageTimestamp, emailThreadId]
-            );
-          } else {
-            // Check if we need to link to a lead for this sender, or create one
-            let leadId: string | null = null;
-            if (senderEmail) {
-              const leadResult = await pool.query(
-                `SELECT id, contact_name FROM public.leads 
-                 WHERE user_id = $1 AND email = $2 
-                 LIMIT 1`,
-                [userUuid, senderEmail]
-              );
+// Check if thread already exists
+const existingThread = await pool.query(
+  `SELECT id FROM public.email_threads 
+   WHERE user_id = $1 AND thread_identifier = $2
+   LIMIT 1`,
+  [userUuid, threadId]
+);
 
-              if (leadResult.rows.length > 0) {
-                leadId = leadResult.rows[0].id;
-                // Update lead name if we have a better one from email header
-                if (senderName && (!leadResult.rows[0].contact_name || leadResult.rows[0].contact_name === "Unknown")) {
-                  await pool.query(
-                    `UPDATE public.leads 
-                     SET contact_name = $1, updated_at = NOW()
-                     WHERE id = $2`,
-                    [senderName, leadId]
-                  );
-                }
-              } else if (senderName) {
-                // Create a new lead with sender name and email
-                const newLeadResult = await pool.query(
-                  `INSERT INTO public.leads (
-                    user_id, email, contact_name, company, status, created_at, updated_at
-                  ) VALUES ($1, $2, $3, $4, 'warm', NOW(), NOW())
-                  RETURNING id`,
-                  [userUuid, senderEmail, senderName, senderEmail.split("@")[1] || ""]
-                );
-                if (newLeadResult.rows.length > 0) {
-                  leadId = newLeadResult.rows[0].id;
-                }
-              }
-            }
+let emailThreadId: string;
 
-            // Create new thread (lead_id can be NULL if no lead found)
-            const threadResult = await pool.query(
-              `INSERT INTO public.email_threads (
-                user_id, lead_id, subject, thread_identifier, status, created_at, updated_at
-              ) VALUES ($1, $2, $3, $4, 'active', $5, $5)
-              RETURNING id`,
-              [userUuid, leadId, subject, threadId, lastMessageTimestamp]
-            );
-            emailThreadId = threadResult.rows[0].id;
-          }
+if (existingThread.rows.length > 0) {
+  emailThreadId = existingThread.rows[0].id;
+
+  // Update thread updated_at
+  await pool.query(
+    `UPDATE public.email_threads 
+     SET updated_at = $1
+     WHERE id = $2`,
+    [lastMessageTimestamp, emailThreadId]
+  );
+} else {
+  // ❌ FIX 2: REMOVED "let leadId" from here
+
+  if (senderEmail) {
+    const leadResult = await pool.query(
+      `SELECT id, contact_name FROM public.leads 
+       WHERE user_id = $1 AND email = $2 
+       LIMIT 1`,
+      [userUuid, senderEmail]
+    );
+
+    if (leadResult.rows.length > 0) {
+      leadId = leadResult.rows[0].id;
+
+      // Update lead name if better name exists
+      if (
+        senderName &&
+        (!leadResult.rows[0].contact_name ||
+          leadResult.rows[0].contact_name === "Unknown")
+      ) {
+        await pool.query(
+          `UPDATE public.leads 
+           SET contact_name = $1, updated_at = NOW()
+           WHERE id = $2`,
+          [senderName, leadId]
+        );
+      }
+    } else if (senderName) {
+      const newLeadResult = await pool.query(
+        `INSERT INTO public.leads (
+          user_id, email, contact_name, company, status, created_at, updated_at
+        ) VALUES ($1, $2, $3, $4, 'warm', NOW(), NOW())
+        RETURNING id`,
+        [userUuid, senderEmail, senderName, senderEmail.split("@")[1] || ""]
+      );
+
+      if (newLeadResult.rows.length > 0) {
+        leadId = newLeadResult.rows[0].id;
+      }
+    }
+  }
+
+  // Create new thread
+  const threadResult = await pool.query(
+    `INSERT INTO public.email_threads (
+      user_id, lead_id, subject, thread_identifier, status, created_at, updated_at
+    ) VALUES ($1, $2, $3, $4, 'active', $5, $5)
+    RETURNING id`,
+    [userUuid, leadId, subject, threadId, lastMessageTimestamp]
+  );
+
+  emailThreadId = threadResult.rows[0].id;
+}
+
 
           // Process all messages in the thread and create email records
           // Ensure we save at least the latest message (first in array)
