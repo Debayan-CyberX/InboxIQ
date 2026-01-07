@@ -1055,9 +1055,12 @@ app.post("/gmail/sync", async (req, res) => {
       const { google } = await import("googleapis");
       const googleClientId = process.env.GOOGLE_CLIENT_ID;
       const googleClientSecret = process.env.GOOGLE_CLIENT_SECRET;
-      const authServerUrl = process.env.BETTER_AUTH_URL || process.env.VITE_BETTER_AUTH_URL || "http://localhost:3001";
-      const redirectUri = `${authServerUrl}/api/email-connections/callback?provider=gmail`;
-
+      const authServerUrl = process.env.BACKEND_URL ||process.env.BETTER_AUTH_URL ||"http://localhost:3001";
+      const params = new URLSearchParams({
+           provider: "gmail",
+          flowName: "GeneralOAuthFlow",
+});
+      const redirectUri = `${authServerUrl}/api/email-connections/callback?${params.toString()}`;
       if (!googleClientId || !googleClientSecret) {
         return res.status(500).json({
           error: "OAuth not configured",
