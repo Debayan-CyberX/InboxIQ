@@ -9,6 +9,7 @@ import { detectLeadsFromEmailThreads } from "./lead-detection.js";
 import { generateFollowUpForLead } from "./ai-followup.js";
 import { updateAllLeadsContactInfo } from "./update-lead-contact.js";
 
+
 // Load .env.local file (dotenv by default loads .env, but we want .env.local)
 dotenv.config({ path: ".env.local" });
 dotenv.config(); // Also load .env if it exists (lower priority)
