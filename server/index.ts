@@ -96,7 +96,7 @@ async function expressToWebRequest(req: ExpressRequest): Promise<Request> {
   if (req.method !== 'GET' && req.method !== 'HEAD' && req.body) {
     body = JSON.stringify(req.body);
     if (!headers.has('Content-Type')) {
-      headers.set('Content-Type', 'application/json');
+    headers.set('Content-Type', 'application/json');
     }
   }
 
@@ -465,7 +465,7 @@ app.get("/api/email-connections/callback", async (req, res) => {
       if (!tokenResponse.ok) {
         const errorText = await tokenResponse.text();
         console.error("❌ Token exchange failed:", errorText);
-        const redirectUrl = `${process.env.VITE_APP_URL || "http://localhost:8080"}/settings?tab=email&error=${encodeURIComponent("Failed to exchange authorization code")}`;
+        const redirectUrl = `${frontendUrl}/settings?tab=email&error=${encodeURIComponent("Failed to exchange authorization code")}`;
         return res.redirect(redirectUrl);
       }
 
@@ -537,7 +537,7 @@ app.get("/api/email-connections/callback", async (req, res) => {
       if (!tokenResponse.ok) {
         const errorText = await tokenResponse.text();
         console.error("❌ Token exchange failed:", errorText);
-        const redirectUrl = `${process.env.VITE_APP_URL || "http://localhost:8080"}/settings?tab=email&error=${encodeURIComponent("Failed to exchange authorization code")}`;
+        const redirectUrl = `${frontendUrl}/settings?tab=email&error=${encodeURIComponent("Failed to exchange authorization code")}`;
         return res.redirect(redirectUrl);
       }
 

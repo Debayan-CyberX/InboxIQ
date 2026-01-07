@@ -90,3 +90,4 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 GRANT EXECUTE ON FUNCTION public.calculate_lead_days_since_contact TO public;
 GRANT EXECUTE ON FUNCTION public.update_lead_contact_info TO public;
 
+

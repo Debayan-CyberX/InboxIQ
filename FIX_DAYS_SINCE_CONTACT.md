@@ -167,3 +167,4 @@ If `received_at` is NULL or all timestamps are today, that's why days = 0.
 - Those leads may not have any emails linked yet
 - Or their emails don't have proper timestamps
 
+

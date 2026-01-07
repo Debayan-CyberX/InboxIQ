@@ -66,3 +66,4 @@ SELECT public.get_user_uuid_from_better_auth_id('YOUR_BETTER_AUTH_ID');
 
 If this works, the endpoint should work too.
 
+

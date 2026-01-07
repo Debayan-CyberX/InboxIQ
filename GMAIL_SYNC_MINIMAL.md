@@ -144,3 +144,4 @@ Threads are stored in `email_threads` table:
 
 The minimal Gmail sync is complete and ready to use. Click "Sync" in Settings and check your Inbox! 📧
 
+

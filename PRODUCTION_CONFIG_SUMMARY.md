@@ -137,3 +137,4 @@ After deployment, test:
 - Production URLs are used when `NODE_ENV=production` or when environment variables are set
 - The frontend automatically detects production mode using `import.meta.env.PROD`
 
+
