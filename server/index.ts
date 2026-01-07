@@ -631,7 +631,7 @@ app.get("/api/email-connections/callback", async (req, res) => {
       console.log("✅ Email connection saved:", { provider, email: userEmail, userId: userUuid });
 
       // Redirect back to settings with success
-      const redirectUrl = `${frontendUrl}/settings?tab=email&success=true&provider=${provider}`;
+      const redirectUrl = `${frontendUrl}/dashboard?emailConnected=${provider}`;
       console.log("🔀 Redirecting to:", redirectUrl);
       return res.redirect(redirectUrl);
     } catch (dbError) {
