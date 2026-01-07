@@ -1607,25 +1607,27 @@ app.get("/api/emails/thread/:threadId", async (req, res) => {
 
       // ---- Fetch emails for this thread ----
       const emailsResult = await pool.query(
-        `
-        SELECT
-          id,
-          direction,
-          from_email,
-          to_email,
-          subject,
-          body_text,
-          body_html,
-          sent_at,
-          received_at,
-          created_at
-        FROM public.emails
-        WHERE user_id = $1
-          AND thread_id = $2
-        ORDER BY COALESCE(received_at, sent_at, created_at) ASC
-        `,
-        [userUuid, threadId]
-      );
+  `
+  SELECT
+    e.id,
+    e.direction,
+    e.from_email,
+    e.to_email,
+    e.subject,
+    e.body_text,
+    e.body_html,
+    e.sent_at,
+    e.received_at,
+    e.created_at
+  FROM public.emails e
+  JOIN public.email_threads t
+    ON t.id = e.thread_id
+  WHERE t.user_id = $1
+    AND t.thread_identifier = $2
+  ORDER BY COALESCE(e.received_at, e.sent_at, e.created_at) ASC
+  `,
+  [userUuid, threadId]
+);
 
       res.json({
         success: true,
