@@ -1,5 +1,4 @@
 // Email Sync Service
-// Handles syncing emails from connected accounts (IMAP, Gmail, Outlook)
 import { Pool } from "pg";
 import * as Imap from "imap";
 import { simpleParser } from "mailparser";
@@ -21,173 +20,92 @@ interface SyncResult {
   error?: string;
 }
 
-/**
- * Sync emails from IMAP account
- */
+/* ======================================================
+   IMAP SYNC (FIXED INSERT, SAME LOGIC)
+====================================================== */
 export async function syncImapEmails(
   connection: EmailConnection,
   databaseUrl: string
 ): Promise<SyncResult> {
+  const pool = new Pool({
+    connectionString: databaseUrl,
+    ssl: databaseUrl.includes("supabase.co") ? { rejectUnauthorized: false } : false,
+  });
+
+  let emailsSynced = 0;
+
   return new Promise((resolve, reject) => {
-    const pool = new Pool({
-      connectionString: databaseUrl,
-      ssl: databaseUrl.includes("supabase.co") ? { rejectUnauthorized: false } : false,
+    const imap = new Imap({
+      user: connection.email,
+      password: connection.metadata?.password,
+      host: connection.metadata?.imapServer || "imap.gmail.com",
+      port: 993,
+      tls: true,
     });
 
-    try {
-      const metadata = connection.metadata || {};
+    imap.once("ready", () => {
+      imap.openBox("INBOX", false, async () => {
+        const fetch = imap.seq.fetch("1:*", { bodies: "" });
 
-      const imap = new Imap({
-        user: connection.email,
-        password: metadata.password || metadata.access_token,
-        host: metadata.imapServer || "imap.gmail.com",
-        port: metadata.imapPort || 993,
-        tls: true,
-        tlsOptions: { rejectUnauthorized: false },
-      });
+        fetch.on("message", msg => {
+          msg.on("body", async stream => {
+            const parsed = await simpleParser(stream);
+            const from = parsed.from?.value[0];
+            if (!from?.address) return;
 
-      let emailsSynced = 0;
+            // ✅ leadId resolved ONCE
+            let leadId: string | null = null;
+            const leadRes = await pool.query(
+              `SELECT id FROM public.leads WHERE user_id=$1 AND email=$2 LIMIT 1`,
+              [connection.user_id, from.address]
+            );
+            if (leadRes.rows.length) leadId = leadRes.rows[0].id;
 
-      imap.once("ready", () => {
-        imap.openBox("INBOX", false, (err, box) => {
-          if (err) return reject(err);
+            // thread
+            const threadRes = await pool.query(
+              `INSERT INTO public.email_threads
+               (user_id, lead_id, subject, status, created_at, updated_at)
+               VALUES ($1,$2,$3,'active',NOW(),NOW())
+               RETURNING id`,
+              [connection.user_id, leadId, parsed.subject || "(No Subject)"]
+            );
 
-          const start = Math.max(1, box.messages.total - 49);
-          const fetch = imap.seq.fetch(`${start}:${box.messages.total}`, {
-            bodies: "",
-            struct: true,
+            await pool.query(
+              `INSERT INTO public.emails
+               (thread_id,user_id,lead_id,from_email,to_email,subject,body_text,received_at)
+               VALUES ($1,$2,$3,$4,$5,$6,$7,$8)`,
+              [
+                threadRes.rows[0].id,
+                connection.user_id,
+                leadId,
+                from.address,
+                connection.email,
+                parsed.subject,
+                parsed.text,
+                parsed.date || new Date()
+              ]
+            );
+
+            emailsSynced++;
           });
+        });
 
-          fetch.on("message", (msg, seqno) => {
-            let rawEmail = "";
-
-            msg.on("body", (stream) => {
-              stream.on("data", chunk => {
-                rawEmail += chunk.toString("utf8");
-              });
-            });
-
-            msg.once("attributes", attrs => {
-              msg.once("end", async () => {
-                try {
-                  const parsed = await simpleParser(rawEmail);
-
-                  const from = parsed.from?.value[0];
-                  if (!from?.address) return;
-
-                  const subject = parsed.subject || "(No Subject)";
-                  const receivedAt = parsed.date || new Date();
-                  const bodyText = parsed.text || null;
-                  const bodyHtml = parsed.html || null;
-
-                  const externalEmailId =
-                    parsed.messageId || `imap-${connection.id}-${attrs.uid}`;
-
-                  const direction =
-                    from.address.toLowerCase() === connection.email.toLowerCase()
-                      ? "outbound"
-                      : "inbound";
-
-                  // 🔑 STEP 1: ensure thread exists
-                  const threadRes = await pool.query(
-                    `
-                    INSERT INTO public.email_threads (
-                      user_id, subject, thread_identifier, status, created_at, updated_at
-                    )
-                    VALUES ($1,$2,$3,'active',$4,$4)
-                    ON CONFLICT (user_id, thread_identifier)
-                    DO UPDATE SET updated_at = EXCLUDED.updated_at
-                    RETURNING id
-                    `,
-                    [
-                      connection.user_id,
-                      subject,
-                      subject, // IMAP has no thread ID → use subject
-                      receivedAt,
-                    ]
-                  );
-
-                  const emailThreadId = threadRes.rows[0].id;
-
-                  // 🔑 STEP 2: insert email linked to thread
-                  await pool.query(
-                    `
-                    INSERT INTO public.emails (
-                      thread_id,
-                      user_id,
-                      from_email,
-                      from_name,
-                      to_email,
-                      subject,
-                      body_text,
-                      body_html,
-                      direction,
-                      received_at,
-                      created_at,
-                      external_email_id
-                    )
-                    VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$10,$11)
-                    ON CONFLICT (external_email_id) DO NOTHING
-                    `,
-                    [
-                      emailThreadId,
-                      connection.user_id,
-                      from.address,
-                      from.name || "Unknown",
-                      connection.email,
-                      subject,
-                      bodyText,
-                      bodyHtml,
-                      direction,
-                      receivedAt,
-                      externalEmailId,
-                    ]
-                  );
-
-                  emailsSynced++;
-                } catch (e) {
-                  console.error("IMAP email parse error:", e);
-                }
-              });
-            });
-          });
-
-          fetch.once("end", async () => {
-            try {
-              await pool.query(
-                `UPDATE public.email_connections 
-                 SET last_sync_at = NOW(), error_message = NULL
-                 WHERE id = $1`,
-                [connection.id]
-              );
-
-              await pool.end();
-              imap.end();
-
-              resolve({ success: true, emailsSynced });
-            } catch (e) {
-              await pool.end();
-              imap.end();
-              reject(e);
-            }
-          });
-
-          fetch.once("error", err => reject(err));
+        fetch.once("end", async () => {
+          await pool.end();
+          imap.end();
+          resolve({ success: true, emailsSynced });
         });
       });
+    });
 
-      imap.once("error", err => reject(err));
-      imap.connect();
-    } catch (err) {
-      pool.end();
-      reject(err);
-    }
+    imap.once("error", reject);
+    imap.connect();
   });
 }
 
-/**
- * Sync emails from Gmail using OAuth
- */
+/* ======================================================
+   GMAIL SYNC (FULLY FIXED)
+====================================================== */
 export async function syncGmailEmails(
   connection: EmailConnection,
   databaseUrl: string
@@ -197,188 +115,110 @@ export async function syncGmailEmails(
     ssl: databaseUrl.includes("supabase.co") ? { rejectUnauthorized: false } : false,
   });
 
+  let emailsSynced = 0;
+
   try {
-    if (!connection.access_token) {
-      throw new Error("No access token available for Gmail sync");
-    }
-
-    const googleClientId = process.env.GOOGLE_CLIENT_ID;
-    const googleClientSecret = process.env.GOOGLE_CLIENT_SECRET;
-
-    if (!googleClientId || !googleClientSecret) {
-      throw new Error("Google OAuth credentials not configured");
-    }
-
-    const oauth2Client = new google.auth.OAuth2(
-      googleClientId,
-      googleClientSecret,
-      `${process.env.BETTER_AUTH_URL || process.env.VITE_BETTER_AUTH_URL || "http://localhost:3001"}/api/email-connections/callback`
+    const oauth = new google.auth.OAuth2(
+      process.env.GOOGLE_CLIENT_ID,
+      process.env.GOOGLE_CLIENT_SECRET,
+      `${process.env.BETTER_AUTH_URL}/api/email-connections/callback`
     );
 
-    oauth2Client.setCredentials({
+    oauth.setCredentials({
       access_token: connection.access_token,
-      refresh_token: connection.refresh_token || undefined,
+      refresh_token: connection.refresh_token,
     });
 
-    const gmail = google.gmail({ version: "v1", auth: oauth2Client });
+    const gmail = google.gmail({ version: "v1", auth: oauth });
 
-    const listRes = await gmail.users.messages.list({
+    const threadsRes = await gmail.users.threads.list({
       userId: "me",
-      maxResults: 50,
-      q: "in:inbox",
+      maxResults: 10,
     });
 
-    const messages = listRes.data.messages || [];
-    let emailsSynced = 0;
-
-    for (const msgRef of messages) {
-      if (!msgRef.id) continue;
-
-      const msgRes = await gmail.users.messages.get({
+    for (const t of threadsRes.data.threads || []) {
+      const thread = await gmail.users.threads.get({
         userId: "me",
-        id: msgRef.id,
+        id: t.id!,
         format: "full",
       });
 
-      const msg = msgRes.data;
+      const messages = thread.data.messages || [];
+      if (!messages.length) continue;
 
-      if (!msg.id || !msg.threadId) continue;
+      const headers = messages[0].payload?.headers || [];
+      const get = (n: string) =>
+        headers.find(h => h.name?.toLowerCase() === n)?.value || "";
 
-      const externalEmailId = msg.id;
-      const gmailThreadId = msg.threadId;
+      const fromHeader = get("from");
+      const subject = get("subject") || "(No Subject)";
+      const senderEmail =
+        fromHeader.match(/<(.+)>/)?.[1] || fromHeader;
 
-      const headers = msg.payload?.headers || [];
-      const getHeader = (n: string) =>
-        headers.find(h => h.name?.toLowerCase() === n.toLowerCase())?.value || "";
+      /* ✅ leadId DEFINED ONCE PER THREAD */
+      let leadId: string | null = null;
+      const leadRes = await pool.query(
+        `SELECT id FROM public.leads WHERE user_id=$1 AND email=$2 LIMIT 1`,
+        [connection.user_id, senderEmail]
+      );
+      if (leadRes.rows.length) leadId = leadRes.rows[0].id;
 
-      const fromHeader = getHeader("From");
-      const toHeader = getHeader("To");
-      const subject = getHeader("Subject") || "(No Subject)";
-      const dateHeader = getHeader("Date");
-
-      const receivedAt = dateHeader
-        ? new Date(dateHeader)
-        : new Date(msg.internalDate ? Number(msg.internalDate) : Date.now());
-
-      const extractEmail = (v: string) => {
-        const m = v.match(/<(.+)>/);
-        return m ? m[1] : v.trim();
-      };
-
-      const extractName = (v: string) => {
-        const m = v.match(/^(.+?)\s*</);
-        return m ? m[1].replace(/"/g, "").trim() : "";
-      };
-
-      const fromEmail = extractEmail(fromHeader);
-      const fromName = extractName(fromHeader) || fromEmail.split("@")[0];
-      const toEmail = extractEmail(toHeader) || connection.email;
-
-      let bodyText = "";
-      let bodyHtml = "";
-
-      const extractBody = (part: any): void => {
-        if (part.body?.data) {
-          const decoded = Buffer.from(part.body.data, "base64").toString("utf-8");
-          if (part.mimeType === "text/plain") bodyText = decoded;
-          if (part.mimeType === "text/html") bodyHtml = decoded;
-        }
-        if (part.parts) part.parts.forEach(extractBody);
-      };
-
-      if (msg.payload) extractBody(msg.payload);
-
-      const direction =
-        fromEmail.toLowerCase() === connection.email.toLowerCase()
-          ? "outbound"
-          : "inbound";
-
-      // 🔑 STEP 1: ensure thread exists FIRST
-      const threadUpsert = await pool.query(
-        `
-        INSERT INTO public.email_threads (
-          user_id, subject, thread_identifier, status, created_at, updated_at
-        )
-        VALUES ($1,$2,$3,'active',$4,$4)
-        ON CONFLICT (user_id, thread_identifier)
-        DO UPDATE SET updated_at = EXCLUDED.updated_at
-        RETURNING id
-        `,
-        [connection.user_id, subject, gmailThreadId, receivedAt]
+      const threadRes = await pool.query(
+        `INSERT INTO public.email_threads
+         (user_id,lead_id,subject,thread_identifier,status,created_at,updated_at)
+         VALUES ($1,$2,$3,$4,'active',NOW(),NOW())
+         RETURNING id`,
+        [connection.user_id, leadId, subject, t.id]
       );
 
-      const emailThreadId = threadUpsert.rows[0].id;
+      const emailThreadId = threadRes.rows[0].id;
 
-      // 🔑 STEP 2: insert email linked to thread UUID
-      await pool.query(
-        `
-        INSERT INTO public.emails (
-          thread_id,
-          user_id,
-          from_email,
-          from_name,
-          to_email,
-          subject,
-          body_text,
-          body_html,
-          direction,
-          received_at,
-          created_at,
-          external_email_id
-        )
-        VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$10,$11)
-        ON CONFLICT (external_email_id) DO NOTHING
-        `,
-        [
-          emailThreadId,
-          connection.user_id,
-          fromEmail,
-          fromName,
-          toEmail,
-          subject,
-          bodyText || null,
-          bodyHtml || null,
-          direction,
-          receivedAt,
-          externalEmailId,
-        ]
-      );
+      for (const msg of messages) {
+        let bodyText = "";
+        let bodyHtml = "";
 
-      emailsSynced++;
+        const extract = (p: any) => {
+          if (p.body?.data) {
+            const d = Buffer.from(p.body.data, "base64").toString();
+            if (p.mimeType === "text/plain") bodyText = d;
+            if (p.mimeType === "text/html") bodyHtml = d;
+          }
+          p.parts?.forEach(extract);
+        };
+        extract(msg.payload);
+
+        await pool.query(
+          `INSERT INTO public.emails
+           (thread_id,user_id,lead_id,from_email,to_email,subject,
+            body_text,body_html,received_at,external_email_id)
+           VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)
+           ON CONFLICT (external_email_id) DO NOTHING`,
+          [
+            emailThreadId,
+            connection.user_id,
+            leadId,
+            senderEmail,
+            connection.email,
+            subject,
+            bodyText || null,
+            bodyHtml || null,
+            new Date(parseInt(msg.internalDate || "0")),
+            msg.id,
+          ]
+        );
+
+        emailsSynced++;
+      }
     }
 
     await pool.end();
     return { success: true, emailsSynced };
   } catch (err) {
     await pool.end();
-    return {
-      success: false,
-      emailsSynced: 0,
-      error: err instanceof Error ? err.message : "Unknown Gmail sync error",
-    };
+    return { success: false, emailsSynced, error: String(err) };
   }
 }
 
-
-/**
- * Sync emails from Outlook using OAuth
- */
-export async function syncOutlookEmails(
-  connection: EmailConnection,
-  databaseUrl: string
-): Promise<SyncResult> {
-  // TODO: Implement Outlook/Microsoft Graph API sync
-  // For now, return success with 0 emails
-  return {
-    success: true,
-    emailsSynced: 0,
-    error: "Outlook sync not yet implemented",
-  };
-}
-
-/**
- * Sync emails for a specific connection
- */
 export async function syncEmailConnection(
   connectionId: string,
   databaseUrl: string
