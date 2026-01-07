@@ -1281,7 +1281,12 @@ if (existingThread.rows.length > 0) {
               const msgSnippet = message.snippet || "";
               
               // Determine direction
-              const direction = msgFromEmail.toLowerCase() === userEmail.toLowerCase() ? "outbound" : "inbound";
+              const direction = msgFromEmail.toLowerCase() === userEmail.toLowerCase() ? "outgoing" : "incoming";
+              const status =
+                direction === "outgoing"
+                 ? "sent"
+                 : "received";
+
               
               // Extract email body
               let bodyText = "";
@@ -1346,9 +1351,9 @@ if (existingThread.rows.length > 0) {
                     subject,
                     finalBodyText ? finalBodyText.substring(0, 50000) : null, // Limit text length
                     finalBodyHtml ? finalBodyHtml.substring(0, 100000) : null, // Limit HTML length
-                    "unread",
-                    direction === "outbound" ? msgDate : null,
-                    direction === "inbound" ? msgDate : null,
+                    status,
+                    direction === "outgoing" ? msgDate : null,
+                    direction === "incoming" ? msgDate : null,
                     message.id || null,
                   ]
                 );
@@ -1379,8 +1384,10 @@ if (existingThread.rows.length > 0) {
               const latestFromName = latestFromHeader ? extractName(latestFromHeader) : senderName;
               const latestToEmail = latestToHeader ? extractEmail(latestToHeader) : toEmail;
               const latestDate = latestDateHeader ? new Date(latestDateHeader) : lastMessageTimestamp;
-              const latestDirection = latestFromEmail.toLowerCase() === userEmail.toLowerCase() ? "outbound" : "inbound";
+              const latestDirection = latestFromEmail.toLowerCase() === userEmail.toLowerCase() ? "outgoing" : "incoming";
               const latestSnippet = latestMsg.snippet || snippet || "";
+              const latestStatus =latestDirection === "outgoing"? "sent": "received";
+
               
               // Save with snippet as body_text
               await pool.query(
@@ -1400,9 +1407,9 @@ if (existingThread.rows.length > 0) {
                   subject,
                   latestSnippet.substring(0, 50000), // Use snippet as body
                   null, // No HTML
-                  "unread",
-                  latestDirection === "outbound" ? latestDate : null,
-                  latestDirection === "inbound" ? latestDate : null,
+                  latestStatus,
+                  latestDirection === "outgoing" ? latestDate : null,
+                  latestDirection === "incoming" ? latestDate : null,
                   latestMsg.id || null,
                 ]
               );
