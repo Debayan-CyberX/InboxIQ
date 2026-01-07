@@ -1539,6 +1539,110 @@ app.post("/api/email-connections/:connectionId/sync", async (req, res) => {
     });
   }
 });
+app.get("/api/emails/thread/:threadId", async (req, res) => {
+  try {
+    const { threadId } = req.params;
+
+    // ---- Get session from Better Auth ----
+    const authServerUrl =
+      process.env.BETTER_AUTH_URL ||
+      process.env.VITE_BETTER_AUTH_URL ||
+      `http://localhost:${PORT}`;
+
+    const sessionHeaders = new Headers();
+
+    if (req.headers.cookie) {
+      sessionHeaders.set(
+        "Cookie",
+        Array.isArray(req.headers.cookie)
+          ? req.headers.cookie.join("; ")
+          : req.headers.cookie
+      );
+    }
+
+    const sessionRequest = new Request(
+      `${authServerUrl}/api/auth/get-session`,
+      {
+        method: "GET",
+        headers: sessionHeaders,
+      }
+    );
+
+    const sessionRes = await auth.handler(sessionRequest);
+    const sessionData = await sessionRes.json();
+
+    if (!sessionData?.user?.id) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
+
+    const betterAuthUserId = sessionData.user.id;
+
+    // ---- DB connection ----
+    const databaseUrl =
+      process.env.DATABASE_URL || process.env.SUPABASE_DATABASE_URL;
+
+    if (!databaseUrl) {
+      return res.status(500).json({ error: "Database not configured" });
+    }
+
+    const pool = new Pool({
+      connectionString: databaseUrl,
+      ssl: databaseUrl.includes("supabase.co")
+        ? { rejectUnauthorized: false }
+        : false,
+    });
+
+    try {
+      // Convert Better Auth ID → internal user UUID
+      const userResult = await pool.query(
+        `SELECT public.get_user_uuid_from_better_auth_id($1) AS uuid`,
+        [betterAuthUserId]
+      );
+
+      const userUuid = userResult.rows[0]?.uuid;
+
+      if (!userUuid) {
+        return res.status(404).json({ error: "User not found" });
+      }
+
+      // ---- Fetch emails for this thread ----
+      const emailsResult = await pool.query(
+        `
+        SELECT
+          id,
+          direction,
+          from_email,
+          to_email,
+          subject,
+          body_text,
+          body_html,
+          sent_at,
+          received_at,
+          created_at
+        FROM public.emails
+        WHERE user_id = $1
+          AND thread_id = $2
+        ORDER BY COALESCE(received_at, sent_at, created_at) ASC
+        `,
+        [userUuid, threadId]
+      );
+
+      res.json({
+        success: true,
+        threadId,
+        emails: emailsResult.rows,
+      });
+    } finally {
+      await pool.end();
+    }
+  } catch (error) {
+    console.error("❌ Fetch thread emails error:", error);
+    res.status(500).json({
+      error: "Failed to fetch thread emails",
+      message: error instanceof Error ? error.message : "Unknown error",
+    });
+  }
+});
 
 app.listen(PORT, () => {
   console.log(`\n✅ Better Auth server running on http://localhost:${PORT}`);
