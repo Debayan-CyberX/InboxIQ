@@ -1281,7 +1281,7 @@ if (existingThread.rows.length > 0) {
               const msgSnippet = message.snippet || "";
               
               // Determine direction
-              const direction = msgFromEmail.toLowerCase() === userEmail.toLowerCase() ? "outgoing" : "incoming";
+              const direction = msgFromEmail.toLowerCase() === userEmail.toLowerCase() ? "outbound" : "inbound";
               
               // Extract email body
               let bodyText = "";
@@ -1347,8 +1347,8 @@ if (existingThread.rows.length > 0) {
                     finalBodyText ? finalBodyText.substring(0, 50000) : null, // Limit text length
                     finalBodyHtml ? finalBodyHtml.substring(0, 100000) : null, // Limit HTML length
                     "unread",
-                    direction === "outgoing" ? msgDate : null,
-                    direction === "incoming" ? msgDate : null,
+                    direction === "outbound" ? msgDate : null,
+                    direction === "inbound" ? msgDate : null,
                     message.id || null,
                   ]
                 );
@@ -1379,7 +1379,7 @@ if (existingThread.rows.length > 0) {
               const latestFromName = latestFromHeader ? extractName(latestFromHeader) : senderName;
               const latestToEmail = latestToHeader ? extractEmail(latestToHeader) : toEmail;
               const latestDate = latestDateHeader ? new Date(latestDateHeader) : lastMessageTimestamp;
-              const latestDirection = latestFromEmail.toLowerCase() === userEmail.toLowerCase() ? "outgoing" : "incoming";
+              const latestDirection = latestFromEmail.toLowerCase() === userEmail.toLowerCase() ? "outbound" : "inbound";
               const latestSnippet = latestMsg.snippet || snippet || "";
               
               // Save with snippet as body_text
@@ -1401,8 +1401,8 @@ if (existingThread.rows.length > 0) {
                   latestSnippet.substring(0, 50000), // Use snippet as body
                   null, // No HTML
                   "unread",
-                  latestDirection === "outgoing" ? latestDate : null,
-                  latestDirection === "incoming" ? latestDate : null,
+                  latestDirection === "outbound" ? latestDate : null,
+                  latestDirection === "inbound" ? latestDate : null,
                   latestMsg.id || null,
                 ]
               );
