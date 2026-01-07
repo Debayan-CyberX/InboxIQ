@@ -1285,7 +1285,7 @@ if (existingThread.rows.length > 0) {
               const status =
                 direction === "outbound"
                  ? "sent"
-                 : "received";
+                 : "sent";
 
               
               // Extract email body
@@ -1386,7 +1386,7 @@ if (existingThread.rows.length > 0) {
               const latestDate = latestDateHeader ? new Date(latestDateHeader) : lastMessageTimestamp;
               const latestDirection = latestFromEmail.toLowerCase() === userEmail.toLowerCase() ? "outbound" : "inbound";
               const latestSnippet = latestMsg.snippet || snippet || "";
-              const latestStatus =latestDirection === "outbound"? "sent": "received";
+              const latestStatus =latestDirection === "outbound"? "sent": "sent";
 
               
               // Save with snippet as body_text
