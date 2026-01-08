@@ -35,7 +35,7 @@ const allowedOrigins = [
   process.env.VITE_APP_URL || process.env.FRONTEND_URL || productionFrontendUrl
 ].filter(Boolean);
 
-aapp.use(
+app.use(
   cors({
     origin: (origin, callback) => {
       // Allow server-to-server / curl / Postman
