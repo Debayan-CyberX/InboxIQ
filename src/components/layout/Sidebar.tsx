@@ -52,14 +52,17 @@ const Sidebar = () => {
   return (
     <aside
       className="
+        fixed
+        inset-y-0
+        left-0
+        z-40
         w-64
-        h-full
+        h-screen
         bg-sidebar
         border-r
         border-sidebar-border
         flex
         flex-col
-        max-w-full
       "
     >
       {/* Logo */}
@@ -83,6 +86,12 @@ const Sidebar = () => {
             <Link
               key={item.name}
               to={item.href}
+              onClick={() => {
+                // ensure body scroll unlock on mobile
+                if (window.innerWidth < 1024) {
+                  document.body.style.overflow = "";
+                }
+              }}
               className={cn(
                 "flex items-center gap-3 px-3 py-3 rounded-lg text-sm font-medium transition-colors",
                 isActive
@@ -107,6 +116,11 @@ const Sidebar = () => {
       <div className="p-3 border-t border-sidebar-border shrink-0 space-y-1">
         <Link
           to="/settings"
+          onClick={() => {
+            if (window.innerWidth < 1024) {
+              document.body.style.overflow = "";
+            }
+          }}
           className={cn(
             "flex items-center gap-3 px-3 py-3 rounded-lg text-sm font-medium transition-colors",
             location.pathname === "/settings"
