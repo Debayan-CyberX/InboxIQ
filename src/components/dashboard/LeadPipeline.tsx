@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Flame, ThermometerSun, Snowflake } from "lucide-react";
 import LeadCard from "./LeadCard";
 import { cn } from "@/lib/utils";
@@ -43,12 +44,18 @@ const columns = [
   },
 ];
 
+const MAX_VISIBLE = 3;
+
 const LeadPipeline = ({ leads, onLeadClick }: LeadPipelineProps) => {
+  const [expanded, setExpanded] = useState<Record<string, boolean>>({});
+
   return (
     <div className="card-elevated animate-fade-in animation-delay-200 max-w-full overflow-hidden">
       {/* Header */}
       <div className="p-5 border-b border-border">
-        <h2 className="text-base font-semibold text-foreground">Lead Pipeline</h2>
+        <h2 className="text-base font-semibold text-foreground">
+          Lead Pipeline
+        </h2>
         <p className="text-sm text-muted-foreground mt-0.5">
           {leads.length} active leads across all stages
         </p>
@@ -61,6 +68,11 @@ const LeadPipeline = ({ leads, onLeadClick }: LeadPipelineProps) => {
             const columnLeads = leads.filter(
               (lead) => lead.status === column.status
             );
+
+            const isExpanded = expanded[column.status] ?? false;
+            const visibleLeads = isExpanded
+              ? columnLeads
+              : columnLeads.slice(0, MAX_VISIBLE);
 
             return (
               <div
@@ -93,7 +105,7 @@ const LeadPipeline = ({ leads, onLeadClick }: LeadPipelineProps) => {
 
                 {/* Column content */}
                 <div className="p-3 space-y-3 overflow-y-auto flex-1">
-                  {columnLeads.map((lead) => (
+                  {visibleLeads.map((lead) => (
                     <LeadCard
                       key={lead.id}
                       {...lead}
@@ -101,9 +113,27 @@ const LeadPipeline = ({ leads, onLeadClick }: LeadPipelineProps) => {
                     />
                   ))}
 
+                  {columnLeads.length > MAX_VISIBLE && (
+                    <button
+                      onClick={() =>
+                        setExpanded((prev) => ({
+                          ...prev,
+                          [column.status]: !isExpanded,
+                        }))
+                      }
+                      className="w-full text-xs text-purple-400 hover:text-purple-300 py-2"
+                    >
+                      {isExpanded
+                        ? "Show less"
+                        : `Show more (${columnLeads.length - MAX_VISIBLE})`}
+                    </button>
+                  )}
+
                   {columnLeads.length === 0 && (
                     <div className="text-center py-8">
-                      <p className="text-sm text-muted-foreground">No leads</p>
+                      <p className="text-sm text-muted-foreground">
+                        No leads
+                      </p>
                     </div>
                   )}
                 </div>
