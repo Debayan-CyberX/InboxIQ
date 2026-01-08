@@ -1,4 +1,4 @@
-/* InboxIQ Design System - Purple/Black Futuristic Hi-Fi */
+/* InboxIQ Design System — Midnight Indigo (AI SaaS) */
 
 /* Fonts */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap');
@@ -12,60 +12,88 @@
    ========================= */
 @layer base {
   :root {
-    --background: 265 30% 4%;
-    --foreground: 270 20% 92%;
+    /* Core surfaces */
+    --background: 225 18% 8%;
+    --foreground: 220 15% 92%;
 
-    --card: 265 35% 8%;
-    --card-foreground: 270 20% 92%;
+    --card: 225 18% 11%;
+    --card-foreground: 220 15% 92%;
 
-    --popover: 265 35% 8%;
-    --popover-foreground: 270 20% 92%;
+    --popover: 225 18% 11%;
+    --popover-foreground: 220 15% 92%;
 
-    --primary: 275 85% 55%;
-    --primary-foreground: 265 30% 4%;
+    /* Brand / primary */
+    --primary: 255 75% 62%;
+    --primary-foreground: 225 20% 8%;
 
-    --secondary: 270 40% 12%;
-    --secondary-foreground: 270 20% 85%;
+    /* Secondary surfaces */
+    --secondary: 225 18% 14%;
+    --secondary-foreground: 220 15% 85%;
 
-    --muted: 265 35% 10%;
-    --muted-foreground: 270 15% 50%;
+    --muted: 225 18% 13%;
+    --muted-foreground: 220 10% 55%;
 
-    --accent: 285 90% 58%;
-    --accent-foreground: 265 30% 4%;
+    /* Accent (AI / CTA) */
+    --accent: 260 70% 60%;
+    --accent-foreground: 225 20% 8%;
 
-    --destructive: 0 80% 50%;
+    --destructive: 0 72% 55%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 270 40% 15%;
-    --input: 270 40% 12%;
-    --ring: 275 85% 55%;
+    /* Borders / inputs */
+    --border: 225 18% 18%;
+    --input: 225 18% 16%;
+    --ring: 255 75% 62%;
 
     --radius: 0.75rem;
 
-    --status-hot: 330 100% 65%;
-    --status-hot-bg: 330 100% 15%;
-    --status-warm: 45 100% 55%;
-    --status-warm-bg: 45 100% 12%;
+    /* Lead status */
+    --status-hot: 340 85% 65%;
+    --status-hot-bg: 340 60% 18%;
+
+    --status-warm: 45 95% 55%;
+    --status-warm-bg: 45 70% 18%;
+
     --status-cold: 200 80% 55%;
-    --status-cold-bg: 200 80% 12%;
-    --status-risk: 0 85% 60%;
-    --status-risk-bg: 0 85% 12%;
-    --status-success: 160 100% 45%;
-    --status-success-bg: 160 100% 12%;
+    --status-cold-bg: 200 60% 18%;
 
-    --sidebar-background: 265 40% 3%;
-    --sidebar-foreground: 270 20% 75%;
-    --sidebar-primary: 285 90% 58%;
-    --sidebar-primary-foreground: 265 30% 4%;
-    --sidebar-accent: 270 45% 10%;
-    --sidebar-accent-foreground: 270 20% 92%;
-    --sidebar-border: 270 40% 12%;
-    --sidebar-ring: 285 90% 58%;
+    --status-success: 155 75% 45%;
+    --status-success-bg: 155 50% 18%;
 
-    --gradient-primary: linear-gradient(135deg, hsl(275 85% 55%), hsl(310 90% 50%));
-    --gradient-accent: linear-gradient(135deg, hsl(285 90% 58%), hsl(220 90% 55%));
-    --gradient-card: linear-gradient(180deg, hsl(265 35% 10%), hsl(265 40% 5%));
-    --gradient-glow: radial-gradient(ellipse at center, hsl(285 90% 58% / 0.1), transparent 70%);
+    /* Sidebar */
+    --sidebar-background: 225 20% 6%;
+    --sidebar-foreground: 220 12% 78%;
+    --sidebar-primary: 255 75% 62%;
+    --sidebar-primary-foreground: 225 20% 8%;
+    --sidebar-accent: 225 18% 12%;
+    --sidebar-accent-foreground: 220 15% 92%;
+    --sidebar-border: 225 18% 14%;
+    --sidebar-ring: 255 75% 62%;
+
+    /* Gradients */
+    --gradient-primary: linear-gradient(
+      135deg,
+      hsl(255 75% 62%),
+      hsl(275 70% 58%)
+    );
+
+    --gradient-accent: linear-gradient(
+      135deg,
+      hsl(260 70% 60%),
+      hsl(220 70% 55%)
+    );
+
+    --gradient-card: linear-gradient(
+      180deg,
+      hsl(225 18% 13%),
+      hsl(225 20% 9%)
+    );
+
+    --gradient-glow: radial-gradient(
+      ellipse at center,
+      hsl(255 75% 62% / 0.08),
+      transparent 70%
+    );
   }
 
   * {
@@ -73,10 +101,9 @@
   }
 
   html {
-    font-family: 'Space Grotesk', 'Inter', system-ui, sans-serif;
+    font-family: 'Inter', 'Space Grotesk', system-ui, sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    scroll-behavior: smooth;
   }
 
   body {
@@ -91,22 +118,21 @@
    ========================= */
 @layer components {
   .card-elevated {
-    @apply bg-card rounded-xl border border-border;
+    @apply bg-card rounded-xl border border-border shadow-sm;
     background-image: var(--gradient-card);
   }
 
   .card-interactive {
-    @apply card-elevated transition-all duration-300 hover:-translate-y-0.5;
+    @apply card-elevated transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md;
   }
 
   .text-gradient {
     @apply bg-clip-text text-transparent;
-    background-image: linear-gradient(135deg, hsl(275 85% 55%), hsl(310 90% 50%), hsl(275 85% 55%));
-    background-size: 200% auto;
+    background-image: var(--gradient-primary);
   }
 
   .glass {
-    @apply bg-card/60 backdrop-blur-xl border border-border/50;
+    @apply bg-card/70 backdrop-blur-xl border border-border/60;
   }
 }
 
@@ -115,29 +141,17 @@
    ========================= */
 @layer utilities {
   .animate-fade-in {
-    animation: fade-in 0.4s ease-out forwards;
+    animation: fade-in 0.35s ease-out forwards;
   }
 
   @keyframes fade-in {
     from {
       opacity: 0;
-      transform: translateY(12px);
+      transform: translateY(10px);
     }
     to {
       opacity: 1;
       transform: translateY(0);
-    }
-  }
-
-  @keyframes shimmer {
-    0% {
-      background-position: 0% 50%;
-    }
-    50% {
-      background-position: 100% 50%;
-    }
-    100% {
-      background-position: 0% 50%;
     }
   }
 
@@ -146,12 +160,9 @@
     animation: shimmer 3s linear infinite;
   }
 
-  /* 3D Transform Utilities */
-  .preserve-3d {
-    transform-style: preserve-3d;
-  }
-
-  .perspective-1000 {
-    perspective: 1000px;
+  @keyframes shimmer {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
   }
 }

@@ -389,3 +389,4 @@ GRANT EXECUTE ON FUNCTION public.get_recent_insights TO public;
 
 
 
+

@@ -78,3 +78,4 @@ psql "postgresql://postgres:YOUR_PASSWORD@db.iqfbjamdwnkbxattpqbw.supabase.co:54
 
 
 
+
