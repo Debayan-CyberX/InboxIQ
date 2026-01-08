@@ -22,6 +22,7 @@ const VITE_PORT = process.env.VITE_PORT || 8081;
 const productionFrontendUrl = "https://inboxiq.debx.co.in";
 const allowedOrigins = [
   // Development URLs
+  "https://inboxiq.debx.co.in",
     "http://localhost:8080",
   "http://localhost:8081",
     "http://localhost:5173",
@@ -34,22 +35,27 @@ const allowedOrigins = [
   process.env.VITE_APP_URL || process.env.FRONTEND_URL || productionFrontendUrl
 ].filter(Boolean);
 
-app.use(cors({
-  origin: (origin, callback) => {
-    // Allow requests with no origin (like mobile apps or curl requests)
-    if (!origin) return callback(null, true);
-    
-    if (allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      console.warn(`⚠️ Blocked CORS request from: ${origin}`);
-      callback(new Error("Not allowed by CORS"));
-    }
-  },
-  credentials: true,
-  methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization", "Cookie"],
-}));
+aapp.use(
+  cors({
+    origin: (origin, callback) => {
+      // Allow server-to-server / curl / Postman
+      if (!origin) return callback(null, true);
+
+      if (allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+
+      // ❗ DO NOT throw error — allow but log
+      console.warn(`⚠️ CORS blocked origin: ${origin}`);
+      return callback(null, false);
+    },
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization", "Cookie"],
+  })
+);
+app.options("*", cors());
+
 app.use(express.json());
 
 // Convert Express request to Web API Request for Better Auth
@@ -64,7 +70,7 @@ async function expressToWebRequest(req: ExpressRequest): Promise<Request> {
   const headers = new Headers();
   
   // Explicitly handle cookies - critical for session management
-  if (req.headers.cookie) {
+  if (typeof req.headers?.cookie === "string") {
     const cookieValue = Array.isArray(req.headers.cookie) 
       ? req.headers.cookie.join('; ') 
       : req.headers.cookie;
