@@ -552,7 +552,8 @@ const Leads = () => {
                                 setGeneratingLeadId(null);
                               }
                             }}
-                            disabled={(lead.days_since_contact || 0) < 3 || generatingLeadId === lead.id}
+                            disabled={generatingLeadId === lead.id}
+
                             className="p-1.5 rounded hover:bg-muted transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                             title={(lead.days_since_contact || 0) < 3 ? "User replied recently (within 3 days)" : generatingLeadId === lead.id ? "Generating..." : "Generate Follow-up"}
                           >
