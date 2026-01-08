@@ -1,9 +1,10 @@
 /**
- * AI Follow-up Email Generation
+ * AI Follow-up Email Generation (Hugging Face – Free)
  */
 
 import { Pool } from "pg";
-import OpenAI from "openai";
+import { generateWithHuggingFace } from "../src/lib/huggingface";
+
 
 interface FollowUpContext {
   recipientName: string | null;
@@ -58,54 +59,35 @@ function replaceTemplateVars(template: string, context: FollowUpContext): string
     .replace(/\{\{days_since_last_reply\}\}/g, context.daysSinceLastReply.toString());
 }
 
-const openai =
-  process.env.OPENAI_API_KEY
-    ? new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
-    : null;
-
 async function generateFollowUpWithAI(
   context: FollowUpContext
 ): Promise<{ subject: string; body: string }> {
-  if (!openai) {
-    console.warn("⚠️ OPENAI_API_KEY missing, using fallback");
-    return generateFallbackFollowUp(context);
-  }
-
   const prompt = replaceTemplateVars(FOLLOW_UP_PROMPT, context);
 
   try {
-    const completion = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
-      messages: [
-        {
-          role: "system",
-          content:
-            "You write polite, concise follow-up emails. Always return the exact format: 'Subject: <subject>\\n\\n<body>'.",
-        },
-        {
-          role: "user",
-          content: prompt,
-        },
-      ],
-      temperature: 0.6,
-      max_tokens: 250,
-    });
+    const rawText = await generateWithHuggingFace(prompt);
 
-    const content = completion.choices[0]?.message?.content?.trim();
-
-    if (!content) {
-      throw new Error("Empty AI response");
+    if (!rawText || rawText.trim().length === 0) {
+      throw new Error("Empty Hugging Face response");
     }
 
-    const subjectMatch = content.match(/^Subject:\s*(.+)$/im);
-    const body = content.split(/\n\n/).slice(1).join("\n\n").trim();
+    // Expected:
+    // Subject: ...
+    //
+    // Body...
+    const subjectMatch = rawText.match(/Subject:\s*(.+)/i);
+    const body = rawText
+      .split(/\n\n/)
+      .slice(1)
+      .join("\n\n")
+      .trim();
 
     return {
       subject: subjectMatch?.[1]?.trim() || `Re: ${context.lastSubject}`,
       body: body || generateFallbackFollowUp(context).body,
     };
-  } catch (err) {
-    console.error("❌ OpenAI error:", err);
+  } catch (error) {
+    console.error("❌ Hugging Face error:", error);
     return generateFallbackFollowUp(context);
   }
 }
