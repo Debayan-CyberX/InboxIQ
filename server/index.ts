@@ -70,8 +70,8 @@ async function expressToWebRequest(req: ExpressRequest): Promise<Request> {
   const headers = new Headers();
   
   // Explicitly handle cookies - critical for session management
-  if (typeof req.headers?.cookie === "string") {
-    const cookieValue = Array.isArray(req.headers.cookie) 
+  if (req.headers.cookie) {
+  const cookieValue = Array.isArray(req.headers.cookie) 
       ? req.headers.cookie.join('; ') 
       : req.headers.cookie;
     headers.set('Cookie', cookieValue);
