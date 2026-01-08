@@ -4,19 +4,44 @@ import { Button } from "@/components/ui/button";
 import ConnectEmailDialog from "@/components/ConnectEmailDialog";
 import { emailConnectionsApi, type EmailConnection } from "@/lib/api";
 import { useUserId } from "@/hooks/useUserId";
+import { useSession } from "@/lib/auth-client";
 import { toast } from "sonner";
+
+/* ---------------- helpers ---------------- */
+
+const getGreeting = () => {
+  const hour = new Date().getHours();
+
+  if (hour >= 5 && hour < 12) return "Good morning";
+  if (hour >= 12 && hour < 17) return "Good afternoon";
+  if (hour >= 17 && hour < 21) return "Good evening";
+  return "Good night";
+};
+
+const getFormattedDate = () => {
+  return new Date().toLocaleDateString("en-US", {
+    weekday: "long",
+    month: "short",
+    day: "numeric",
+  });
+};
+
+/* ---------------- component ---------------- */
 
 const Header = () => {
   const userId = useUserId();
+  const { data: session } = useSession();
+
   const [isConnectDialogOpen, setIsConnectDialogOpen] = useState(false);
   const [emailConnections, setEmailConnections] = useState<EmailConnection[]>([]);
   const [isLoadingConnections, setIsLoadingConnections] = useState(false);
 
-  const today = new Date().toLocaleDateString('en-US', { 
-    weekday: 'long', 
-    month: 'short', 
-    day: 'numeric' 
-  });
+  const today = getFormattedDate();
+
+  const userName =
+    session?.user?.name ||
+    session?.user?.email?.split("@")[0] ||
+    "there";
 
   // Load email connections
   useEffect(() => {
@@ -26,10 +51,9 @@ const Header = () => {
       try {
         setIsLoadingConnections(true);
         const connections = await emailConnectionsApi.getAll(userId);
-        setEmailConnections(connections.filter(c => c.is_active));
+        setEmailConnections(connections.filter((c) => c.is_active));
       } catch (err) {
         console.error("Error loading email connections:", err);
-        // Don't show error toast - just log it
       } finally {
         setIsLoadingConnections(false);
       }
@@ -39,17 +63,17 @@ const Header = () => {
   }, [userId]);
 
   const handleEmailConnected = () => {
-    // Reload connections after connecting
-    if (userId) {
-      emailConnectionsApi.getAll(userId)
-        .then(connections => {
-          setEmailConnections(connections.filter(c => c.is_active));
-          toast.success("Email connected successfully!");
-        })
-        .catch(err => {
-          console.error("Error reloading connections:", err);
-        });
-    }
+    if (!userId) return;
+
+    emailConnectionsApi
+      .getAll(userId)
+      .then((connections) => {
+        setEmailConnections(connections.filter((c) => c.is_active));
+        toast.success("Email connected successfully!");
+      })
+      .catch((err) => {
+        console.error("Error reloading connections:", err);
+      });
   };
 
   const isEmailConnected = emailConnections.length > 0;
@@ -60,7 +84,11 @@ const Header = () => {
       <header className="h-16 border-b border-border bg-card/80 backdrop-blur-xl flex items-center justify-between px-6">
         <div className="flex items-center gap-4">
           <div>
-            <h1 className="text-xl font-semibold text-foreground">Good morning, <span className="text-gradient">Debayan</span></h1>
+            <h1 className="text-xl font-semibold text-foreground">
+              {getGreeting()},{" "}
+              <span className="text-gradient">{userName}</span>
+            </h1>
+
             <p className="text-sm text-muted-foreground flex items-center gap-1.5">
               <Calendar className="w-3.5 h-3.5" />
               {today}
@@ -87,8 +115,8 @@ const Header = () => {
 
           {/* Connect Email CTA */}
           {isEmailConnected ? (
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               size="sm"
               className="gap-2"
               onClick={() => setIsConnectDialogOpen(true)}
@@ -100,8 +128,8 @@ const Header = () => {
               </span>
             </Button>
           ) : (
-            <Button 
-              variant="accent" 
+            <Button
+              variant="accent"
               size="sm"
               className="gap-2"
               onClick={() => setIsConnectDialogOpen(true)}
