@@ -1,10 +1,9 @@
 /**
  * AI Follow-up Email Generation
- * 
- * Generates follow-up emails using AI based on lead context.
  */
 
 import { Pool } from "pg";
+import OpenAI from "openai";
 
 interface FollowUpContext {
   recipientName: string | null;
@@ -45,10 +44,6 @@ Instructions:
 - Invite a response without pressure
 - End with a soft, professional closing
 
-Formatting rules:
-- If recipient name is missing, start with "Hi there,"
-- Keep the subject simple and neutral
-
 Output format (STRICT):
 Subject: <subject line>
 
@@ -63,78 +58,74 @@ function replaceTemplateVars(template: string, context: FollowUpContext): string
     .replace(/\{\{days_since_last_reply\}\}/g, context.daysSinceLastReply.toString());
 }
 
-async function generateFollowUpWithAI(context: FollowUpContext): Promise<{ subject: string; body: string }> {
-  const prompt = replaceTemplateVars(FOLLOW_UP_PROMPT, context);
-  
-  // Check if OpenAI API key is configured
-  const openaiApiKey = process.env.OPENAI_API_KEY;
-  
-  if (!openaiApiKey) {
-    // Fallback: Generate a simple follow-up without AI
-    console.warn("⚠️ OPENAI_API_KEY not set. Using fallback follow-up generation.");
+const openai =
+  process.env.OPENAI_API_KEY
+    ? new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
+    : null;
+
+async function generateFollowUpWithAI(
+  context: FollowUpContext
+): Promise<{ subject: string; body: string }> {
+  if (!openai) {
+    console.warn("⚠️ OPENAI_API_KEY missing, using fallback");
     return generateFallbackFollowUp(context);
   }
 
-  try {
-    // Import OpenAI dynamically (install with: npm install openai)
-    let OpenAI: any;
-    try {
-      const openaiModule = await import("openai");
-      OpenAI = openaiModule.OpenAI;
-    } catch (importError) {
-      console.warn("⚠️ OpenAI package not installed. Using fallback generation.");
-      return generateFallbackFollowUp(context);
-    }
-    
-    const openai = new OpenAI({ apiKey: openaiApiKey });
+  const prompt = replaceTemplateVars(FOLLOW_UP_PROMPT, context);
 
+  try {
     const completion = await openai.chat.completions.create({
-      model: "gpt-4o-mini", // or "gpt-3.5-turbo" for cheaper option
+      model: "gpt-4o-mini",
       messages: [
         {
           role: "system",
-          content: "You are a professional email assistant. Generate follow-up emails that are polite, concise, and natural. Always respond in the exact format: 'Subject: <subject>\n\n<email body>'",
+          content:
+            "You write polite, concise follow-up emails. Always return the exact format: 'Subject: <subject>\\n\\n<body>'.",
         },
         {
           role: "user",
           content: prompt,
         },
       ],
-      temperature: 0.7,
-      max_tokens: 300,
+      temperature: 0.6,
+      max_tokens: 250,
     });
 
-    const response = completion.choices[0]?.message?.content || "";
-    
-    // Parse response
-    const subjectMatch = response.match(/Subject:\s*(.+?)(?:\n|$)/i);
-    const bodyMatch = response.split(/\n\n/).slice(1).join("\n\n").trim() || 
-                     response.split(/\n/).slice(1).join("\n").trim();
+    const content = completion.choices[0]?.message?.content?.trim();
 
-    const subject = subjectMatch?.[1]?.trim() || `Re: ${context.lastSubject}`;
-    const body = bodyMatch || generateFallbackFollowUp(context).body;
+    if (!content) {
+      throw new Error("Empty AI response");
+    }
 
-    return { subject, body };
-  } catch (error) {
-    console.error("❌ OpenAI API error:", error);
-    // Fallback to simple generation
+    const subjectMatch = content.match(/^Subject:\s*(.+)$/im);
+    const body = content.split(/\n\n/).slice(1).join("\n\n").trim();
+
+    return {
+      subject: subjectMatch?.[1]?.trim() || `Re: ${context.lastSubject}`,
+      body: body || generateFallbackFollowUp(context).body,
+    };
+  } catch (err) {
+    console.error("❌ OpenAI error:", err);
     return generateFallbackFollowUp(context);
   }
 }
 
-function generateFallbackFollowUp(context: FollowUpContext): { subject: string; body: string } {
-  const greeting = context.recipientName ? `Hi ${context.recipientName},` : "Hi there,";
-  const daysText = context.daysSinceLastReply === 1 ? "day" : "days";
-  
+function generateFallbackFollowUp(
+  context: FollowUpContext
+): { subject: string; body: string } {
+  const greeting = context.recipientName
+    ? `Hi ${context.recipientName},`
+    : "Hi there,";
+
   const subject = `Re: ${context.lastSubject}`;
-  
+
   const body = `${greeting}
 
-I wanted to follow up on my email from ${context.daysSinceLastReply} ${daysText} ago about ${context.lastSubject}.
+I just wanted to follow up on my previous email regarding "${context.lastSubject}".
 
-${context.lastSnippet ? `You mentioned: "${context.lastSnippet.substring(0, 100)}${context.lastSnippet.length > 100 ? '...' : ''}"\n\n` : ''}I wanted to check if you had a chance to review it. If you have any questions or need anything, please let me know.
+If you had a chance to review it, I’d be happy to hear your thoughts. If now isn’t the right time, no worries at all.
 
-If now isn't a good time, no problem at all. Just let me know when would work better for you.
+Looking forward to your reply when convenient.
 
 Best regards`;
 
@@ -148,13 +139,14 @@ export async function generateFollowUpForLead(
 ): Promise<{ draftId: string; subject: string; body: string }> {
   const pool = new Pool({
     connectionString: databaseUrl,
-    ssl: databaseUrl.includes("supabase.co") ? { rejectUnauthorized: false } : false,
+    ssl: databaseUrl.includes("supabase.co")
+      ? { rejectUnauthorized: false }
+      : false,
   });
 
   try {
-    // Get lead information
     const leadResult = await pool.query(
-      `SELECT id, email, contact_name, company, last_contact_at, days_since_contact
+      `SELECT id, email, contact_name, days_since_contact
        FROM public.leads
        WHERE id = $1 AND user_id = $2
        LIMIT 1`,
@@ -167,9 +159,8 @@ export async function generateFollowUpForLead(
 
     const lead = leadResult.rows[0];
 
-    // Get the latest email thread for this lead
     const threadResult = await pool.query(
-      `SELECT id, subject, updated_at
+      `SELECT id, subject
        FROM public.email_threads
        WHERE lead_id = $1 AND user_id = $2
        ORDER BY updated_at DESC
@@ -182,76 +173,67 @@ export async function generateFollowUpForLead(
     let daysSinceLastReply = lead.days_since_contact || 0;
 
     if (threadResult.rows.length > 0) {
-      const thread = threadResult.rows[0];
-      lastSubject = thread.subject || lastSubject;
+      lastSubject = threadResult.rows[0].subject || lastSubject;
 
-      // Get the latest email in the thread
       const emailResult = await pool.query(
-        `SELECT body_text, body_html, snippet, received_at, sent_at, created_at
+        `SELECT body_text, snippet, received_at, sent_at, created_at
          FROM public.emails
          WHERE thread_id = $1 AND user_id = $2
          ORDER BY COALESCE(received_at, sent_at, created_at) DESC
          LIMIT 1`,
-        [thread.id, userUuid]
+        [threadResult.rows[0].id, userUuid]
       );
 
       if (emailResult.rows.length > 0) {
         const email = emailResult.rows[0];
-        lastSnippet = email.body_text || email.body_html || email.snippet || "";
-        
-        // Calculate days since last reply
-        const lastDate = email.received_at || email.sent_at || email.created_at;
+        lastSnippet = email.body_text || email.snippet || "";
+
+        const lastDate =
+          email.received_at || email.sent_at || email.created_at;
+
         if (lastDate) {
-          const daysDiff = Math.floor((Date.now() - new Date(lastDate).getTime()) / (1000 * 60 * 60 * 24));
-          daysSinceLastReply = daysDiff;
+          daysSinceLastReply = Math.floor(
+            (Date.now() - new Date(lastDate).getTime()) /
+              (1000 * 60 * 60 * 24)
+          );
         }
       }
     }
 
-    // Prepare context
     const context: FollowUpContext = {
       recipientName: lead.contact_name,
       recipientEmail: lead.email,
       lastSubject,
-      lastSnippet: lastSnippet.substring(0, 200), // Limit snippet length
+      lastSnippet: lastSnippet.slice(0, 200),
       daysSinceLastReply,
     };
 
-    // Generate follow-up
-    console.log(`🤖 Generating follow-up for lead: ${lead.email}`);
     const { subject, body } = await generateFollowUpWithAI(context);
 
-    // Store draft in database
     const draftResult = await pool.query(
       `INSERT INTO public.emails (
-        user_id, lead_id, direction, from_email, to_email, subject,
-        body_text, body_html, status, is_ai_draft, tone, ai_reason,
+        user_id, lead_id, direction, to_email, subject,
+        body_text, body_html, status, is_ai_draft, tone,
         created_at, updated_at
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, NOW(), NOW())
+      )
+      VALUES ($1, $2, 'outgoing', $3, $4, $5, $6, 'draft', true, 'professional', NOW(), NOW())
       RETURNING id`,
       [
         userUuid,
         leadId,
-        "outgoing",
-        "", // Will be set by email sending service
         lead.email,
         subject,
         body,
-        body.replace(/\n/g, "<br>"), // Simple HTML conversion
-        "draft",
-        true,
-        "professional",
-        `AI-generated follow-up based on last contact ${daysSinceLastReply} days ago`,
+        body.replace(/\n/g, "<br>"),
       ]
     );
 
-    const draftId = draftResult.rows[0].id;
-
-    console.log(`✅ Follow-up draft created: ${draftId}`);
-
-    return { draftId, subject, body };
+    return {
+      draftId: draftResult.rows[0].id,
+      subject,
+      body,
+    };
   } finally {
     await pool.end();
   }
 }
-
