@@ -138,7 +138,7 @@ const Analytics = () => {
 
     return (
       <motion.div
-        className="glass-strong p-6 cursor-pointer hover:border-[rgba(124,58,237,0.4)] transition-all relative overflow-hidden group"
+        className="glass-strong p-6 cursor-pointer hover:border-[rgba(147,51,234,0.4)] transition-all relative overflow-hidden group"
         onClick={() => setExpandedMetric(isExpanded ? null : id || null)}
         whileHover={{ scale: 1.02, y: -2 }}
         whileTap={{ scale: 0.98 }}
@@ -149,11 +149,11 @@ const Analytics = () => {
         <div className="relative">
           <div className="flex items-start justify-between mb-4">
           <motion.div
-            className="p-3 rounded-xl bg-gradient-to-br from-[rgba(124,58,237,0.15)] to-[rgba(34,211,238,0.1)] border border-[rgba(124,58,237,0.2)] shadow-lg"
+            className="p-3 rounded-xl bg-gradient-to-br from-[rgba(147,51,234,0.15)] to-[rgba(236,72,153,0.1)] border border-[rgba(147,51,234,0.2)] shadow-lg"
             whileHover={{ rotate: 360, scale: 1.1 }}
             transition={{ duration: 0.5 }}
           >
-            <Icon className="w-5 h-5 text-accent drop-shadow-[0_0_8px_rgba(124,58,237,0.4)]" />
+            <Icon className="w-5 h-5 text-accent drop-shadow-[0_0_8px_rgba(147,51,234,0.4)]" />
           </motion.div>
           {change !== 0 && (
             <div className={cn(

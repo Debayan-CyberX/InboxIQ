@@ -12,36 +12,36 @@
    ========================= */
 @layer base {
   :root {
-    /* Core Background - Deep Navy / Slate */
-    --background: 222 47% 11%; /* #0A0E27 equivalent - Deep navy */
+    /* Core Background - Deep Purple-Black */
+    --background: 270 30% 8%; /* #0F0A1A equivalent - Deep purple-black */
     --foreground: 240 10% 97%; /* #F7F7F8 */
 
     /* Glass Surfaces - Semi-transparent with blur */
-    --card: 222 40% 13%;
+    --card: 270 25% 10%;
     --card-foreground: 240 10% 97%;
     --card-glass: rgba(255, 255, 255, 0.06);
     --card-glass-strong: rgba(255, 255, 255, 0.1);
 
-    --popover: 222 40% 13%;
+    --popover: 270 25% 10%;
     --popover-foreground: 240 10% 97%;
 
-    /* Primary Accent - Electric Blue */
-    --primary: 217 91% 60%; /* #3B82F6 - Electric Blue */
+    /* Primary Accent - Rich Purple/Violet */
+    --primary: 271 81% 56%; /* #9333EA - Rich Purple */
     --primary-foreground: 0 0% 100%;
 
-    /* Secondary Accent - Emerald */
-    --secondary-accent: 160 84% 39%; /* #10B981 - Emerald */
+    /* Secondary Accent - Crimson Rose */
+    --secondary-accent: 340 82% 52%; /* #EC4899 - Rose/Crimson */
     --secondary-accent-foreground: 0 0% 100%;
 
     /* Secondary Surfaces */
-    --secondary: 222 35% 15%;
+    --secondary: 270 20% 13%;
     --secondary-foreground: 240 10% 90%;
 
-    --muted: 222 30% 18%;
+    --muted: 270 15% 16%;
     --muted-foreground: 240 5% 65%; /* #A1A1AA */
 
-    /* Accent (AI / CTA) - Electric Blue with Emerald hint */
-    --accent: 217 91% 60%; /* #3B82F6 */
+    /* Accent (AI / CTA) - Purple with Rose hint */
+    --accent: 271 81% 56%; /* #9333EA */
     --accent-foreground: 0 0% 100%;
 
     --destructive: 0 72% 51%;
@@ -49,8 +49,8 @@
 
     /* Borders - Subtle white overlay */
     --border: rgba(255, 255, 255, 0.12);
-    --input: 222 35% 15%;
-    --ring: 217 91% 60%; /* Electric Blue */
+    --input: 270 20% 13%;
+    --ring: 271 81% 56%; /* Rich Purple */
 
     --radius: 1rem; /* xl */
 
@@ -61,24 +61,24 @@
     --status-warm: 38 92% 50%;
     --status-warm-bg: 38 70% 15%;
 
-    --status-cold: 199 89% 48%; /* Sky Blue #0EA5E9 */
-    --status-cold-bg: 199 60% 15%;
+    --status-cold: 271 81% 65%; /* Light Purple #A855F7 */
+    --status-cold-bg: 271 50% 15%;
 
-    --status-success: 160 84% 39%; /* Emerald #10B981 */
-    --status-success-bg: 160 50% 15%;
+    --status-success: 142 76% 36%;
+    --status-success-bg: 142 50% 15%;
 
-    --status-risk: 0 72% 51%;
-    --status-risk-bg: 0 60% 15%;
+    --status-risk: 340 82% 52%; /* Rose/Crimson #EC4899 */
+    --status-risk-bg: 340 50% 15%;
 
     /* Sidebar - Dark glass */
-    --sidebar-background: 222 50% 8%;
+    --sidebar-background: 270 35% 6%;
     --sidebar-foreground: 240 10% 90%;
-    --sidebar-primary: 217 91% 60%; /* Electric Blue */
+    --sidebar-primary: 271 81% 56%; /* Rich Purple */
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 222 35% 15%;
+    --sidebar-accent: 270 20% 13%;
     --sidebar-accent-foreground: 240 10% 97%;
     --sidebar-border: rgba(255, 255, 255, 0.08);
-    --sidebar-ring: 217 91% 60%; /* Electric Blue */
+    --sidebar-ring: 271 81% 56%; /* Rich Purple */
 
     /* Glass Effects */
     --glass-bg: rgba(255, 255, 255, 0.06);
@@ -101,7 +101,7 @@
 
   body {
     @apply bg-background text-foreground;
-    background-color: #0A0E27; /* Deep Navy */
+    background-color: #0F0A1A; /* Deep Purple-Black */
     line-height: 1.6;
   }
 
@@ -231,7 +231,7 @@
 
   /* Accent Glow Effects */
   .glow-primary {
-    box-shadow: 0 0 20px rgba(59, 130, 246, 0.3);
+    box-shadow: 0 0 20px rgba(147, 51, 234, 0.3);
   }
 
   .glow-primary-hover {
@@ -239,11 +239,11 @@
   }
 
   .glow-primary-hover:hover {
-    box-shadow: 0 0 30px rgba(59, 130, 246, 0.5);
+    box-shadow: 0 0 30px rgba(147, 51, 234, 0.5);
   }
 
   .glow-accent {
-    box-shadow: 0 0 20px rgba(16, 185, 129, 0.3);
+    box-shadow: 0 0 20px rgba(236, 72, 153, 0.3);
   }
 
   .glow-accent-hover {
@@ -251,11 +251,11 @@
   }
 
   .glow-accent-hover:hover {
-    box-shadow: 0 0 30px rgba(16, 185, 129, 0.5);
+    box-shadow: 0 0 30px rgba(236, 72, 153, 0.5);
   }
 
   .glow-cyan {
-    box-shadow: 0 0 20px rgba(14, 165, 233, 0.3);
+    box-shadow: 0 0 20px rgba(168, 85, 247, 0.3);
   }
 
   .glow-cyan-hover {
@@ -263,20 +263,20 @@
   }
 
   .glow-cyan-hover:hover {
-    box-shadow: 0 0 30px rgba(14, 165, 233, 0.5);
+    box-shadow: 0 0 30px rgba(168, 85, 247, 0.5);
   }
 
   /* Advanced Text Gradients */
   .text-gradient {
     @apply bg-clip-text text-transparent;
-    background-image: linear-gradient(135deg, #3B82F6 0%, #10B981 100%);
+    background-image: linear-gradient(135deg, #9333EA 0%, #EC4899 100%);
     -webkit-background-clip: text;
     background-clip: text;
   }
 
   .text-gradient-primary {
     @apply bg-clip-text text-transparent;
-    background-image: linear-gradient(135deg, #3B82F6 0%, #60A5FA 50%, #3B82F6 100%);
+    background-image: linear-gradient(135deg, #9333EA 0%, #A855F7 50%, #9333EA 100%);
     -webkit-background-clip: text;
     background-clip: text;
     background-size: 200% auto;
@@ -285,7 +285,7 @@
 
   .text-gradient-accent {
     @apply bg-clip-text text-transparent;
-    background-image: linear-gradient(135deg, #10B981 0%, #34D399 50%, #10B981 100%);
+    background-image: linear-gradient(135deg, #EC4899 0%, #F472B6 50%, #EC4899 100%);
     -webkit-background-clip: text;
     background-clip: text;
     background-size: 200% auto;
@@ -312,7 +312,7 @@
 
   .text-gradient-cold {
     @apply bg-clip-text text-transparent;
-    background-image: linear-gradient(135deg, #0EA5E9 0%, #38BDF8 50%, #0EA5E9 100%);
+    background-image: linear-gradient(135deg, #A855F7 0%, #C084FC 50%, #A855F7 100%);
     -webkit-background-clip: text;
     background-clip: text;
     background-size: 200% auto;
@@ -330,21 +330,21 @@
 
   /* Glowing Text - Reduced Intensity */
   .text-glow {
-    text-shadow: 0 0 8px rgba(59, 130, 246, 0.4),
-                 0 0 16px rgba(59, 130, 246, 0.25),
-                 0 0 24px rgba(59, 130, 246, 0.15);
+    text-shadow: 0 0 8px rgba(147, 51, 234, 0.4),
+                 0 0 16px rgba(147, 51, 234, 0.25),
+                 0 0 24px rgba(147, 51, 234, 0.15);
   }
 
   .text-glow-primary {
-    text-shadow: 0 0 8px rgba(59, 130, 246, 0.45),
-                 0 0 16px rgba(59, 130, 246, 0.3),
-                 0 0 24px rgba(59, 130, 246, 0.2);
+    text-shadow: 0 0 8px rgba(147, 51, 234, 0.45),
+                 0 0 16px rgba(147, 51, 234, 0.3),
+                 0 0 24px rgba(147, 51, 234, 0.2);
   }
 
   .text-glow-accent {
-    text-shadow: 0 0 8px rgba(16, 185, 129, 0.45),
-                 0 0 16px rgba(16, 185, 129, 0.3),
-                 0 0 24px rgba(16, 185, 129, 0.2);
+    text-shadow: 0 0 8px rgba(236, 72, 153, 0.45),
+                 0 0 16px rgba(236, 72, 153, 0.3),
+                 0 0 24px rgba(236, 72, 153, 0.2);
   }
 
   .text-glow-success {
@@ -366,9 +366,9 @@
   }
 
   .text-glow-cold {
-    text-shadow: 0 0 8px rgba(14, 165, 233, 0.45),
-                 0 0 16px rgba(14, 165, 233, 0.3),
-                 0 0 24px rgba(14, 165, 233, 0.2);
+    text-shadow: 0 0 8px rgba(168, 85, 247, 0.45),
+                 0 0 16px rgba(168, 85, 247, 0.3),
+                 0 0 24px rgba(168, 85, 247, 0.2);
   }
 
   /* Subtle 3D Depth */
@@ -436,10 +436,10 @@
 
   @keyframes pulse-glow {
     0%, 100% {
-      box-shadow: 0 0 20px rgba(59, 130, 246, 0.3);
+      box-shadow: 0 0 20px rgba(147, 51, 234, 0.3);
     }
     50% {
-      box-shadow: 0 0 30px rgba(59, 130, 246, 0.6);
+      box-shadow: 0 0 30px rgba(147, 51, 234, 0.6);
     }
   }
 
@@ -473,12 +473,12 @@
     background: rgba(255, 255, 255, 0.08);
     backdrop-filter: blur(24px);
     -webkit-backdrop-filter: blur(24px);
-    border-color: rgba(59, 130, 246, 0.25);
+    border-color: rgba(147, 51, 234, 0.25);
     box-shadow: 
       0 8px 32px rgba(0, 0, 0, 0.4),
-      0 0 0 1px rgba(59, 130, 246, 0.15),
+      0 0 0 1px rgba(147, 51, 234, 0.15),
       inset 0 1px 0 rgba(255, 255, 255, 0.12),
-      inset 0 0 15px rgba(59, 130, 246, 0.08);
+      inset 0 0 15px rgba(147, 51, 234, 0.08);
   }
 
   .glass-glow-hot {
@@ -512,11 +512,11 @@
     background: rgba(255, 255, 255, 0.08);
     backdrop-filter: blur(24px);
     -webkit-backdrop-filter: blur(24px);
-    border-color: rgba(14, 165, 233, 0.25);
+    border-color: rgba(168, 85, 247, 0.25);
     box-shadow: 
       0 8px 32px rgba(0, 0, 0, 0.4),
-      0 0 0 1px rgba(14, 165, 233, 0.15),
+      0 0 0 1px rgba(168, 85, 247, 0.15),
       inset 0 1px 0 rgba(255, 255, 255, 0.12),
-      inset 0 0 15px rgba(14, 165, 233, 0.08);
+      inset 0 0 15px rgba(168, 85, 247, 0.08);
   }
 }

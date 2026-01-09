@@ -394,7 +394,7 @@ const Inbox = () => {
                     >
                       <div className="flex items-start gap-5">
                         {/* Avatar */}
-                        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#7C3AED] to-[#22D3EE] flex items-center justify-center text-white font-bold text-base shrink-0 shadow-lg shadow-[#7C3AED]/30">
+                        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#9333EA] to-[#EC4899] flex items-center justify-center text-white font-bold text-base shrink-0 shadow-lg shadow-[#9333EA]/30">
                           {thread.from.name.split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase()}
                         </div>
 
@@ -404,7 +404,7 @@ const Inbox = () => {
                             <div className="flex items-center gap-3 flex-1 min-w-0">
                               <h4 className={cn(
                                 "text-base font-bold text-foreground truncate",
-                                !thread.isRead && "text-[#7C3AED]"
+                                !thread.isRead && "text-[#9333EA]"
                               )}>
                                 {thread.from.name}
                                 {thread.company && (
@@ -417,7 +417,7 @@ const Inbox = () => {
                                 <AlertCircle className="w-5 h-5 text-[#EF4444] shrink-0" />
                               )}
                               {thread.hasAIDraft && (
-                                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold bg-[rgba(124,58,237,0.15)] text-[#7C3AED] border border-[rgba(124,58,237,0.2)] shrink-0">
+                                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold bg-[rgba(147,51,234,0.15)] text-[#9333EA] border border-[rgba(147,51,234,0.2)] shrink-0">
                                   <Sparkles className="w-3.5 h-3.5" />
                                   AI Draft
                                 </span>
