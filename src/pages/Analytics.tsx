@@ -146,7 +146,8 @@ const Analytics = () => {
         animate={{ opacity: 1, y: 0 }}
       >
         <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
-        <div className="flex items-start justify-between mb-4">
+        <div className="relative">
+          <div className="flex items-start justify-between mb-4">
           <motion.div
             className="p-3 rounded-xl bg-gradient-to-br from-[rgba(124,58,237,0.15)] to-[rgba(34,211,238,0.1)] border border-[rgba(124,58,237,0.2)] shadow-lg"
             whileHover={{ rotate: 360, scale: 1.1 }}
