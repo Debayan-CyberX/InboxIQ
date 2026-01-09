@@ -58,20 +58,22 @@ const Sidebar = () => {
         z-40
         w-64
         h-screen
-        bg-sidebar
+        glass-strong
         border-r
-        border-sidebar-border
+        border-sidebar-border/50
         flex
         flex-col
+        backdrop-blur-2xl
       "
     >
       {/* Logo */}
-      <div className="h-16 flex items-center px-6 border-b border-sidebar-border shrink-0">
-        <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-sidebar-primary to-accent flex items-center justify-center">
-            <Sparkles className="w-4 h-4 text-sidebar-primary-foreground" />
+      <div className="h-16 flex items-center px-6 border-b border-sidebar-border/50 shrink-0 relative">
+        <div className="absolute inset-0 bg-gradient-to-r from-sidebar-primary/10 to-transparent pointer-events-none" />
+        <div className="relative flex items-center gap-3">
+          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-sidebar-primary to-accent flex items-center justify-center shadow-lg shadow-sidebar-primary/30 glow-accent-hover">
+            <Sparkles className="w-5 h-5 text-sidebar-primary-foreground" />
           </div>
-          <span className="text-lg font-semibold text-sidebar-foreground">
+          <span className="text-lg font-bold text-sidebar-foreground tracking-tight">
             InboxIQ
           </span>
         </div>
@@ -93,10 +95,10 @@ const Sidebar = () => {
                 }
               }}
               className={cn(
-                "flex items-center gap-3 px-3 py-3 rounded-lg text-sm font-medium transition-colors",
+                "flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium transition-all duration-200 relative group",
                 isActive
-                  ? "bg-sidebar-accent text-sidebar-primary"
-                  : "text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-foreground"
+                  ? "bg-sidebar-accent/80 text-sidebar-primary shadow-lg shadow-sidebar-primary/20"
+                  : "text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground hover:translate-x-1"
               )}
             >
               <item.icon className="w-5 h-5 shrink-0" />

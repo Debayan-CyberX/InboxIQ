@@ -2,8 +2,9 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { ThemeProvider } from "next-themes";
+import { AnimatePresence, motion } from "framer-motion";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import Landing from "./pages/Landing";
@@ -20,6 +21,89 @@ import SignUp from "./pages/SignUp";
 
 const queryClient = new QueryClient();
 
+const PageTransition = ({ children }: { children: React.ReactNode }) => {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -20 }}
+      transition={{
+        duration: 0.4,
+        ease: [0.16, 1, 0.3, 1],
+      }}
+    >
+      {children}
+    </motion.div>
+  );
+};
+
+const AnimatedRoutes = () => {
+  const location = useLocation();
+  
+  return (
+    <AnimatePresence mode="wait">
+      <Routes location={location} key={location.pathname}>
+        {/* Public routes */}
+        <Route path="/" element={<PageTransition><Landing /></PageTransition>} />
+        <Route path="/sign-in" element={<PageTransition><SignIn /></PageTransition>} />
+        <Route path="/sign-up" element={<PageTransition><SignUp /></PageTransition>} />
+        <Route path="/test" element={<PageTransition><Test /></PageTransition>} />
+        
+        {/* Protected routes */}
+        <Route path="/dashboard" element={
+            <ProtectedRoute>
+              <PageTransition><Index /></PageTransition>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/inbox"
+          element={
+            <ProtectedRoute>
+              <PageTransition><Inbox /></PageTransition>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/leads"
+          element={
+            <ProtectedRoute>
+              <PageTransition><Leads /></PageTransition>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/drafts"
+          element={
+            <ProtectedRoute>
+              <PageTransition><Drafts /></PageTransition>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/analytics"
+          element={
+            <ProtectedRoute>
+              <PageTransition><Analytics /></PageTransition>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/settings"
+          element={
+            <ProtectedRoute>
+              <PageTransition><Settings /></PageTransition>
+            </ProtectedRoute>
+          }
+        />
+        
+        {/* 404 */}
+        <Route path="*" element={<PageTransition><NotFound /></PageTransition>} />
+      </Routes>
+    </AnimatePresence>
+  );
+};
+
 const App = () => {
   try {
     return (
@@ -30,64 +114,7 @@ const App = () => {
               <Toaster />
               <Sonner />
               <BrowserRouter>
-                <Routes>
-                  {/* Public routes */}
-                  <Route path="/" element={<Landing />} />
-                  <Route path="/sign-in" element={<SignIn />} />
-                  <Route path="/sign-up" element={<SignUp />} />
-                  <Route path="/test" element={<Test />} />
-                  
-                  {/* Protected routes */}
-                  <Route path="/dashboard" element={
-                      <ProtectedRoute>
-                        <Index />
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="/inbox"
-                    element={
-                      <ProtectedRoute>
-                        <Inbox />
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="/leads"
-                    element={
-                      <ProtectedRoute>
-                        <Leads />
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="/drafts"
-                    element={
-                      <ProtectedRoute>
-                        <Drafts />
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="/analytics"
-                    element={
-                      <ProtectedRoute>
-                        <Analytics />
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="/settings"
-                    element={
-                      <ProtectedRoute>
-                        <Settings />
-                      </ProtectedRoute>
-                    }
-                  />
-                  
-                  {/* 404 */}
-                  <Route path="*" element={<NotFound />} />
-                </Routes>
+                <AnimatedRoutes />
               </BrowserRouter>
             </TooltipProvider>
           </QueryClientProvider>

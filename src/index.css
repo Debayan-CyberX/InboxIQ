@@ -118,12 +118,14 @@
    ========================= */
 @layer components {
   .card-elevated {
-    @apply bg-card rounded-xl border border-border shadow-sm;
+    @apply bg-card/80 backdrop-blur-xl rounded-xl border border-border/60 shadow-lg;
     background-image: var(--gradient-card);
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
   }
 
   .card-interactive {
-    @apply card-elevated transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md;
+    @apply card-elevated transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:border-border/80;
+    transform-style: preserve-3d;
   }
 
   .text-gradient {
@@ -132,7 +134,35 @@
   }
 
   .glass {
-    @apply bg-card/70 backdrop-blur-xl border border-border/60;
+    @apply bg-card/60 backdrop-blur-2xl border border-white/10;
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+  }
+
+  .glass-strong {
+    @apply bg-card/80 backdrop-blur-3xl border border-white/20;
+    box-shadow: 
+      0 8px 32px 0 rgba(0, 0, 0, 0.37),
+      inset 0 1px 0 0 rgba(255, 255, 255, 0.1);
+  }
+
+  .glass-subtle {
+    @apply bg-card/40 backdrop-blur-lg border border-border/40;
+  }
+
+  .pressable {
+    @apply transition-all duration-200 active:scale-[0.97];
+  }
+
+  .hover-lift {
+    @apply transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl;
+  }
+
+  .glow-accent {
+    box-shadow: 0 0 20px rgba(139, 92, 246, 0.3);
+  }
+
+  .glow-accent-hover {
+    @apply transition-shadow duration-300 hover:shadow-[0_0_30px_rgba(139,92,246,0.5)];
   }
 }
 

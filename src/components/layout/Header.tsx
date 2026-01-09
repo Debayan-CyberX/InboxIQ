@@ -81,7 +81,7 @@ const Header = () => {
 
   return (
     <>
-      <header className="h-16 border-b border-border bg-card/80 backdrop-blur-xl flex items-center justify-between px-6">
+      <header className="h-16 border-b border-border/50 bg-card/60 backdrop-blur-2xl flex items-center justify-between px-6 sticky top-0 z-30 glass-subtle">
         <div className="flex items-center gap-4">
           <div>
             <h1 className="text-xl font-semibold text-foreground">

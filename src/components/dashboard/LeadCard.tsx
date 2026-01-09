@@ -1,5 +1,6 @@
 import { Clock, ChevronRight, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { motion } from "framer-motion";
 
 interface LeadCardProps {
   company: string;
@@ -25,21 +26,29 @@ const LeadCard = ({
   onClick
 }: LeadCardProps) => {
   const statusColors = {
-    hot: "border-l-status-hot",
-    warm: "border-l-status-warm",
-    cold: "border-l-status-cold",
+    hot: "border-l-status-hot shadow-[0_0_20px_rgba(251,113,133,0.15)]",
+    warm: "border-l-status-warm shadow-[0_0_20px_rgba(251,191,36,0.15)]",
+    cold: "border-l-status-cold shadow-[0_0_20px_rgba(59,130,246,0.15)]",
   };
 
   const isUrgent = daysSinceContact >= 4;
 
   return (
-    <div 
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3 }}
+      whileHover={{ y: -4, transition: { duration: 0.2 } }}
       onClick={onClick}
       className={cn(
-        "card-interactive p-4 border-l-4 cursor-pointer group",
+        "glass-strong p-5 border-l-4 rounded-2xl cursor-pointer group relative overflow-hidden hover-lift",
         statusColors[status]
       )}
     >
+      {/* Gradient overlay */}
+      <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent pointer-events-none" />
+      
+      <div className="relative space-y-3">
       <div className="space-y-3">
         {/* Header */}
         <div className="flex items-start justify-between gap-2">
@@ -65,26 +74,38 @@ const LeadCard = ({
 
         {/* AI Suggestion */}
         {aiSuggestion && (
-          <div className="flex items-center gap-2 p-2 rounded-md bg-accent/5 border border-accent/10 min-w-0">
-            <Sparkles className="w-3.5 h-3.5 text-accent shrink-0" />
-            <p className="text-xs text-accent font-medium line-clamp-1 break-words min-w-0 flex-1">{aiSuggestion}</p>
-          </div>
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="flex items-center gap-2 p-3 rounded-xl bg-accent/10 backdrop-blur-sm border border-accent/20 min-w-0"
+          >
+            <Sparkles className="w-4 h-4 text-accent shrink-0" />
+            <p className="text-xs text-accent font-semibold line-clamp-1 break-words min-w-0 flex-1">{aiSuggestion}</p>
+          </motion.div>
         )}
 
         {/* Footer */}
         <div className="flex items-center justify-between pt-1 gap-2">
           {hasAIDraft ? (
-            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-accent/10 text-accent shrink-0">
-              <Sparkles className="w-3 h-3 shrink-0" />
+            <motion.span
+              whileHover={{ scale: 1.05 }}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-accent/20 backdrop-blur-sm text-accent border border-accent/30 shrink-0"
+            >
+              <Sparkles className="w-3.5 h-3.5 shrink-0" />
               Draft ready
-            </span>
+            </motion.span>
           ) : (
-            <span className="text-xs text-muted-foreground truncate min-w-0 flex-1">{email}</span>
+            <span className="text-xs text-muted-foreground/80 truncate min-w-0 flex-1">{email}</span>
           )}
-          <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-accent group-hover:translate-x-0.5 transition-all shrink-0" />
+          <motion.div
+            whileHover={{ x: 4 }}
+            transition={{ type: "spring", stiffness: 400, damping: 10 }}
+          >
+            <ChevronRight className="w-5 h-5 text-muted-foreground group-hover:text-accent transition-colors shrink-0" />
+          </motion.div>
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 };
 

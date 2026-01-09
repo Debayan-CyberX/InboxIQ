@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect } from "react";
+import { motion } from "framer-motion";
 import { 
   Users, 
   Search, 
@@ -253,8 +254,8 @@ const Leads = () => {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-foreground">Leads</h1>
-            <p className="text-sm text-muted-foreground mt-1">
+            <h1 className="text-3xl font-bold text-foreground tracking-tight">Leads</h1>
+            <p className="text-sm text-muted-foreground/80 mt-1.5">
               {filteredAndSortedLeads.length} {filteredAndSortedLeads.length === 1 ? "lead" : "leads"}
               {statusFilter !== "all" && ` • ${statusFilter} leads`}
             </p>
@@ -299,45 +300,45 @@ const Leads = () => {
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-6 gap-4">
-          <div className="card-elevated p-4">
-            <div className="text-2xl font-bold text-foreground">{stats.total}</div>
-            <div className="text-xs text-muted-foreground mt-1">Total Leads</div>
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+          <div className="glass-strong p-5 rounded-2xl hover-lift">
+            <div className="text-3xl font-bold text-foreground">{stats.total}</div>
+            <div className="text-xs text-muted-foreground/70 mt-1.5 font-medium">Total Leads</div>
           </div>
-          <div className="card-elevated p-4 border-l-4 border-l-status-hot">
-            <div className="text-2xl font-bold text-status-hot">{stats.hot}</div>
-            <div className="text-xs text-muted-foreground mt-1">Hot</div>
+          <div className="glass-strong p-5 rounded-2xl border-l-4 border-l-status-hot hover-lift shadow-[0_0_20px_rgba(251,113,133,0.15)]">
+            <div className="text-3xl font-bold text-status-hot">{stats.hot}</div>
+            <div className="text-xs text-muted-foreground/70 mt-1.5 font-medium">Hot</div>
           </div>
-          <div className="card-elevated p-4 border-l-4 border-l-status-warm">
-            <div className="text-2xl font-bold text-status-warm">{stats.warm}</div>
-            <div className="text-xs text-muted-foreground mt-1">Warm</div>
+          <div className="glass-strong p-5 rounded-2xl border-l-4 border-l-status-warm hover-lift shadow-[0_0_20px_rgba(251,191,36,0.15)]">
+            <div className="text-3xl font-bold text-status-warm">{stats.warm}</div>
+            <div className="text-xs text-muted-foreground/70 mt-1.5 font-medium">Warm</div>
           </div>
-          <div className="card-elevated p-4 border-l-4 border-l-status-cold">
-            <div className="text-2xl font-bold text-status-cold">{stats.cold}</div>
-            <div className="text-xs text-muted-foreground mt-1">Cold</div>
+          <div className="glass-strong p-5 rounded-2xl border-l-4 border-l-status-cold hover-lift shadow-[0_0_20px_rgba(59,130,246,0.15)]">
+            <div className="text-3xl font-bold text-status-cold">{stats.cold}</div>
+            <div className="text-xs text-muted-foreground/70 mt-1.5 font-medium">Cold</div>
           </div>
-          <div className="card-elevated p-4">
-            <div className="text-2xl font-bold text-foreground">{stats.needsFollowUp}</div>
-            <div className="text-xs text-muted-foreground mt-1">Need Follow-up</div>
+          <div className="glass-strong p-5 rounded-2xl hover-lift">
+            <div className="text-3xl font-bold text-foreground">{stats.needsFollowUp}</div>
+            <div className="text-xs text-muted-foreground/70 mt-1.5 font-medium">Need Follow-up</div>
           </div>
-          <div className="card-elevated p-4">
-            <div className="text-2xl font-bold text-foreground">{stats.hasDrafts}</div>
-            <div className="text-xs text-muted-foreground mt-1">AI Drafts</div>
+          <div className="glass-strong p-5 rounded-2xl hover-lift">
+            <div className="text-3xl font-bold text-foreground">{stats.hasDrafts}</div>
+            <div className="text-xs text-muted-foreground/70 mt-1.5 font-medium">AI Drafts</div>
           </div>
         </div>
 
         {/* Search and Filters */}
-        <div className="card-elevated p-4">
+        <div className="glass-strong p-5 rounded-2xl">
           <div className="flex items-center gap-4">
             {/* Search */}
             <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/60" />
               <input
                 type="text"
                 placeholder="Search leads by name, company, or email..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full h-9 pl-9 pr-4 rounded-lg bg-secondary/50 border border-border text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:bg-background transition-all"
+                className="w-full h-11 pl-11 pr-4 rounded-xl bg-secondary/40 backdrop-blur-sm border border-border/50 text-sm placeholder:text-muted-foreground/60 focus:outline-none focus:ring-2 focus:ring-ring/50 focus:bg-secondary/60 focus:border-border transition-all duration-200"
               />
             </div>
 
@@ -404,17 +405,17 @@ const Leads = () => {
         </div>
 
         {/* Leads Table/List */}
-        <div className="card-elevated">
+        <div className="glass-strong rounded-2xl overflow-hidden">
           {/* Table Header */}
-          <div className="p-4 border-b border-border bg-muted/30">
+          <div className="p-5 border-b border-border/50 bg-muted/20 backdrop-blur-sm">
             <div className="flex items-center gap-4">
               <input
                 type="checkbox"
                 checked={selectedLeads.size === filteredAndSortedLeads.length && filteredAndSortedLeads.length > 0}
                 onChange={handleSelectAll}
-                className="w-4 h-4 rounded border-border"
+                className="w-4 h-4 rounded border-border/60 accent-primary"
               />
-              <div className="flex-1 grid grid-cols-12 gap-4 text-xs font-medium text-muted-foreground uppercase tracking-wide">
+              <div className="flex-1 grid grid-cols-12 gap-4 text-xs font-semibold text-muted-foreground/80 uppercase tracking-wider">
                 <div className="col-span-4">Contact</div>
                 <div className="col-span-3">Company</div>
                 <div className="col-span-2">Status</div>
@@ -425,7 +426,7 @@ const Leads = () => {
           </div>
 
           {/* Leads List */}
-          <div className="divide-y divide-border">
+          <div className="divide-y divide-border/30">
             {filteredAndSortedLeads.length === 0 ? (
               <div className="p-12 text-center">
                 <Users className="w-12 h-12 text-muted-foreground mx-auto mb-4 opacity-50" />
@@ -440,17 +441,23 @@ const Leads = () => {
                 const isUrgent = (lead.days_since_contact || 0) >= 5;
 
                 return (
-                  <div
+                  <motion.div
                     key={lead.id}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.2 }}
+                    whileHover={{ x: 4, transition: { duration: 0.2 } }}
                     onClick={() => {
                       // Navigate to inbox filtered by this lead's threads
                       window.location.href = `/inbox?lead=${lead.id}`;
                     }}
                     className={cn(
-                      "p-4 hover:bg-muted/30 transition-colors group cursor-pointer",
-                      selectedLeads.has(lead.id) && "bg-accent/5"
+                      "p-5 hover:bg-muted/20 transition-all duration-200 group cursor-pointer relative",
+                      selectedLeads.has(lead.id) && "bg-accent/10"
                     )}
                   >
+                    {/* Subtle gradient overlay on hover */}
+                    <div className="absolute inset-0 bg-gradient-to-r from-accent/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none" />
                     <div className="flex items-center gap-4">
                       <input
                         type="checkbox"
@@ -488,7 +495,7 @@ const Leads = () => {
                         {/* Status */}
                         <div className="col-span-2">
                           <div className={cn(
-                            "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border",
+                            "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border backdrop-blur-sm",
                             statusColor
                           )}>
                             <StatusIcon className="w-3.5 h-3.5" />
