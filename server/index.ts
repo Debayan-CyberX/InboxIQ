@@ -653,9 +653,21 @@ async function getSessionFromRequest(
     expressToWebRequest(sessionReq) as any
   );
 
-  return sessionRes.json();
-}
+  // 🔑 SAFELY read body
+  const text = await sessionRes.text();
 
+  if (!text) {
+    // No session / not logged in
+    return null;
+  }
+
+  try {
+    return JSON.parse(text);
+  } catch (err) {
+    console.error("❌ Failed to parse session JSON:", text);
+    return null;
+  }
+}
 // AI Follow-up generation endpoint
 app.post("/api/leads/:leadId/generate-followup", async (req, res) => {
   // ✅ Always allow preflight
