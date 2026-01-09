@@ -26,9 +26,9 @@ const LeadCard = ({
   onClick
 }: LeadCardProps) => {
   const statusColors = {
-    hot: "border-l-status-hot shadow-[0_0_20px_rgba(239,68,68,0.2)]",
-    warm: "border-l-status-warm shadow-[0_0_20px_rgba(245,158,11,0.2)]",
-    cold: "border-l-status-cold shadow-[0_0_20px_rgba(56,189,248,0.2)]",
+    hot: "border-l-[#EF4444] shadow-[0_0_20px_rgba(239,68,68,0.2)]",
+    warm: "border-l-[#F59E0B] shadow-[0_0_20px_rgba(245,158,11,0.2)]",
+    cold: "border-l-[#22D3EE] shadow-[0_0_20px_rgba(34,211,238,0.2)]",
   };
 
   const isUrgent = daysSinceContact >= 4;
@@ -41,7 +41,7 @@ const LeadCard = ({
       whileHover={{ y: -4, transition: { duration: 0.2 } }}
       onClick={onClick}
       className={cn(
-        "glass-strong p-5 border-l-4 rounded-2xl cursor-pointer group relative overflow-hidden hover-lift",
+        "glass-strong p-5 border-l-4 rounded-2xl cursor-pointer group relative overflow-hidden hover-lift border border-[rgba(255,255,255,0.12)]",
         statusColors[status]
       )}
     >
@@ -52,7 +52,7 @@ const LeadCard = ({
         {/* Header */}
         <div className="flex items-start justify-between gap-2">
           <div className="flex-1 min-w-0">
-            <h4 className="font-medium text-foreground group-hover:text-accent transition-colors truncate">
+            <h4 className="font-medium text-foreground group-hover:text-[#7C3AED] transition-colors truncate">
               {company}
             </h4>
             <p className="text-xs text-muted-foreground truncate">{contact}</p>
@@ -76,10 +76,10 @@ const LeadCard = ({
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="flex items-center gap-2 p-3 rounded-xl bg-accent/10 backdrop-blur-sm border border-accent/20 min-w-0"
+            className="flex items-center gap-2 p-3 rounded-xl bg-[rgba(124,58,237,0.1)] backdrop-blur-sm border border-[rgba(124,58,237,0.2)] min-w-0"
           >
-            <Sparkles className="w-4 h-4 text-accent shrink-0" />
-            <p className="text-xs text-accent font-semibold line-clamp-1 break-words min-w-0 flex-1">{aiSuggestion}</p>
+            <Sparkles className="w-4 h-4 text-[#7C3AED] shrink-0" />
+            <p className="text-xs text-[#7C3AED] font-semibold line-clamp-1 break-words min-w-0 flex-1">{aiSuggestion}</p>
           </motion.div>
         )}
 
@@ -88,7 +88,7 @@ const LeadCard = ({
           {hasAIDraft ? (
             <motion.span
               whileHover={{ scale: 1.05 }}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-accent/20 backdrop-blur-sm text-accent border border-accent/30 shrink-0"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-[rgba(124,58,237,0.2)] backdrop-blur-sm text-[#7C3AED] border border-[rgba(124,58,237,0.3)] shrink-0"
             >
               <Sparkles className="w-3.5 h-3.5 shrink-0" />
               Draft ready
@@ -100,7 +100,7 @@ const LeadCard = ({
             whileHover={{ x: 4 }}
             transition={{ type: "spring", stiffness: 400, damping: 10 }}
           >
-            <ChevronRight className="w-5 h-5 text-muted-foreground group-hover:text-accent transition-colors shrink-0" />
+            <ChevronRight className="w-5 h-5 text-muted-foreground group-hover:text-[#7C3AED] transition-colors shrink-0" />
           </motion.div>
         </div>
       </div>

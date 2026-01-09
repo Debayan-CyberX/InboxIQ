@@ -58,22 +58,21 @@ const Sidebar = () => {
         z-40
         w-64
         h-screen
-        glass-strong
-        border-r
-        border-sidebar-border/50
         flex
         flex-col
-        backdrop-blur-2xl
+        glass-strong
+        border-r
+        border-[rgba(255,255,255,0.08)]
       "
     >
       {/* Logo */}
-      <div className="h-16 flex items-center px-6 border-b border-sidebar-border/50 shrink-0 relative">
-        <div className="absolute inset-0 bg-gradient-to-r from-sidebar-primary/10 to-transparent pointer-events-none" />
+      <div className="h-16 flex items-center px-6 border-b border-[rgba(255,255,255,0.08)] shrink-0 relative">
+        <div className="absolute inset-0 bg-gradient-to-r from-[rgba(124,58,237,0.1)] to-transparent pointer-events-none" />
         <div className="relative flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-sidebar-primary to-accent flex items-center justify-center shadow-lg shadow-sidebar-primary/30 glow-accent-hover">
-            <Sparkles className="w-5 h-5 text-sidebar-primary-foreground" />
+          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#7C3AED] to-[#22D3EE] flex items-center justify-center shadow-lg shadow-[#7C3AED]/30 glow-primary">
+            <Sparkles className="w-5 h-5 text-white" />
           </div>
-          <span className="text-lg font-bold text-sidebar-foreground tracking-tight">
+          <span className="text-lg font-bold text-foreground tracking-tight">
             InboxIQ
           </span>
         </div>
@@ -97,15 +96,15 @@ const Sidebar = () => {
               className={cn(
                 "flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium transition-all duration-200 relative group",
                 isActive
-                  ? "bg-sidebar-accent/80 text-sidebar-primary shadow-lg shadow-sidebar-primary/20"
-                  : "text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground hover:translate-x-1"
+                  ? "bg-[rgba(124,58,237,0.15)] text-[#7C3AED] shadow-lg shadow-[#7C3AED]/20 border border-[rgba(124,58,237,0.2)]"
+                  : "text-foreground/70 hover:bg-[rgba(255,255,255,0.08)] hover:text-foreground hover:translate-x-1"
               )}
             >
               <item.icon className="w-5 h-5 shrink-0" />
               <span className="flex-1">{item.name}</span>
 
               {item.badge && (
-                <span className="px-2 py-0.5 text-xs font-medium rounded-full bg-sidebar-primary text-sidebar-primary-foreground">
+                <span className="px-2 py-0.5 text-xs font-medium rounded-full bg-[#7C3AED] text-white">
                   {item.badge}
                 </span>
               )}
@@ -115,7 +114,7 @@ const Sidebar = () => {
       </nav>
 
       {/* Bottom section */}
-      <div className="p-3 border-t border-sidebar-border shrink-0 space-y-1">
+      <div className="p-3 border-t border-[rgba(255,255,255,0.08)] shrink-0 space-y-1">
         <Link
           to="/settings"
           onClick={() => {
@@ -124,10 +123,10 @@ const Sidebar = () => {
             }
           }}
           className={cn(
-            "flex items-center gap-3 px-3 py-3 rounded-lg text-sm font-medium transition-colors",
+            "flex items-center gap-3 px-3 py-3 rounded-lg text-sm font-medium transition-all duration-200",
             location.pathname === "/settings"
-              ? "bg-sidebar-accent text-sidebar-primary"
-              : "text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-foreground"
+              ? "bg-[rgba(124,58,237,0.15)] text-[#7C3AED] border border-[rgba(124,58,237,0.2)]"
+              : "text-foreground/70 hover:bg-[rgba(255,255,255,0.08)] hover:text-foreground"
           )}
         >
           <Settings className="w-5 h-5" />
@@ -136,22 +135,22 @@ const Sidebar = () => {
 
         {/* User */}
         <div className="flex items-center gap-3 px-3 py-3 mt-2">
-          <div className="w-9 h-9 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center text-primary-foreground font-medium text-sm shrink-0">
+          <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[#7C3AED] to-[#22D3EE] flex items-center justify-center text-white font-medium text-sm shrink-0 shadow-lg shadow-[#7C3AED]/30">
             {userInitials}
           </div>
 
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium text-sidebar-foreground truncate">
+            <p className="text-sm font-medium text-foreground truncate">
               {user?.name || "User"}
             </p>
-            <p className="text-xs text-sidebar-foreground/60 truncate">
+            <p className="text-xs text-foreground/60 truncate">
               {user?.email || "user@example.com"}
             </p>
           </div>
 
           <button
             onClick={handleSignOut}
-            className="p-2 rounded-md text-sidebar-foreground/50 hover:text-sidebar-foreground hover:bg-sidebar-accent transition-colors"
+            className="p-2 rounded-md text-foreground/50 hover:text-foreground hover:bg-[rgba(255,255,255,0.08)] transition-all duration-200"
             title="Sign out"
           >
             <LogOut className="w-4 h-4" />

@@ -9,16 +9,16 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default: "bg-primary text-primary-foreground shadow-lg hover:shadow-xl hover:bg-primary/90 active:scale-[0.96] glow-accent-hover",
-        destructive: "bg-destructive text-destructive-foreground shadow-lg hover:shadow-xl hover:bg-destructive/90 active:scale-[0.96]",
-        outline: "border-2 border-input/50 bg-background/50 backdrop-blur-sm shadow-sm hover:bg-secondary/50 hover:border-input hover:text-secondary-foreground active:scale-[0.96] hover:shadow-md",
-        secondary: "bg-secondary/80 backdrop-blur-sm text-secondary-foreground shadow-md hover:bg-secondary/90 hover:shadow-lg active:scale-[0.96]",
-        ghost: "hover:bg-secondary/50 hover:text-secondary-foreground backdrop-blur-sm",
-        link: "text-primary underline-offset-4 hover:underline",
-        accent: "bg-accent text-accent-foreground shadow-lg hover:shadow-xl hover:bg-accent/90 active:scale-[0.96] glow-accent-hover",
-        success: "bg-status-success text-white shadow-lg hover:shadow-xl hover:opacity-90 active:scale-[0.96]",
-        soft: "bg-muted/60 backdrop-blur-sm text-muted-foreground hover:bg-muted/80 hover:shadow-md active:scale-[0.96]",
-        "soft-accent": "bg-accent/10 backdrop-blur-sm text-accent hover:bg-accent/20 hover:shadow-md active:scale-[0.96]",
+        default: "bg-[#7C3AED] text-white shadow-lg hover:shadow-xl hover:bg-[#6D28D9] active:scale-[0.97] glow-primary-hover border border-[#7C3AED]/30",
+        destructive: "bg-destructive text-destructive-foreground shadow-lg hover:shadow-xl hover:bg-destructive/90 active:scale-[0.97]",
+        outline: "border border-[rgba(255,255,255,0.12)] bg-[rgba(255,255,255,0.06)] backdrop-blur-md text-foreground hover:bg-[rgba(255,255,255,0.1)] hover:border-[rgba(255,255,255,0.18)] active:scale-[0.97] hover:shadow-md",
+        secondary: "bg-[rgba(255,255,255,0.08)] backdrop-blur-md text-foreground border border-[rgba(255,255,255,0.12)] hover:bg-[rgba(255,255,255,0.12)] hover:shadow-lg active:scale-[0.97]",
+        ghost: "hover:bg-[rgba(255,255,255,0.08)] hover:text-foreground backdrop-blur-sm active:scale-[0.97]",
+        link: "text-[#7C3AED] underline-offset-4 hover:underline hover:text-[#6D28D9]",
+        accent: "bg-[#7C3AED] text-white shadow-lg hover:shadow-xl hover:bg-[#6D28D9] active:scale-[0.97] glow-primary-hover border border-[#7C3AED]/30",
+        success: "bg-[#10B981] text-white shadow-lg hover:shadow-xl hover:bg-[#059669] active:scale-[0.97]",
+        soft: "bg-[rgba(255,255,255,0.06)] backdrop-blur-sm text-muted-foreground border border-[rgba(255,255,255,0.08)] hover:bg-[rgba(255,255,255,0.1)] hover:shadow-md active:scale-[0.97]",
+        "soft-accent": "bg-[rgba(124,58,237,0.1)] backdrop-blur-sm text-[#7C3AED] border border-[rgba(124,58,237,0.2)] hover:bg-[rgba(124,58,237,0.15)] hover:shadow-md active:scale-[0.97]",
       },
       size: {
         default: "h-10 px-4 py-2",

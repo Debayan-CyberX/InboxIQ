@@ -81,7 +81,7 @@ const Header = () => {
 
   return (
     <>
-      <header className="h-16 border-b border-border/50 bg-card/60 backdrop-blur-2xl flex items-center justify-between px-6 sticky top-0 z-30 glass-subtle">
+      <header className="h-16 border-b border-[rgba(255,255,255,0.12)] glass-strong flex items-center justify-between px-6 sticky top-0 z-30">
         <div className="flex items-center gap-4">
           <div>
             <h1 className="text-xl font-semibold text-foreground">
@@ -103,7 +103,7 @@ const Header = () => {
             <input
               type="text"
               placeholder="Search leads, emails..."
-              className="w-64 h-9 pl-9 pr-4 rounded-lg bg-secondary/50 border border-border text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:bg-background transition-all"
+              className="w-64 h-9 pl-9 pr-4 rounded-lg bg-[rgba(255,255,255,0.06)] backdrop-blur-md border border-[rgba(255,255,255,0.12)] text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-[#7C3AED]/50 focus:bg-[rgba(255,255,255,0.08)] transition-all"
             />
           </div>
 

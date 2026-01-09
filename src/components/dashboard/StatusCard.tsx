@@ -17,27 +17,27 @@ interface StatusCardProps {
 const StatusCard = ({ title, value, change, icon: Icon, variant, subtitle }: StatusCardProps) => {
   const variants = {
     hot: {
-      iconBg: "bg-status-hot-bg/50 backdrop-blur-sm",
-      iconColor: "text-status-hot",
-      accent: "border-l-status-hot",
-      glow: "shadow-[0_0_20px_rgba(239,68,68,0.25)]",
+      iconBg: "bg-[rgba(239,68,68,0.15)] backdrop-blur-sm border border-[rgba(239,68,68,0.2)]",
+      iconColor: "text-[#EF4444]",
+      accent: "border-l-[#EF4444]",
+      glow: "shadow-[0_0_20px_rgba(239,68,68,0.2)]",
     },
     warm: {
-      iconBg: "bg-status-warm-bg/50 backdrop-blur-sm",
-      iconColor: "text-status-warm",
-      accent: "border-l-status-warm",
-      glow: "shadow-[0_0_20px_rgba(245,158,11,0.25)]",
+      iconBg: "bg-[rgba(245,158,11,0.15)] backdrop-blur-sm border border-[rgba(245,158,11,0.2)]",
+      iconColor: "text-[#F59E0B]",
+      accent: "border-l-[#F59E0B]",
+      glow: "shadow-[0_0_20px_rgba(245,158,11,0.2)]",
     },
     risk: {
-      iconBg: "bg-status-risk-bg/50 backdrop-blur-sm",
-      iconColor: "text-status-risk",
-      accent: "border-l-status-risk",
-      glow: "shadow-[0_0_20px_rgba(239,68,68,0.25)]",
+      iconBg: "bg-[rgba(239,68,68,0.15)] backdrop-blur-sm border border-[rgba(239,68,68,0.2)]",
+      iconColor: "text-[#EF4444]",
+      accent: "border-l-[#EF4444]",
+      glow: "shadow-[0_0_20px_rgba(239,68,68,0.2)]",
     },
     default: {
-      iconBg: "bg-secondary/50 backdrop-blur-sm",
+      iconBg: "bg-[rgba(255,255,255,0.08)] backdrop-blur-sm border border-[rgba(255,255,255,0.12)]",
       iconColor: "text-muted-foreground",
-      accent: "border-l-border",
+      accent: "border-l-[rgba(255,255,255,0.12)]",
       glow: "",
     },
   };

@@ -470,7 +470,7 @@ const Leads = () => {
                       {/* Contact Info */}
                       <div className="flex-1 grid grid-cols-12 gap-4 items-center">
                         <div className="col-span-4 flex items-center gap-3 min-w-0">
-                          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center text-primary-foreground font-semibold text-sm shrink-0 shadow-lg">
+                          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#7C3AED] to-[#22D3EE] flex items-center justify-center text-white font-semibold text-sm shrink-0 shadow-lg shadow-[#7C3AED]/30">
                             {lead.contact_name.split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase()}
                           </div>
                           <div className="min-w-0 flex-1">
