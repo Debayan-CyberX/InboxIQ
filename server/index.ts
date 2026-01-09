@@ -9,6 +9,12 @@ import { detectLeadsFromEmailThreads } from "./lead-detection.js";
 import { generateFollowUpForLead } from "./ai-followup.js";
 import { updateAllLeadsContactInfo } from "./update-lead-contact.js";
 
+type BetterAuthSession = {
+  user?: {
+    id?: string;
+  };
+};
+
 
 // Load .env.local file (dotenv by default loads .env, but we want .env.local)
 dotenv.config({ path: ".env.local" });
@@ -659,31 +665,53 @@ app.get("/api/email-connections/callback", async (req, res) => {
   }
 });
 
+// Helper: get session safely (skip OPTIONS)
+async function getSessionFromRequest(
+  req: any
+): Promise<BetterAuthSession | null> {
+  if (req.method === "OPTIONS") {
+    return null;
+  }
+
+  const sessionReq = {
+    ...req,
+    method: "GET",
+    url: "/api/auth/get-session",
+  };
+
+  const sessionRes = await auth.handler(
+    expressToWebRequest(sessionReq) as any
+  );
+
+  return sessionRes.json();
+}
+
 // AI Follow-up generation endpoint
 app.post("/api/leads/:leadId/generate-followup", async (req, res) => {
+  // ✅ Always allow preflight
+  if (req.method === "OPTIONS") {
+    return res.sendStatus(200);
+  }
+
   try {
     const { leadId } = req.params;
 
-    // Get session from Better Auth
-    const sessionReq = {
-      ...req,
-      method: "GET",
-      url: "/api/auth/get-session",
-    };
-    
-    const sessionRes = await auth.handler(expressToWebRequest(sessionReq) as any);
-    const sessionData = await sessionRes.json();
-    
-    if (!sessionData?.user?.id) {
+    // ✅ GET SESSION (this was missing)
+    const sessionData = await getSessionFromRequest(req);
+
+    // ✅ AUTH GUARD
+    if (!sessionData || !sessionData.user || !sessionData.user.id) {
       return res.status(401).json({
         error: "Unauthorized",
         message: "You must be logged in to generate follow-ups",
       });
     }
 
-    const betterAuthUserId = sessionData.user.id;
-    const databaseUrl = process.env.DATABASE_URL;
+    // ✅ TS-safe narrowing
+    const authenticatedSession = sessionData;
+    const betterAuthUserId = authenticatedSession.user.id;
 
+    const databaseUrl = process.env.DATABASE_URL;
     if (!databaseUrl) {
       return res.status(500).json({
         error: "Database not configured",
@@ -691,14 +719,16 @@ app.post("/api/leads/:leadId/generate-followup", async (req, res) => {
       });
     }
 
-    // Get user UUID from Better Auth ID using the database function
+    // Get user UUID from Better Auth ID
     const pool = new Pool({
       connectionString: databaseUrl,
-      ssl: databaseUrl.includes("supabase.co") ? { rejectUnauthorized: false } : false,
+      ssl: databaseUrl.includes("supabase.co")
+        ? { rejectUnauthorized: false }
+        : false,
     });
 
     const userResult = await pool.query(
-      `SELECT public.get_user_uuid_from_better_auth_id($1) as uuid`,
+      `SELECT public.get_user_uuid_from_better_auth_id($1) AS uuid`,
       [betterAuthUserId]
     );
 
@@ -716,9 +746,13 @@ app.post("/api/leads/:leadId/generate-followup", async (req, res) => {
     console.log(`🤖 Generating follow-up for lead: ${leadId}`);
 
     // Generate follow-up
-    const result = await generateFollowUpForLead(leadId, userUuid, databaseUrl);
+    const result = await generateFollowUpForLead(
+      leadId,
+      userUuid,
+      databaseUrl
+    );
 
-    res.json({
+    return res.json({
       success: true,
       message: "Follow-up draft generated successfully",
       draft: {
@@ -729,12 +763,13 @@ app.post("/api/leads/:leadId/generate-followup", async (req, res) => {
     });
   } catch (error) {
     console.error("❌ Follow-up generation error:", error);
-    res.status(500).json({
+    return res.status(500).json({
       error: "Follow-up generation failed",
       message: error instanceof Error ? error.message : "Unknown error",
     });
   }
 });
+
 
 // Update lead contact info endpoint (recalculate days_since_contact)
 app.post("/api/leads/update-contact-info", async (req, res) => {
