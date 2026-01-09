@@ -41,7 +41,7 @@ interface EmailDraft {
 import { LoadingState } from "@/components/LoadingState";
 import { ErrorState } from "@/components/ErrorState";
 import { useUserId } from "@/hooks/useUserId";
-import { emailsApi } from "@/lib/api";
+import { emailsApi, leadsApi } from "@/lib/api";
 import type { Email } from "@/types/database";
 import { toast } from "sonner";
 import EmailPreviewPanel from "@/components/dashboard/EmailPreviewPanel";
@@ -208,7 +208,69 @@ const Drafts = () => {
     setIsPreviewOpen(true);
   };
 
-  const handleSend = async (draft: EmailDraft) => {
+  const handleRegenerate = async (draft: EmailDraft) => {
+    if (!userId) {
+      toast.error("User not authenticated");
+      return;
+    }
+
+    if (!draft.leadId) {
+      toast.error("Cannot regenerate: No lead associated with this draft");
+      return;
+    }
+
+    try {
+      // Show loading toast
+      const loadingToast = toast.loading("Regenerating draft...", {
+        description: `Generating new follow-up for ${draft.toName}`,
+      });
+
+      // Generate new follow-up (this creates a new draft, but we'll update the existing one)
+      const newDraft = await leadsApi.generateFollowUp(draft.leadId, userId);
+
+      // Update the existing draft in database with new content
+      await emailsApi.update(draft.id, userId, {
+        subject: newDraft.subject,
+        body_text: newDraft.body,
+        body_html: newDraft.body.replace(/\n/g, "<br>"),
+        updated_at: new Date().toISOString(),
+      });
+
+      // Delete the newly created draft (since we updated the existing one instead)
+      try {
+        await emailsApi.delete(newDraft.id, userId);
+      } catch (deleteErr) {
+        // If deletion fails, it's not critical - just log it
+        console.warn("Failed to delete duplicate draft:", deleteErr);
+      }
+
+      // Dismiss loading toast and show success
+      toast.dismiss(loadingToast);
+      toast.success("Draft regenerated!", {
+        description: `New follow-up generated for ${draft.toName}`,
+      });
+
+      // Refresh drafts list
+      const draftsData = await emailsApi.getDrafts(userId);
+      setDrafts(draftsData);
+
+      // Update selected draft if it's the one being regenerated
+      if (selectedDraft && selectedDraft.id === draft.id) {
+        const updatedDraft = draftsData.find(d => d.id === draft.id);
+        if (updatedDraft) {
+          const transformed = transformDraft(updatedDraft);
+          setSelectedDraft(transformed);
+        }
+      }
+    } catch (err) {
+      console.error("Error regenerating draft:", err);
+      toast.error("Failed to regenerate draft", {
+        description: err instanceof Error ? err.message : "Unknown error occurred",
+      });
+    }
+  };
+
+  const handleSend = async (draft: EmailDraft, editedContent?: { subject?: string; body?: string }) => {
     if (!userId) {
       toast.error("User not authenticated");
       return;
@@ -220,11 +282,25 @@ const Drafts = () => {
         description: `Sending to ${draft.toName} at ${draft.company}`,
       });
 
+      // Use edited content if provided, otherwise use draft content
+      const subject = editedContent?.subject || draft.subject;
+      const body = editedContent?.body || draft.draft;
+
+      // Update draft in database if edited
+      if (editedContent && (editedContent.subject !== draft.subject || editedContent.body !== draft.draft)) {
+        await emailsApi.update(draft.id, userId, {
+          subject: editedContent.subject || draft.subject,
+          body_text: editedContent.body || draft.draft,
+          body_html: (editedContent.body || draft.draft).replace(/\n/g, "<br>"),
+          updated_at: new Date().toISOString(),
+        });
+      }
+
       // Send email via API
       await emailsApi.sendEmail(draft.id, userId, {
         to: draft.to,
-        subject: draft.subject,
-        body: draft.draft,
+        subject: subject,
+        body: body,
       });
 
       // Dismiss loading toast and show success
@@ -655,7 +731,8 @@ const Drafts = () => {
             setIsPreviewOpen(false);
             setSelectedDraft(null);
           }}
-          onSend={() => handleSend(selectedDraft)}
+          onSend={(editedContent) => handleSend(selectedDraft, editedContent)}
+          onRegenerate={() => handleRegenerate(selectedDraft)}
           email={{
             to: selectedDraft.to,
             subject: selectedDraft.subject,

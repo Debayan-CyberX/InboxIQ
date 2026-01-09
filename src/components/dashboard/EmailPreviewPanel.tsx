@@ -6,7 +6,8 @@ import { cn } from "@/lib/utils";
 interface EmailPreviewPanelProps {
   isOpen: boolean;
   onClose: () => void;
-  onSend?: () => void | Promise<void>;
+  onSend?: (editedContent?: { subject?: string; body?: string }) => void | Promise<void>;
+  onRegenerate?: () => void | Promise<void>;
   email: {
     to: string;
     subject: string;
@@ -28,29 +29,54 @@ const EmailPreviewPanel = ({
   isOpen,
   onClose,
   onSend,
+  onRegenerate,
   email,
 }: EmailPreviewPanelProps) => {
   const [selectedTone, setSelectedTone] = useState("professional");
   const [isEditing, setIsEditing] = useState(false);
   const [draftContent, setDraftContent] = useState(email?.draft || "");
+  const [subjectContent, setSubjectContent] = useState(email?.subject || "");
   const [isSending, setIsSending] = useState(false);
+  const [isRegenerating, setIsRegenerating] = useState(false);
 
   useEffect(() => {
     if (email?.draft) {
       setDraftContent(email.draft);
     }
-  }, [email?.draft]);
+    if (email?.subject) {
+      setSubjectContent(email.subject);
+    }
+  }, [email?.draft, email?.subject]);
 
   const handleSend = async () => {
     if (!onSend) return;
 
     try {
       setIsSending(true);
-      await onSend();
+      // Pass edited content if it was modified
+      const editedContent = 
+        (subjectContent !== email?.subject || draftContent !== email?.draft)
+          ? { subject: subjectContent, body: draftContent }
+          : undefined;
+      await onSend(editedContent);
     } catch (err) {
       console.error("Send failed:", err);
     } finally {
       setIsSending(false);
+    }
+  };
+
+  const handleRegenerate = async () => {
+    if (!onRegenerate) return;
+
+    try {
+      setIsRegenerating(true);
+      await onRegenerate();
+      // Content will be updated via useEffect when email prop changes
+    } catch (err) {
+      console.error("Regenerate failed:", err);
+    } finally {
+      setIsRegenerating(false);
     }
   };
 
@@ -114,7 +140,8 @@ const EmailPreviewPanel = ({
                 Subject
               </label>
               <input
-                value={email.subject}
+                value={subjectContent}
+                onChange={(e) => setSubjectContent(e.target.value)}
                 readOnly={!isEditing}
                 className="
                   mt-1 w-full h-9 px-3 rounded-lg border
@@ -183,21 +210,23 @@ const EmailPreviewPanel = ({
         {/* Actions */}
         <div className="p-4 border-t border-border bg-muted/30 shrink-0">
           <div className="flex flex-col sm:flex-row gap-3">
-            <Button
-              variant="outline"
-              className="gap-2"
-              onClick={() => setDraftContent(email.draft)}
-              disabled={isSending}
-            >
-              <RotateCcw className="w-4 h-4" />
-              Regenerate
-            </Button>
+            {onRegenerate && (
+              <Button
+                variant="outline"
+                className="gap-2"
+                onClick={handleRegenerate}
+                disabled={isSending || isRegenerating}
+              >
+                <RotateCcw className={cn("w-4 h-4", isRegenerating && "animate-spin")} />
+                {isRegenerating ? "Regenerating…" : "Regenerate"}
+              </Button>
+            )}
 
             <Button
               variant="accent"
               className="flex-1 gap-2"
               onClick={handleSend}
-              disabled={isSending || !onSend}
+              disabled={isSending || isRegenerating || !onSend}
             >
               <Send className="w-4 h-4" />
               {isSending ? "Sending…" : "Send Email"}
@@ -205,7 +234,7 @@ const EmailPreviewPanel = ({
           </div>
 
           <p className="text-xs text-muted-foreground text-center mt-3">
-            You’re always in control. Nothing sends without approval.
+            You're always in control. Nothing sends without approval.
           </p>
         </div>
       </div>
