@@ -608,7 +608,7 @@ const Leads = () => {
                         )}
                       </div>
                     )}
-                  </div>
+                  </motion.div>
                 );
               })
             )}
