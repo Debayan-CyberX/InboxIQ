@@ -229,12 +229,22 @@ const Drafts = () => {
       const newDraft = await leadsApi.generateFollowUp(draft.leadId, userId);
 
       // Update the existing draft in database with new content
-      await emailsApi.update(draft.id, userId, {
-        subject: newDraft.subject,
-        body_text: newDraft.body,
-        body_html: newDraft.body.replace(/\n/g, "<br>"),
-        updated_at: new Date().toISOString(),
-      });
+      try {
+        await emailsApi.update(draft.id, userId, {
+          subject: newDraft.subject,
+          body_text: newDraft.body,
+          body_html: newDraft.body.replace(/\n/g, "<br>"),
+          updated_at: new Date().toISOString(),
+        });
+      } catch (updateErr) {
+        // If update fails, the draft might have been deleted - try to delete the new draft and throw
+        try {
+          await emailsApi.delete(newDraft.id, userId);
+        } catch (deleteErr) {
+          // Ignore delete error
+        }
+        throw updateErr;
+      }
 
       // Delete the newly created draft (since we updated the existing one instead)
       try {

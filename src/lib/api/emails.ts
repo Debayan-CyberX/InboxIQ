@@ -123,11 +123,15 @@ export const emailsApi = {
       .eq("id", emailId)
       .eq("user_id", userUuid)
       .select()
-      .single();
+      .maybeSingle();
 
     if (error) {
       console.error("Error updating email:", error);
       throw new Error(`Failed to update email: ${error.message}`);
+    }
+
+    if (!data) {
+      throw new Error(`Email with id ${emailId} not found`);
     }
 
     return data;
@@ -244,11 +248,15 @@ export const emailsApi = {
         .select("*")
         .eq("id", emailId)
         .eq("user_id", userUuid)
-        .single();
+        .maybeSingle();
 
       if (error) {
         console.error("Error fetching email:", error);
         throw new Error(`Failed to fetch email: ${error.message}`);
+      }
+
+      if (!data) {
+        throw new Error(`Email with id ${emailId} not found`);
       }
 
       emailData = data;
