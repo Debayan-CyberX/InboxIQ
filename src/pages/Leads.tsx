@@ -220,13 +220,13 @@ const Leads = () => {
   const getStatusColor = (status: string) => {
     switch (status) {
       case "hot":
-        return "text-status-hot border-status-hot bg-status-hot-bg";
+        return "text-[#EF4444] border-[#EF4444] bg-[rgba(239,68,68,0.15)]";
       case "warm":
-        return "text-status-warm border-status-warm bg-status-warm-bg";
+        return "text-[#F59E0B] border-[#F59E0B] bg-[rgba(245,158,11,0.15)]";
       case "cold":
-        return "text-status-cold border-status-cold bg-status-cold-bg";
+        return "text-[#22D3EE] border-[#22D3EE] bg-[rgba(34,211,238,0.15)]";
       default:
-        return "text-muted-foreground border-border bg-muted";
+        return "text-muted-foreground border-[rgba(255,255,255,0.12)] bg-[rgba(255,255,255,0.08)]";
     }
   };
 
@@ -252,18 +252,18 @@ const Leads = () => {
     <DashboardLayout>
       <div className="space-y-6 max-w-[1600px] mx-auto">
         {/* Header */}
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-foreground tracking-tight">Leads</h1>
-            <p className="text-sm text-muted-foreground/80 mt-1.5">
+            <h1 className="text-4xl font-bold text-foreground tracking-tight mb-2">Leads</h1>
+            <p className="text-base text-muted-foreground font-medium">
               {filteredAndSortedLeads.length} {filteredAndSortedLeads.length === 1 ? "lead" : "leads"}
               {statusFilter !== "all" && ` • ${statusFilter} leads`}
             </p>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
             <Button 
               variant="outline" 
-              size="sm" 
+              size="default" 
               className="gap-2"
               onClick={async () => {
                 if (!userId) return;
@@ -288,11 +288,11 @@ const Leads = () => {
               <Sparkles className="w-4 h-4" />
               Detect Leads
             </Button>
-            <Button variant="outline" size="sm" className="gap-2">
+            <Button variant="outline" size="default" className="gap-2">
               <Filter className="w-4 h-4" />
               Filters
             </Button>
-            <Button variant="accent" size="sm" className="gap-2">
+            <Button variant="default" size="default" className="gap-2">
               <Plus className="w-4 h-4" />
               Add Lead
             </Button>
@@ -300,45 +300,45 @@ const Leads = () => {
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
-          <div className="glass-strong p-5 rounded-2xl hover-lift">
-            <div className="text-3xl font-bold text-foreground">{stats.total}</div>
-            <div className="text-xs text-muted-foreground/70 mt-1.5 font-medium">Total Leads</div>
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 mb-8">
+          <div className="glass-strong p-6 rounded-2xl hover-lift cursor-pointer group">
+            <div className="text-4xl font-bold text-foreground mb-2">{stats.total}</div>
+            <div className="text-sm text-muted-foreground/80 font-semibold uppercase tracking-wider">Total Leads</div>
           </div>
-          <div className="glass-strong p-5 rounded-2xl border-l-4 border-l-status-hot hover-lift shadow-[0_0_20px_rgba(239,68,68,0.2)]">
-            <div className="text-3xl font-bold text-status-hot">{stats.hot}</div>
-            <div className="text-xs text-muted-foreground/70 mt-1.5 font-medium">Hot</div>
+          <div className="glass-strong p-6 rounded-2xl border-l-4 border-l-[#EF4444] hover-lift shadow-[0_0_20px_rgba(239,68,68,0.2)] cursor-pointer group">
+            <div className="text-4xl font-bold text-[#EF4444] mb-2">{stats.hot}</div>
+            <div className="text-sm text-muted-foreground/80 font-semibold uppercase tracking-wider">Hot</div>
           </div>
-          <div className="glass-strong p-5 rounded-2xl border-l-4 border-l-status-warm hover-lift shadow-[0_0_20px_rgba(245,158,11,0.2)]">
-            <div className="text-3xl font-bold text-status-warm">{stats.warm}</div>
-            <div className="text-xs text-muted-foreground/70 mt-1.5 font-medium">Warm</div>
+          <div className="glass-strong p-6 rounded-2xl border-l-4 border-l-[#F59E0B] hover-lift shadow-[0_0_20px_rgba(245,158,11,0.2)] cursor-pointer group">
+            <div className="text-4xl font-bold text-[#F59E0B] mb-2">{stats.warm}</div>
+            <div className="text-sm text-muted-foreground/80 font-semibold uppercase tracking-wider">Warm</div>
           </div>
-          <div className="glass-strong p-5 rounded-2xl border-l-4 border-l-status-cold hover-lift shadow-[0_0_20px_rgba(56,189,248,0.2)]">
-            <div className="text-3xl font-bold text-status-cold">{stats.cold}</div>
-            <div className="text-xs text-muted-foreground/70 mt-1.5 font-medium">Cold</div>
+          <div className="glass-strong p-6 rounded-2xl border-l-4 border-l-[#22D3EE] hover-lift shadow-[0_0_20px_rgba(34,211,238,0.2)] cursor-pointer group">
+            <div className="text-4xl font-bold text-[#22D3EE] mb-2">{stats.cold}</div>
+            <div className="text-sm text-muted-foreground/80 font-semibold uppercase tracking-wider">Cold</div>
           </div>
-          <div className="glass-strong p-5 rounded-2xl hover-lift">
-            <div className="text-3xl font-bold text-foreground">{stats.needsFollowUp}</div>
-            <div className="text-xs text-muted-foreground/70 mt-1.5 font-medium">Need Follow-up</div>
+          <div className="glass-strong p-6 rounded-2xl hover-lift cursor-pointer group">
+            <div className="text-4xl font-bold text-foreground mb-2">{stats.needsFollowUp}</div>
+            <div className="text-sm text-muted-foreground/80 font-semibold uppercase tracking-wider">Need Follow-up</div>
           </div>
-          <div className="glass-strong p-5 rounded-2xl hover-lift">
-            <div className="text-3xl font-bold text-foreground">{stats.hasDrafts}</div>
-            <div className="text-xs text-muted-foreground/70 mt-1.5 font-medium">AI Drafts</div>
+          <div className="glass-strong p-6 rounded-2xl hover-lift cursor-pointer group">
+            <div className="text-4xl font-bold text-foreground mb-2">{stats.hasDrafts}</div>
+            <div className="text-sm text-muted-foreground/80 font-semibold uppercase tracking-wider">AI Drafts</div>
           </div>
         </div>
 
         {/* Search and Filters */}
-        <div className="glass-strong p-5 rounded-2xl">
+        <div className="glass-strong p-6 rounded-2xl mb-6">
           <div className="flex items-center gap-4">
             {/* Search */}
             <div className="relative flex-1">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/60" />
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground/60" />
               <input
                 type="text"
                 placeholder="Search leads by name, company, or email..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full h-11 pl-11 pr-4 rounded-xl bg-secondary/40 backdrop-blur-sm border border-border/50 text-sm placeholder:text-muted-foreground/60 focus:outline-none focus:ring-2 focus:ring-ring/50 focus:bg-secondary/60 focus:border-border transition-all duration-200"
+                className="w-full h-12 pl-12 pr-4 rounded-xl bg-[rgba(255,255,255,0.06)] backdrop-blur-md border border-[rgba(255,255,255,0.12)] text-base placeholder:text-muted-foreground/60 focus:outline-none focus:ring-2 focus:ring-[#7C3AED]/50 focus:bg-[rgba(255,255,255,0.08)] focus:border-[rgba(124,58,237,0.3)] transition-all duration-200 font-medium"
               />
             </div>
 
@@ -346,36 +346,46 @@ const Leads = () => {
             <div className="flex items-center gap-2">
               <Button
                 variant={statusFilter === "all" ? "default" : "outline"}
-                size="sm"
+                size="default"
                 onClick={() => setStatusFilter("all")}
+                className="font-semibold"
               >
                 All
               </Button>
               <Button
                 variant={statusFilter === "hot" ? "default" : "outline"}
-                size="sm"
+                size="default"
                 onClick={() => setStatusFilter("hot")}
-                className={statusFilter === "hot" ? "bg-status-hot-bg text-status-hot border-status-hot" : ""}
+                className={cn(
+                  "font-semibold",
+                  statusFilter === "hot" ? "bg-[rgba(239,68,68,0.15)] text-[#EF4444] border-[#EF4444] hover:bg-[rgba(239,68,68,0.2)]" : ""
+                )}
               >
-                <Flame className="w-4 h-4 mr-1" />
+                <Flame className="w-4 h-4 mr-1.5" />
                 Hot
               </Button>
               <Button
                 variant={statusFilter === "warm" ? "default" : "outline"}
-                size="sm"
+                size="default"
                 onClick={() => setStatusFilter("warm")}
-                className={statusFilter === "warm" ? "bg-status-warm-bg text-status-warm border-status-warm" : ""}
+                className={cn(
+                  "font-semibold",
+                  statusFilter === "warm" ? "bg-[rgba(245,158,11,0.15)] text-[#F59E0B] border-[#F59E0B] hover:bg-[rgba(245,158,11,0.2)]" : ""
+                )}
               >
-                <ThermometerSun className="w-4 h-4 mr-1" />
+                <ThermometerSun className="w-4 h-4 mr-1.5" />
                 Warm
               </Button>
               <Button
                 variant={statusFilter === "cold" ? "default" : "outline"}
-                size="sm"
+                size="default"
                 onClick={() => setStatusFilter("cold")}
-                className={statusFilter === "cold" ? "bg-status-cold-bg text-status-cold border-status-cold" : ""}
+                className={cn(
+                  "font-semibold",
+                  statusFilter === "cold" ? "bg-[rgba(34,211,238,0.15)] text-[#22D3EE] border-[#22D3EE] hover:bg-[rgba(34,211,238,0.2)]" : ""
+                )}
               >
-                <Snowflake className="w-4 h-4 mr-1" />
+                <Snowflake className="w-4 h-4 mr-1.5" />
                 Cold
               </Button>
             </div>
@@ -385,7 +395,7 @@ const Leads = () => {
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value as SortOption)}
-                className="h-9 px-3 rounded-lg bg-secondary/50 border border-border text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                className="h-12 px-4 rounded-xl bg-[rgba(255,255,255,0.06)] backdrop-blur-md border border-[rgba(255,255,255,0.12)] text-base focus:outline-none focus:ring-2 focus:ring-[#7C3AED]/50 focus:bg-[rgba(255,255,255,0.08)] transition-all duration-200 font-medium"
               >
                 <option value="recent">Recent</option>
                 <option value="name">Name</option>
@@ -395,10 +405,11 @@ const Leads = () => {
               </select>
               <Button
                 variant="outline"
-                size="icon-sm"
+                size="icon"
                 onClick={() => setSortOrder(sortOrder === "asc" ? "desc" : "asc")}
+                className="h-12 w-12"
               >
-                {sortOrder === "asc" ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                {sortOrder === "asc" ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
               </Button>
             </div>
           </div>
@@ -407,15 +418,15 @@ const Leads = () => {
         {/* Leads Table/List */}
         <div className="glass-strong rounded-2xl overflow-hidden">
           {/* Table Header */}
-          <div className="p-5 border-b border-border/50 bg-muted/20 backdrop-blur-sm">
-            <div className="flex items-center gap-4">
+          <div className="p-6 border-b border-[rgba(255,255,255,0.12)] bg-[rgba(255,255,255,0.05)] backdrop-blur-sm">
+            <div className="flex items-center gap-5">
               <input
                 type="checkbox"
                 checked={selectedLeads.size === filteredAndSortedLeads.length && filteredAndSortedLeads.length > 0}
                 onChange={handleSelectAll}
-                className="w-4 h-4 rounded border-border/60 accent-primary"
+                className="w-5 h-5 rounded border-[rgba(255,255,255,0.2)] accent-[#7C3AED] cursor-pointer"
               />
-              <div className="flex-1 grid grid-cols-12 gap-4 text-xs font-semibold text-muted-foreground/80 uppercase tracking-wider">
+              <div className="flex-1 grid grid-cols-12 gap-4 text-xs font-bold text-muted-foreground/90 uppercase tracking-widest">
                 <div className="col-span-4">Contact</div>
                 <div className="col-span-3">Company</div>
                 <div className="col-span-2">Status</div>
@@ -426,11 +437,11 @@ const Leads = () => {
           </div>
 
           {/* Leads List */}
-          <div className="divide-y divide-border/30">
+          <div className="divide-y divide-[rgba(255,255,255,0.08)]">
             {filteredAndSortedLeads.length === 0 ? (
-              <div className="p-12 text-center">
-                <Users className="w-12 h-12 text-muted-foreground mx-auto mb-4 opacity-50" />
-                <p className="text-muted-foreground">
+              <div className="p-16 text-center">
+                <Users className="w-16 h-16 text-muted-foreground/40 mx-auto mb-6" />
+                <p className="text-lg text-muted-foreground font-medium">
                   {searchQuery ? "No leads found matching your search" : `No ${statusFilter === "all" ? "" : statusFilter} leads`}
                 </p>
               </div>
@@ -445,38 +456,38 @@ const Leads = () => {
                     key={lead.id}
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.2 }}
+                    transition={{ duration: 0.3 }}
                     whileHover={{ x: 4, transition: { duration: 0.2 } }}
                     onClick={() => {
                       // Navigate to inbox filtered by this lead's threads
                       window.location.href = `/inbox?lead=${lead.id}`;
                     }}
                     className={cn(
-                      "p-5 hover:bg-muted/20 transition-all duration-200 group cursor-pointer relative",
-                      selectedLeads.has(lead.id) && "bg-accent/10"
+                      "p-6 hover:bg-[rgba(255,255,255,0.05)] transition-all duration-200 group cursor-pointer relative border-b border-[rgba(255,255,255,0.08)] last:border-0",
+                      selectedLeads.has(lead.id) && "bg-[rgba(124,58,237,0.1)]"
                     )}
                   >
                     {/* Subtle gradient overlay on hover */}
-                    <div className="absolute inset-0 bg-gradient-to-r from-accent/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none" />
-                    <div className="flex items-center gap-4">
+                    <div className="absolute inset-0 bg-gradient-to-r from-[rgba(124,58,237,0.05)] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none" />
+                    <div className="relative flex items-center gap-5">
                       <input
                         type="checkbox"
                         checked={selectedLeads.has(lead.id)}
                         onChange={() => handleSelectLead(lead.id)}
                         onClick={(e) => e.stopPropagation()}
-                        className="w-4 h-4 rounded border-border shrink-0"
+                        className="w-5 h-5 rounded border-[rgba(255,255,255,0.2)] accent-[#7C3AED] cursor-pointer shrink-0"
                       />
                       
                       {/* Contact Info */}
-                      <div className="flex-1 grid grid-cols-12 gap-4 items-center">
-                        <div className="col-span-4 flex items-center gap-3 min-w-0">
-                          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#7C3AED] to-[#22D3EE] flex items-center justify-center text-white font-semibold text-sm shrink-0 shadow-lg shadow-[#7C3AED]/30">
+                      <div className="flex-1 grid grid-cols-12 gap-5 items-center">
+                        <div className="col-span-4 flex items-center gap-4 min-w-0">
+                          <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#7C3AED] to-[#22D3EE] flex items-center justify-center text-white font-bold text-base shrink-0 shadow-lg shadow-[#7C3AED]/30">
                             {lead.contact_name.split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase()}
                           </div>
                           <div className="min-w-0 flex-1">
-                            <div className="font-semibold text-foreground truncate">{lead.contact_name}</div>
-                            <div className="text-sm text-muted-foreground truncate flex items-center gap-1.5">
-                              <Mail className="w-3 h-3 shrink-0" />
+                            <div className="font-bold text-base text-foreground truncate mb-1">{lead.contact_name}</div>
+                            <div className="text-sm text-muted-foreground/80 truncate flex items-center gap-2 font-medium">
+                              <Mail className="w-4 h-4 shrink-0" />
                               <span className="truncate">{lead.email}</span>
                             </div>
                           </div>
@@ -484,9 +495,9 @@ const Leads = () => {
 
                         {/* Company */}
                         <div className="col-span-3 min-w-0">
-                          <div className="font-medium text-foreground truncate">{lead.company}</div>
+                          <div className="font-semibold text-base text-foreground truncate mb-1">{lead.company}</div>
                           {lead.last_message && (
-                            <div className="text-sm text-muted-foreground line-clamp-1 truncate">
+                            <div className="text-sm text-muted-foreground/70 line-clamp-1 truncate italic">
                               "{lead.last_message}"
                             </div>
                           )}
@@ -495,10 +506,13 @@ const Leads = () => {
                         {/* Status */}
                         <div className="col-span-2">
                           <div className={cn(
-                            "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border backdrop-blur-sm",
-                            statusColor
+                            "inline-flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-bold border backdrop-blur-sm",
+                            lead.status === "hot" ? "bg-[rgba(239,68,68,0.15)] text-[#EF4444] border-[#EF4444]" :
+                            lead.status === "warm" ? "bg-[rgba(245,158,11,0.15)] text-[#F59E0B] border-[#F59E0B]" :
+                            lead.status === "cold" ? "bg-[rgba(34,211,238,0.15)] text-[#22D3EE] border-[#22D3EE]" :
+                            "bg-[rgba(255,255,255,0.08)] text-muted-foreground border-[rgba(255,255,255,0.12)]"
                           )}>
-                            <StatusIcon className="w-3.5 h-3.5" />
+                            <StatusIcon className="w-4 h-4" />
                             <span className="capitalize">{lead.status}</span>
                           </div>
                         </div>
@@ -506,25 +520,25 @@ const Leads = () => {
                         {/* Last Contact */}
                         <div className="col-span-2">
                           <div className={cn(
-                            "flex items-center gap-1.5 text-sm",
-                            isUrgent ? "text-status-risk font-medium" : "text-muted-foreground"
+                            "flex items-center gap-2 text-base font-semibold mb-1",
+                            isUrgent ? "text-[#EF4444]" : "text-muted-foreground/80"
                           )}>
-                            <Calendar className="w-4 h-4 shrink-0" />
+                            <Calendar className="w-5 h-5 shrink-0" />
                             <span>{lead.days_since_contact || 0}d ago</span>
                           </div>
                           {isUrgent && (
-                            <div className="text-xs text-status-risk mt-0.5">Needs attention</div>
+                            <div className="text-xs font-semibold text-[#EF4444] mt-1">Needs attention</div>
                           )}
                           {/* Show follow-up due date if available */}
                           {lead.metadata?.follow_up_due_at && (
-                            <div className="text-xs text-muted-foreground mt-0.5">
+                            <div className="text-xs text-muted-foreground/60 mt-1 font-medium">
                               Follow-up: {new Date(lead.metadata.follow_up_due_at).toLocaleDateString()}
                             </div>
                           )}
                         </div>
 
                         {/* Actions */}
-                        <div className="col-span-1 flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <div className="col-span-1 flex items-center justify-end gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
                           <button
                             onClick={async (e) => {
                               e.stopPropagation();
@@ -560,25 +574,24 @@ const Leads = () => {
                               }
                             }}
                             disabled={generatingLeadId === lead.id}
-
-                            className="p-1.5 rounded hover:bg-muted transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="p-2 rounded-xl hover:bg-[rgba(255,255,255,0.08)] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed hover:scale-110"
                             title={(lead.days_since_contact || 0) < 3 ? "User replied recently (within 3 days)" : generatingLeadId === lead.id ? "Generating..." : "Generate Follow-up"}
                           >
-                            <Sparkles className={cn("w-4 h-4", generatingLeadId === lead.id ? "animate-spin text-accent" : "text-accent")} />
+                            <Sparkles className={cn("w-5 h-5", generatingLeadId === lead.id ? "animate-spin text-[#7C3AED]" : "text-[#7C3AED]")} />
                           </button>
                           {lead.has_ai_draft && (
                             <button
-                              className="p-1.5 rounded hover:bg-muted transition-colors"
+                              className="p-2 rounded-xl hover:bg-[rgba(255,255,255,0.08)] transition-all duration-200 hover:scale-110"
                               title="AI Draft Ready"
                             >
-                              <Sparkles className="w-4 h-4 text-accent" />
+                              <Sparkles className="w-5 h-5 text-[#7C3AED]" />
                             </button>
                           )}
                           <button
-                            className="p-1.5 rounded hover:bg-muted transition-colors"
+                            className="p-2 rounded-xl hover:bg-[rgba(255,255,255,0.08)] transition-all duration-200 hover:scale-110 text-muted-foreground/60 hover:text-foreground"
                             title="Send Email"
                           >
-                            <MailIcon className="w-4 h-4 text-muted-foreground" />
+                            <MailIcon className="w-5 h-5" />
                           </button>
                           <button
                             onClick={(e) => {
@@ -587,10 +600,10 @@ const Leads = () => {
                                 handleDelete(lead.id);
                               }
                             }}
-                            className="p-1.5 rounded hover:bg-muted transition-colors"
+                            className="p-2 rounded-xl hover:bg-[rgba(239,68,68,0.1)] transition-all duration-200 hover:scale-110 text-muted-foreground/60 hover:text-[#EF4444]"
                             title="Delete lead"
                           >
-                            <Trash2 className="w-4 h-4 text-muted-foreground" />
+                            <Trash2 className="w-5 h-5" />
                           </button>
                         </div>
                       </div>
@@ -598,11 +611,11 @@ const Leads = () => {
 
                     {/* AI Suggestion */}
                     {lead.ai_suggestion && (
-                      <div className="mt-3 ml-14 flex items-center gap-2 p-2 rounded-md bg-accent/5 border border-accent/10">
-                        <Sparkles className="w-3.5 h-3.5 text-accent shrink-0" />
-                        <p className="text-xs text-accent font-medium">{lead.ai_suggestion}</p>
+                      <div className="mt-4 ml-20 flex items-center gap-3 p-3 rounded-xl bg-[rgba(124,58,237,0.1)] border border-[rgba(124,58,237,0.2)]">
+                        <Sparkles className="w-4 h-4 text-[#7C3AED] shrink-0" />
+                        <p className="text-sm text-[#7C3AED] font-semibold flex-1">{lead.ai_suggestion}</p>
                         {lead.has_ai_draft && (
-                          <Button variant="accent" size="sm" className="ml-auto h-6 text-xs">
+                          <Button variant="default" size="sm" className="ml-auto h-7 text-xs font-bold">
                             View Draft
                           </Button>
                         )}
@@ -616,23 +629,23 @@ const Leads = () => {
 
           {/* Bulk Actions */}
           {selectedLeads.size > 0 && (
-            <div className="p-4 border-t border-border bg-muted/30 flex items-center justify-between">
-              <div className="text-sm text-muted-foreground">
+            <div className="p-5 border-t border-[rgba(255,255,255,0.12)] bg-[rgba(255,255,255,0.05)] backdrop-blur-sm flex items-center justify-between">
+              <div className="text-base font-semibold text-foreground">
                 {selectedLeads.size} {selectedLeads.size === 1 ? "lead" : "leads"} selected
               </div>
-              <div className="flex items-center gap-2">
-                <Button variant="outline" size="sm" className="gap-2">
+              <div className="flex items-center gap-3">
+                <Button variant="outline" size="default" className="gap-2 font-semibold">
                   <MailIcon className="w-4 h-4" />
                   Email Selected
                 </Button>
-                <Button variant="outline" size="sm" className="gap-2">
+                <Button variant="outline" size="default" className="gap-2 font-semibold">
                   <Archive className="w-4 h-4" />
                   Archive
                 </Button>
                 <Button 
                   variant="outline" 
-                  size="sm" 
-                  className="gap-2 text-destructive hover:text-destructive"
+                  size="default" 
+                  className="gap-2 text-[#EF4444] border-[#EF4444]/30 hover:bg-[rgba(239,68,68,0.1)] hover:border-[#EF4444] font-semibold"
                   onClick={handleBulkDelete}
                 >
                   <Trash2 className="w-4 h-4" />

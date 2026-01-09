@@ -105,22 +105,49 @@
     line-height: 1.6;
   }
 
-  /* Typography Hierarchy */
+  /* Typography Hierarchy - Premium & Spacious */
   h1, h2, h3, h4, h5, h6 {
-    @apply font-semibold tracking-tight;
+    @apply font-bold tracking-tight;
     line-height: 1.2;
+    letter-spacing: -0.02em;
   }
 
-  h1 { @apply text-4xl lg:text-5xl; }
-  h2 { @apply text-3xl lg:text-4xl; }
-  h3 { @apply text-2xl lg:text-3xl; }
-  h4 { @apply text-xl lg:text-2xl; }
-  h5 { @apply text-lg lg:text-xl; }
-  h6 { @apply text-base lg:text-lg; }
+  h1 { 
+    @apply text-4xl lg:text-5xl;
+    font-weight: 700;
+    letter-spacing: -0.03em;
+  }
+  h2 { 
+    @apply text-3xl lg:text-4xl;
+    font-weight: 700;
+  }
+  h3 { 
+    @apply text-2xl lg:text-3xl;
+    font-weight: 600;
+  }
+  h4 { 
+    @apply text-xl lg:text-2xl;
+    font-weight: 600;
+  }
+  h5 { 
+    @apply text-lg lg:text-xl;
+    font-weight: 600;
+  }
+  h6 { 
+    @apply text-base lg:text-lg;
+    font-weight: 600;
+  }
 
   p {
     @apply text-foreground/90;
-    line-height: 1.7;
+    line-height: 1.75;
+    font-size: 0.9375rem; /* 15px */
+  }
+
+  /* Body text improvements */
+  body {
+    font-size: 15px;
+    letter-spacing: -0.01em;
   }
 }
 

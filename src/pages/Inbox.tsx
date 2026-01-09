@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect } from "react";
+import { motion } from "framer-motion";
 import { 
   Inbox as InboxIcon, 
   Search, 
@@ -291,20 +292,20 @@ const Inbox = () => {
     <DashboardLayout>
       <div className="space-y-6 max-w-[1600px] mx-auto">
         {/* Header */}
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between mb-8">
           <div>
-            <h1 className="text-2xl font-bold text-foreground">Inbox</h1>
-            <p className="text-sm text-muted-foreground mt-1">
+            <h1 className="text-4xl font-bold text-foreground tracking-tight mb-2">Inbox</h1>
+            <p className="text-base text-muted-foreground font-medium">
               {filteredThreads.length} {filteredThreads.length === 1 ? "conversation" : "conversations"}
-              {selectedFilter !== "all" && ` in ${filters.find(f => f.id === selectedFilter)?.label}`}
+              {selectedFilter !== "all" && ` • ${filters.find(f => f.id === selectedFilter)?.label}`}
             </p>
           </div>
-          <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" className="gap-2">
+          <div className="flex items-center gap-3">
+            <Button variant="outline" size="default" className="gap-2">
               <Filter className="w-4 h-4" />
               Filters
             </Button>
-            <Button variant="accent" size="sm" className="gap-2">
+            <Button variant="default" size="default" className="gap-2">
               <Mail className="w-4 h-4" />
               Compose
             </Button>
@@ -315,22 +316,22 @@ const Inbox = () => {
           {/* Left Sidebar - Filters */}
           <div className="col-span-3 space-y-4">
             {/* Search */}
-            <div className="card-elevated p-4">
+            <div className="glass-strong p-5 rounded-2xl">
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground/60" />
                 <input
                   type="text"
                   placeholder="Search emails..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full h-9 pl-9 pr-4 rounded-lg bg-secondary/50 border border-border text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:bg-background transition-all"
+                  className="w-full h-12 pl-12 pr-4 rounded-xl bg-[rgba(255,255,255,0.06)] backdrop-blur-md border border-[rgba(255,255,255,0.12)] text-base placeholder:text-muted-foreground/60 focus:outline-none focus:ring-2 focus:ring-[#7C3AED]/50 focus:bg-[rgba(255,255,255,0.08)] transition-all duration-200 font-medium"
                 />
               </div>
             </div>
 
             {/* Filters */}
-            <div className="card-elevated p-2">
-              <div className="space-y-1">
+            <div className="glass-strong p-3 rounded-2xl">
+              <div className="space-y-1.5">
                 {filters.map((filter) => {
                   const Icon = filter.icon;
                   return (
@@ -338,22 +339,22 @@ const Inbox = () => {
                       key={filter.id}
                       onClick={() => setSelectedFilter(filter.id)}
                       className={cn(
-                        "w-full flex items-center justify-between gap-2 px-3 py-2.5 rounded-lg text-sm font-medium transition-all text-left",
+                        "w-full flex items-center justify-between gap-3 px-4 py-3 rounded-xl text-base font-semibold transition-all duration-200 text-left group",
                         selectedFilter === filter.id
-                          ? "bg-accent/10 text-accent"
-                          : "text-foreground/70 hover:bg-muted/50 hover:text-foreground"
+                          ? "bg-[rgba(124,58,237,0.15)] text-[#7C3AED] border border-[rgba(124,58,237,0.2)] shadow-lg shadow-[#7C3AED]/10"
+                          : "text-foreground/70 hover:bg-[rgba(255,255,255,0.08)] hover:text-foreground hover:translate-x-1"
                       )}
                     >
-                      <div className="flex items-center gap-2.5">
-                        <Icon className="w-4 h-4" />
+                      <div className="flex items-center gap-3">
+                        <Icon className={cn("w-5 h-5", selectedFilter === filter.id && "text-[#7C3AED]")} />
                         <span>{filter.label}</span>
                       </div>
                       {filter.count > 0 && (
                         <span className={cn(
-                          "text-xs font-medium px-2 py-0.5 rounded-full",
+                          "text-xs font-bold px-2.5 py-1 rounded-full min-w-[24px] text-center",
                           selectedFilter === filter.id
-                            ? "bg-accent text-accent-foreground"
-                            : "bg-muted text-muted-foreground"
+                            ? "bg-[#7C3AED] text-white"
+                            : "bg-[rgba(255,255,255,0.1)] text-muted-foreground"
                         )}>
                           {filter.count}
                         </span>
@@ -367,85 +368,90 @@ const Inbox = () => {
 
           {/* Main Content - Email Threads */}
           <div className="col-span-9">
-            <div className="card-elevated">
+            <div className="glass-strong rounded-2xl overflow-hidden">
               {/* Thread List */}
-              <div className="divide-y divide-border max-h-[calc(100vh-250px)] overflow-y-auto">
+              <div className="divide-y divide-[rgba(255,255,255,0.08)] max-h-[calc(100vh-280px)] overflow-y-auto">
                 {filteredThreads.length === 0 ? (
-                  <div className="p-12 text-center">
-                    <MailOpen className="w-12 h-12 text-muted-foreground mx-auto mb-4 opacity-50" />
-                    <p className="text-muted-foreground">
+                  <div className="p-16 text-center">
+                    <MailOpen className="w-16 h-16 text-muted-foreground/40 mx-auto mb-6" />
+                    <p className="text-lg text-muted-foreground font-medium">
                       {searchQuery ? "No emails found matching your search" : `No emails in ${filters.find(f => f.id === selectedFilter)?.label}`}
                     </p>
                   </div>
                 ) : (
                   filteredThreads.map((thread) => (
-                    <div
+                    <motion.div
                       key={thread.id}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.3 }}
                       onClick={() => handleThreadClick(thread)}
                       className={cn(
-                        "p-4 hover:bg-muted/30 transition-colors cursor-pointer group relative",
-                        !thread.isRead && "bg-accent/5",
-                        selectedThread?.id === thread.id && "bg-accent/10 border-l-4 border-l-accent"
+                        "p-6 hover:bg-[rgba(255,255,255,0.05)] transition-all duration-200 cursor-pointer group relative border-b border-[rgba(255,255,255,0.08)] last:border-0",
+                        !thread.isRead && "bg-[rgba(124,58,237,0.05)]",
+                        selectedThread?.id === thread.id && "bg-[rgba(124,58,237,0.1)] border-l-4 border-l-[#7C3AED]"
                       )}
                     >
-                      <div className="flex items-start gap-4">
+                      <div className="flex items-start gap-5">
                         {/* Avatar */}
-                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-violet-500 flex items-center justify-center text-white font-semibold text-sm shrink-0">
+                        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#7C3AED] to-[#22D3EE] flex items-center justify-center text-white font-bold text-base shrink-0 shadow-lg shadow-[#7C3AED]/30">
                           {thread.from.name.split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase()}
                         </div>
 
                         {/* Content */}
                         <div className="flex-1 min-w-0">
-                          <div className="flex items-start justify-between gap-2 mb-1">
-                            <div className="flex items-center gap-2 flex-1 min-w-0">
+                          <div className="flex items-start justify-between gap-3 mb-2">
+                            <div className="flex items-center gap-3 flex-1 min-w-0">
                               <h4 className={cn(
-                                "font-semibold text-foreground truncate",
-                                !thread.isRead && "font-bold"
+                                "text-base font-bold text-foreground truncate",
+                                !thread.isRead && "text-[#7C3AED]"
                               )}>
                                 {thread.from.name}
                                 {thread.company && (
-                                  <span className="text-muted-foreground font-normal ml-2">
+                                  <span className="text-muted-foreground/70 font-normal ml-2 text-sm">
                                     • {thread.company}
                                   </span>
                                 )}
                               </h4>
                               {thread.isImportant && (
-                                <AlertCircle className="w-4 h-4 text-status-hot shrink-0" />
+                                <AlertCircle className="w-5 h-5 text-[#EF4444] shrink-0" />
                               )}
                               {thread.hasAIDraft && (
-                                <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs font-medium bg-accent/10 text-accent shrink-0">
-                                  <Sparkles className="w-3 h-3" />
+                                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold bg-[rgba(124,58,237,0.15)] text-[#7C3AED] border border-[rgba(124,58,237,0.2)] shrink-0">
+                                  <Sparkles className="w-3.5 h-3.5" />
                                   AI Draft
                                 </span>
                               )}
                             </div>
-                            <div className="flex items-center gap-2 shrink-0">
-                              <span className="text-xs text-muted-foreground whitespace-nowrap">
+                            <div className="flex items-center gap-3 shrink-0">
+                              <span className="text-sm text-muted-foreground/70 whitespace-nowrap font-medium">
                                 {thread.timestamp}
                               </span>
                               {thread.hasAttachment && (
-                                <Paperclip className="w-4 h-4 text-muted-foreground" />
+                                <Paperclip className="w-4 h-4 text-muted-foreground/60" />
                               )}
                             </div>
                           </div>
 
-                          <div className="flex items-center gap-2 mb-2">
+                          <div className="flex items-center gap-3 mb-3">
                             <p className={cn(
-                              "text-sm text-foreground/90 line-clamp-1 flex-1",
-                              !thread.isRead && "font-medium"
+                              "text-base text-foreground line-clamp-1 flex-1 font-semibold",
+                              !thread.isRead && "text-foreground"
                             )}>
                               {thread.subject}
                             </p>
                             {thread.emailCount > 1 && (
-                              <span className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded shrink-0">
+                              <span className="text-xs font-bold text-muted-foreground bg-[rgba(255,255,255,0.1)] px-2.5 py-1 rounded-full shrink-0 border border-[rgba(255,255,255,0.12)]">
                                 {thread.emailCount}
                               </span>
                             )}
                           </div>
 
-                          <p className="text-sm text-muted-foreground line-clamp-1 mb-2">
-                            {thread.preview}
-                          </p>
+                          {thread.preview && (
+                            <p className="text-sm text-muted-foreground/80 line-clamp-1 mb-3 leading-relaxed">
+                              {thread.preview}
+                            </p>
+                          )}
 
                           {/* Tags and Actions */}
                           <div className="flex items-center justify-between gap-2">
@@ -453,14 +459,14 @@ const Inbox = () => {
                               {thread.tags?.map((tag, i) => (
                                 <span
                                   key={i}
-                                  className="text-xs px-2 py-0.5 rounded bg-muted text-muted-foreground"
+                                  className="text-xs font-medium px-2.5 py-1 rounded-lg bg-[rgba(255,255,255,0.08)] text-muted-foreground border border-[rgba(255,255,255,0.12)]"
                                 >
                                   {tag}
                                 </span>
                               ))}
                               {thread.aiSuggestion && (
-                                <span className="text-xs text-accent flex items-center gap-1">
-                                  <Sparkles className="w-3 h-3" />
+                                <span className="text-xs font-semibold text-[#7C3AED] flex items-center gap-1.5">
+                                  <Sparkles className="w-3.5 h-3.5" />
                                   {thread.aiSuggestion}
                                 </span>
                               )}
@@ -469,42 +475,42 @@ const Inbox = () => {
                         </div>
 
                         {/* Action Buttons */}
-                        <div className="flex items-center gap-1 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <div className="flex items-center gap-1.5 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
                           <button
                             onClick={(e) => handleToggleStar(thread.id, e)}
                             className={cn(
-                              "p-1.5 rounded hover:bg-muted transition-colors",
-                              thread.isStarred && "text-yellow-400"
+                              "p-2 rounded-xl hover:bg-[rgba(255,255,255,0.08)] transition-all duration-200 hover:scale-110",
+                              thread.isStarred && "text-[#FBBF24] bg-[rgba(251,191,36,0.1)]"
                             )}
                             title={thread.isStarred ? "Unstar" : "Star"}
                           >
-                            <Star className={cn("w-4 h-4", thread.isStarred && "fill-current")} />
+                            <Star className={cn("w-5 h-5", thread.isStarred && "fill-current")} />
                           </button>
                           <button
                             onClick={(e) => handleToggleImportant(thread.id, e)}
                             className={cn(
-                              "p-1.5 rounded hover:bg-muted transition-colors",
-                              thread.isImportant && "text-status-hot"
+                              "p-2 rounded-xl hover:bg-[rgba(255,255,255,0.08)] transition-all duration-200 hover:scale-110",
+                              thread.isImportant && "text-[#EF4444] bg-[rgba(239,68,68,0.1)]"
                             )}
                             title={thread.isImportant ? "Remove important" : "Mark important"}
                           >
-                            <AlertCircle className={cn("w-4 h-4", thread.isImportant && "fill-current")} />
+                            <AlertCircle className={cn("w-5 h-5", thread.isImportant && "fill-current")} />
                           </button>
                           <button
                             onClick={(e) => handleArchive(thread.id, e)}
-                            className="p-1.5 rounded hover:bg-muted transition-colors"
+                            className="p-2 rounded-xl hover:bg-[rgba(255,255,255,0.08)] transition-all duration-200 hover:scale-110 text-muted-foreground/60 hover:text-foreground"
                             title={thread.status === "archived" ? "Unarchive" : "Archive"}
                           >
-                            <Archive className="w-4 h-4 text-muted-foreground" />
+                            <Archive className="w-5 h-5" />
                           </button>
                         </div>
                       </div>
 
                       {/* Unread indicator */}
                       {!thread.isRead && (
-                        <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-12 bg-accent rounded-r-full" />
+                        <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1.5 h-16 bg-[#7C3AED] rounded-r-full shadow-lg shadow-[#7C3AED]/50" />
                       )}
-                    </div>
+                    </motion.div>
                   ))
                 )}
               </div>
