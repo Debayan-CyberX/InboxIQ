@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect } from "react";
+import { motion } from "framer-motion";
 import { 
   Send, 
   Search, 
@@ -464,12 +465,13 @@ const Drafts = () => {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
-              <Sparkles className="w-6 h-6 text-accent" />
-              AI Drafts
+            <h1 className="text-4xl font-bold tracking-tight mb-2 flex items-center gap-3">
+              <Sparkles className="w-8 h-8 text-accent drop-shadow-[0_0_12px_rgba(34,211,238,0.6)]" />
+              <span className="text-gradient-primary text-glow-primary">AI Drafts</span>
             </h1>
-            <p className="text-sm text-muted-foreground mt-1">
-              {filteredAndSortedDrafts.length} {filteredAndSortedDrafts.length === 1 ? "draft" : "drafts"} ready for review
+            <p className="text-base text-muted-foreground/90 font-medium">
+              <span className="text-gradient font-bold text-lg">{filteredAndSortedDrafts.length}</span>{" "}
+              {filteredAndSortedDrafts.length === 1 ? "draft" : "drafts"} ready for review
             </p>
           </div>
           <div className="flex items-center gap-2">
@@ -482,26 +484,66 @@ const Drafts = () => {
 
         {/* Stats Cards */}
         <div className="grid grid-cols-5 gap-4">
-          <div className="card-elevated p-4">
-            <div className="text-2xl font-bold text-foreground">{stats.total}</div>
-            <div className="text-xs text-muted-foreground mt-1">Total Drafts</div>
-          </div>
-          <div className="card-elevated p-4 border-l-4 border-l-status-hot">
-            <div className="text-2xl font-bold text-status-hot">{stats.high}</div>
-            <div className="text-xs text-muted-foreground mt-1">High Priority</div>
-          </div>
-          <div className="card-elevated p-4 border-l-4 border-l-status-warm">
-            <div className="text-2xl font-bold text-status-warm">{stats.medium}</div>
-            <div className="text-xs text-muted-foreground mt-1">Medium</div>
-          </div>
-          <div className="card-elevated p-4">
-            <div className="text-2xl font-bold text-foreground">{stats.low}</div>
-            <div className="text-xs text-muted-foreground mt-1">Low Priority</div>
-          </div>
-          <div className="card-elevated p-4">
-            <div className="text-2xl font-bold text-foreground">{stats.avgConfidence}%</div>
-            <div className="text-xs text-muted-foreground mt-1">Avg Confidence</div>
-          </div>
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: 0 }}
+            className="glass-strong p-6 rounded-2xl hover-lift cursor-pointer group relative overflow-hidden"
+          >
+            <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent pointer-events-none" />
+            <div className="relative">
+              <div className="text-4xl font-bold text-gradient text-glow mb-2">{stats.total}</div>
+              <div className="text-xs text-muted-foreground/80 font-semibold uppercase tracking-wider">Total Drafts</div>
+            </div>
+          </motion.div>
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: 0.1 }}
+            className="glass-glow-hot p-6 rounded-2xl border-l-4 border-l-status-hot hover-lift cursor-pointer group relative overflow-hidden"
+          >
+            <div className="absolute inset-0 bg-gradient-to-br from-[rgba(239,68,68,0.1)] to-transparent pointer-events-none" />
+            <div className="relative">
+              <div className="text-4xl font-bold text-gradient-hot text-glow-hot mb-2">{stats.high}</div>
+              <div className="text-xs text-muted-foreground/80 font-semibold uppercase tracking-wider">High Priority</div>
+            </div>
+          </motion.div>
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: 0.2 }}
+            className="glass-glow-warm p-6 rounded-2xl border-l-4 border-l-status-warm hover-lift cursor-pointer group relative overflow-hidden"
+          >
+            <div className="absolute inset-0 bg-gradient-to-br from-[rgba(245,158,11,0.1)] to-transparent pointer-events-none" />
+            <div className="relative">
+              <div className="text-4xl font-bold text-gradient-warm text-glow-warm mb-2">{stats.medium}</div>
+              <div className="text-xs text-muted-foreground/80 font-semibold uppercase tracking-wider">Medium</div>
+            </div>
+          </motion.div>
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: 0.3 }}
+            className="glass-strong p-6 rounded-2xl hover-lift cursor-pointer group relative overflow-hidden"
+          >
+            <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent pointer-events-none" />
+            <div className="relative">
+              <div className="text-4xl font-bold text-gradient text-glow mb-2">{stats.low}</div>
+              <div className="text-xs text-muted-foreground/80 font-semibold uppercase tracking-wider">Low Priority</div>
+            </div>
+          </motion.div>
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: 0.4 }}
+            className="glass-glow p-6 rounded-2xl hover-lift cursor-pointer group relative overflow-hidden"
+          >
+            <div className="absolute inset-0 bg-gradient-to-br from-[rgba(124,58,237,0.1)] to-transparent pointer-events-none" />
+            <div className="relative">
+              <div className="text-4xl font-bold text-gradient-primary text-glow-primary mb-2">{stats.avgConfidence}%</div>
+              <div className="text-xs text-muted-foreground/80 font-semibold uppercase tracking-wider">Avg Confidence</div>
+            </div>
+          </motion.div>
         </div>
 
         {/* Search and Filters */}
@@ -509,13 +551,13 @@ const Drafts = () => {
           <div className="flex items-center gap-4">
             {/* Search */}
             <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground/60" />
               <input
                 type="text"
                 placeholder="Search drafts by subject, recipient, or company..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full h-9 pl-9 pr-4 rounded-lg bg-secondary/50 border border-border text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:bg-background transition-all"
+                className="w-full h-11 pl-10 pr-4 rounded-xl bg-[rgba(255,255,255,0.06)] backdrop-blur-md border border-[rgba(255,255,255,0.12)] text-base placeholder:text-muted-foreground/60 focus:outline-none focus:ring-2 focus:ring-[#7C3AED]/50 focus:bg-[rgba(255,255,255,0.08)] focus:border-[rgba(124,58,237,0.3)] transition-all duration-200 font-medium shadow-lg shadow-black/20"
               />
             </div>
 
@@ -572,26 +614,38 @@ const Drafts = () => {
         {/* Drafts Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           {filteredAndSortedDrafts.length === 0 ? (
-            <div className="col-span-2 p-12 text-center card-elevated">
-              <Send className="w-12 h-12 text-muted-foreground mx-auto mb-4 opacity-50" />
-              <p className="text-muted-foreground mb-4">
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.4 }}
+              className="col-span-2 p-16 text-center glass-strong rounded-2xl"
+            >
+              <div className="relative inline-block mb-6">
+                <Send className="w-16 h-16 text-muted-foreground/40 mx-auto opacity-50" />
+                <div className="absolute inset-0 bg-gradient-to-r from-[rgba(124,58,237,0.2)] to-[rgba(34,211,238,0.2)] blur-2xl -z-10" />
+              </div>
+              <p className="text-base text-muted-foreground/90 mb-4 font-semibold">
                 {searchQuery ? "No drafts found matching your search" : "No drafts yet. Generate a follow-up from a lead."}
               </p>
               {!searchQuery && (
-                <p className="text-sm text-muted-foreground">
+                <p className="text-sm text-muted-foreground/70 font-medium">
                   Go to the Leads page and click "Generate Follow-up" on any lead to create your first draft.
                 </p>
               )}
-            </div>
+            </motion.div>
           ) : (
             filteredAndSortedDrafts.map((draft) => {
               const priorityColor = getPriorityColor(draft.priority);
               const toneColor = getToneColor(draft.tone);
 
               return (
-                <div
+                <motion.div
                   key={draft.id}
-                  className="card-elevated p-5 hover:border-accent/40 transition-all cursor-pointer group"
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.3 }}
+                  whileHover={{ y: -4, transition: { duration: 0.2 } }}
+                  className="glass-strong p-6 hover:border-[rgba(124,58,237,0.4)] transition-all cursor-pointer group relative overflow-hidden border border-[rgba(255,255,255,0.12)]"
                   onClick={() => handleDraftClick(draft)}
                 >
                   <div className="space-y-4">
@@ -599,15 +653,15 @@ const Drafts = () => {
                     <div className="flex items-start justify-between gap-3">
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-2">
-                          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-violet-500 flex items-center justify-center text-white font-semibold text-sm shrink-0">
+                          <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#7C3AED] via-[#A78BFA] to-[#22D3EE] flex items-center justify-center text-white font-bold text-base shrink-0 shadow-lg shadow-[#7C3AED]/40 ring-2 ring-[rgba(124,58,237,0.3)]">
                             {draft.toName.split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase()}
                           </div>
                           <div className="flex-1 min-w-0">
-                            <h3 className="font-semibold text-foreground truncate">{draft.toName}</h3>
-                            <p className="text-sm text-muted-foreground truncate">{draft.company}</p>
+                            <h3 className="font-bold text-base text-foreground truncate mb-1 tracking-tight">{draft.toName}</h3>
+                            <p className="text-sm text-muted-foreground/80 truncate font-medium">{draft.company}</p>
                           </div>
                         </div>
-                        <p className="text-sm font-medium text-foreground line-clamp-1 mb-1">
+                        <p className="text-base font-bold text-foreground line-clamp-1 mb-1 tracking-tight">
                           {draft.subject}
                         </p>
                       </div>
@@ -649,8 +703,8 @@ const Drafts = () => {
                     </div>
 
                     {/* Draft Preview */}
-                    <div className="p-3 rounded-lg bg-muted/30 border border-border">
-                      <p className="text-sm text-muted-foreground line-clamp-3">
+                    <div className="p-4 rounded-xl bg-gradient-to-br from-[rgba(124,58,237,0.08)] to-[rgba(34,211,238,0.05)] border border-[rgba(124,58,237,0.15)] backdrop-blur-sm">
+                      <p className="text-sm text-foreground/90 line-clamp-3 font-medium leading-relaxed">
                         {draft.draft.split('\n').slice(0, 3).join(' ')}
                       </p>
                     </div>
@@ -680,23 +734,23 @@ const Drafts = () => {
                           </span>
                         ))}
                       </div>
-                      <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                        <div className="flex items-center gap-1">
-                          <TrendingUp className="w-3 h-3" />
-                          <span>{draft.confidence}%</span>
+                      <div className="flex items-center gap-4 text-sm font-semibold">
+                        <div className="flex items-center gap-1.5 text-gradient-accent">
+                          <TrendingUp className="w-4 h-4 drop-shadow-[0_0_8px_rgba(34,211,238,0.5)]" />
+                          <span className="text-gradient-accent text-glow-accent">{draft.confidence}%</span>
                         </div>
-                        <div className="flex items-center gap-1">
-                          <Clock className="w-3 h-3" />
+                        <div className="flex items-center gap-1.5 text-muted-foreground/90">
+                          <Clock className="w-4 h-4" />
                           <span>{draft.createdAt}</span>
                         </div>
                       </div>
                     </div>
 
                     {/* AI Reason */}
-                    <div className="p-2 rounded-md bg-accent/5 border border-accent/10">
+                    <div className="p-3 rounded-xl bg-gradient-to-r from-[rgba(124,58,237,0.12)] to-[rgba(34,211,238,0.08)] border border-[rgba(124,58,237,0.25)] backdrop-blur-sm">
                       <div className="flex items-start gap-2">
-                        <Sparkles className="w-3.5 h-3.5 text-accent shrink-0 mt-0.5" />
-                        <p className="text-xs text-accent font-medium">{draft.reason}</p>
+                        <Sparkles className="w-4 h-4 text-accent shrink-0 mt-0.5 drop-shadow-[0_0_8px_rgba(34,211,238,0.6)]" />
+                        <p className="text-xs text-accent font-semibold leading-relaxed">{draft.reason}</p>
                       </div>
                     </div>
 
@@ -705,7 +759,7 @@ const Drafts = () => {
                       <Button
                         variant="accent"
                         size="sm"
-                        className="flex-1 gap-2"
+                        className="flex-1 gap-2 font-semibold shadow-lg shadow-[#7C3AED]/30 hover:shadow-[#7C3AED]/50 transition-all"
                         onClick={(e) => {
                           e.stopPropagation();
                           handleDraftClick(draft);
@@ -737,7 +791,9 @@ const Drafts = () => {
                       </Button>
                     </div>
                   </div>
-                </div>
+                    {/* Subtle gradient overlay */}
+                    <div className="absolute inset-0 bg-gradient-to-br from-[rgba(124,58,237,0.05)] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
+                </motion.div>
               );
             })
           )}

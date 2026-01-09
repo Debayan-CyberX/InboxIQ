@@ -254,9 +254,12 @@ const Leads = () => {
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h1 className="text-4xl font-bold text-foreground tracking-tight mb-2">Leads</h1>
-            <p className="text-base text-muted-foreground font-medium">
-              {filteredAndSortedLeads.length} {filteredAndSortedLeads.length === 1 ? "lead" : "leads"}
+            <h1 className="text-4xl font-bold tracking-tight mb-2">
+              <span className="text-gradient-primary text-glow-primary">Leads</span>
+            </h1>
+            <p className="text-base text-muted-foreground/90 font-semibold">
+              <span className="text-gradient font-bold text-lg text-glow">{filteredAndSortedLeads.length}</span>{" "}
+              {filteredAndSortedLeads.length === 1 ? "lead" : "leads"}
               {statusFilter !== "all" && ` • ${statusFilter} leads`}
             </p>
           </div>
@@ -301,30 +304,78 @@ const Leads = () => {
 
         {/* Stats Cards */}
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 mb-8">
-          <div className="glass-strong p-6 rounded-2xl hover-lift cursor-pointer group">
-            <div className="text-4xl font-bold text-foreground mb-2">{stats.total}</div>
-            <div className="text-sm text-muted-foreground/80 font-semibold uppercase tracking-wider">Total Leads</div>
-          </div>
-          <div className="glass-strong p-6 rounded-2xl border-l-4 border-l-[#EF4444] hover-lift shadow-[0_0_20px_rgba(239,68,68,0.2)] cursor-pointer group">
-            <div className="text-4xl font-bold text-[#EF4444] mb-2">{stats.hot}</div>
-            <div className="text-sm text-muted-foreground/80 font-semibold uppercase tracking-wider">Hot</div>
-          </div>
-          <div className="glass-strong p-6 rounded-2xl border-l-4 border-l-[#F59E0B] hover-lift shadow-[0_0_20px_rgba(245,158,11,0.2)] cursor-pointer group">
-            <div className="text-4xl font-bold text-[#F59E0B] mb-2">{stats.warm}</div>
-            <div className="text-sm text-muted-foreground/80 font-semibold uppercase tracking-wider">Warm</div>
-          </div>
-          <div className="glass-strong p-6 rounded-2xl border-l-4 border-l-[#22D3EE] hover-lift shadow-[0_0_20px_rgba(34,211,238,0.2)] cursor-pointer group">
-            <div className="text-4xl font-bold text-[#22D3EE] mb-2">{stats.cold}</div>
-            <div className="text-sm text-muted-foreground/80 font-semibold uppercase tracking-wider">Cold</div>
-          </div>
-          <div className="glass-strong p-6 rounded-2xl hover-lift cursor-pointer group">
-            <div className="text-4xl font-bold text-foreground mb-2">{stats.needsFollowUp}</div>
-            <div className="text-sm text-muted-foreground/80 font-semibold uppercase tracking-wider">Need Follow-up</div>
-          </div>
-          <div className="glass-strong p-6 rounded-2xl hover-lift cursor-pointer group">
-            <div className="text-4xl font-bold text-foreground mb-2">{stats.hasDrafts}</div>
-            <div className="text-sm text-muted-foreground/80 font-semibold uppercase tracking-wider">AI Drafts</div>
-          </div>
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: 0 }}
+            className="glass-strong p-6 rounded-2xl hover-lift cursor-pointer group relative overflow-hidden"
+          >
+            <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent pointer-events-none" />
+            <div className="relative">
+              <div className="text-4xl font-bold text-gradient text-glow mb-2">{stats.total}</div>
+              <div className="text-sm text-muted-foreground/80 font-semibold uppercase tracking-wider">Total Leads</div>
+            </div>
+          </motion.div>
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: 0.1 }}
+            className="glass-glow-hot p-6 rounded-2xl border-l-4 border-l-[#EF4444] hover-lift cursor-pointer group relative overflow-hidden"
+          >
+            <div className="absolute inset-0 bg-gradient-to-br from-[rgba(239,68,68,0.1)] to-transparent pointer-events-none" />
+            <div className="relative">
+              <div className="text-4xl font-bold text-gradient-hot text-glow-hot mb-2">{stats.hot}</div>
+              <div className="text-sm text-muted-foreground/80 font-semibold uppercase tracking-wider">Hot</div>
+            </div>
+          </motion.div>
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: 0.2 }}
+            className="glass-glow-warm p-6 rounded-2xl border-l-4 border-l-[#F59E0B] hover-lift cursor-pointer group relative overflow-hidden"
+          >
+            <div className="absolute inset-0 bg-gradient-to-br from-[rgba(245,158,11,0.1)] to-transparent pointer-events-none" />
+            <div className="relative">
+              <div className="text-4xl font-bold text-gradient-warm text-glow-warm mb-2">{stats.warm}</div>
+              <div className="text-sm text-muted-foreground/80 font-semibold uppercase tracking-wider">Warm</div>
+            </div>
+          </motion.div>
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: 0.3 }}
+            className="glass-glow-cold p-6 rounded-2xl border-l-4 border-l-[#22D3EE] hover-lift cursor-pointer group relative overflow-hidden"
+          >
+            <div className="absolute inset-0 bg-gradient-to-br from-[rgba(34,211,238,0.1)] to-transparent pointer-events-none" />
+            <div className="relative">
+              <div className="text-4xl font-bold text-gradient-cold text-glow-cold mb-2">{stats.cold}</div>
+              <div className="text-sm text-muted-foreground/80 font-semibold uppercase tracking-wider">Cold</div>
+            </div>
+          </motion.div>
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: 0.4 }}
+            className="glass-strong p-6 rounded-2xl hover-lift cursor-pointer group relative overflow-hidden"
+          >
+            <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent pointer-events-none" />
+            <div className="relative">
+              <div className="text-4xl font-bold text-gradient text-glow mb-2">{stats.needsFollowUp}</div>
+              <div className="text-sm text-muted-foreground/80 font-semibold uppercase tracking-wider">Need Follow-up</div>
+            </div>
+          </motion.div>
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: 0.5 }}
+            className="glass-glow p-6 rounded-2xl hover-lift cursor-pointer group relative overflow-hidden"
+          >
+            <div className="absolute inset-0 bg-gradient-to-br from-[rgba(124,58,237,0.1)] to-transparent pointer-events-none" />
+            <div className="relative">
+              <div className="text-4xl font-bold text-gradient-primary text-glow-primary mb-2">{stats.hasDrafts}</div>
+              <div className="text-sm text-muted-foreground/80 font-semibold uppercase tracking-wider">AI Drafts</div>
+            </div>
+          </motion.div>
         </div>
 
         {/* Search and Filters */}
@@ -439,12 +490,20 @@ const Leads = () => {
           {/* Leads List */}
           <div className="divide-y divide-[rgba(255,255,255,0.08)]">
             {filteredAndSortedLeads.length === 0 ? (
-              <div className="p-16 text-center">
-                <Users className="w-16 h-16 text-muted-foreground/40 mx-auto mb-6" />
-                <p className="text-lg text-muted-foreground font-medium">
+              <motion.div 
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.4 }}
+                className="p-16 text-center"
+              >
+                <div className="relative inline-block mb-6">
+                  <Users className="w-16 h-16 text-muted-foreground/40 mx-auto opacity-50" />
+                  <div className="absolute inset-0 bg-gradient-to-r from-[rgba(124,58,237,0.2)] to-[rgba(34,211,238,0.2)] blur-2xl -z-10" />
+                </div>
+                <p className="text-lg text-muted-foreground/90 font-semibold">
                   {searchQuery ? "No leads found matching your search" : `No ${statusFilter === "all" ? "" : statusFilter} leads`}
                 </p>
-              </div>
+              </motion.div>
             ) : (
               filteredAndSortedLeads.map((lead) => {
                 const StatusIcon = getStatusIcon(lead.status);
@@ -506,13 +565,18 @@ const Leads = () => {
                         {/* Status */}
                         <div className="col-span-2">
                           <div className={cn(
-                            "inline-flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-bold border backdrop-blur-sm",
-                            lead.status === "hot" ? "bg-[rgba(239,68,68,0.15)] text-[#EF4444] border-[#EF4444]" :
-                            lead.status === "warm" ? "bg-[rgba(245,158,11,0.15)] text-[#F59E0B] border-[#F59E0B]" :
-                            lead.status === "cold" ? "bg-[rgba(34,211,238,0.15)] text-[#22D3EE] border-[#22D3EE]" :
+                            "inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold border backdrop-blur-sm shadow-lg",
+                            lead.status === "hot" ? "bg-[rgba(239,68,68,0.15)] text-gradient-hot text-glow-hot border-[#EF4444] shadow-[0_0_15px_rgba(239,68,68,0.3)]" :
+                            lead.status === "warm" ? "bg-[rgba(245,158,11,0.15)] text-gradient-warm text-glow-warm border-[#F59E0B] shadow-[0_0_15px_rgba(245,158,11,0.3)]" :
+                            lead.status === "cold" ? "bg-[rgba(34,211,238,0.15)] text-gradient-cold text-glow-cold border-[#22D3EE] shadow-[0_0_15px_rgba(34,211,238,0.3)]" :
                             "bg-[rgba(255,255,255,0.08)] text-muted-foreground border-[rgba(255,255,255,0.12)]"
                           )}>
-                            <StatusIcon className="w-4 h-4" />
+                            <StatusIcon className={cn(
+                              "w-4 h-4",
+                              lead.status === "hot" && "drop-shadow-[0_0_8px_rgba(239,68,68,0.6)]",
+                              lead.status === "warm" && "drop-shadow-[0_0_8px_rgba(245,158,11,0.6)]",
+                              lead.status === "cold" && "drop-shadow-[0_0_8px_rgba(34,211,238,0.6)]"
+                            )} />
                             <span className="capitalize">{lead.status}</span>
                           </div>
                         </div>
@@ -520,14 +584,14 @@ const Leads = () => {
                         {/* Last Contact */}
                         <div className="col-span-2">
                           <div className={cn(
-                            "flex items-center gap-2 text-base font-semibold mb-1",
-                            isUrgent ? "text-[#EF4444]" : "text-muted-foreground/80"
+                            "flex items-center gap-2 text-base font-bold mb-1",
+                            isUrgent ? "text-gradient-hot text-glow-hot" : "text-muted-foreground/90"
                           )}>
-                            <Calendar className="w-5 h-5 shrink-0" />
+                            <Calendar className={cn("w-5 h-5 shrink-0", isUrgent && "drop-shadow-[0_0_8px_rgba(239,68,68,0.5)]")} />
                             <span>{lead.days_since_contact || 0}d ago</span>
                           </div>
                           {isUrgent && (
-                            <div className="text-xs font-semibold text-[#EF4444] mt-1">Needs attention</div>
+                            <div className="text-xs font-bold text-gradient-hot text-glow-hot mt-1 uppercase tracking-wide">Needs attention</div>
                           )}
                           {/* Show follow-up due date if available */}
                           {lead.metadata?.follow_up_due_at && (
@@ -574,17 +638,22 @@ const Leads = () => {
                               }
                             }}
                             disabled={generatingLeadId === lead.id}
-                            className="p-2 rounded-xl hover:bg-[rgba(255,255,255,0.08)] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed hover:scale-110"
+                            className="p-2.5 rounded-xl hover:bg-[rgba(124,58,237,0.15)] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed hover:scale-110 shadow-lg shadow-[rgba(124,58,237,0.2)] hover:shadow-[rgba(124,58,237,0.4)]"
                             title={(lead.days_since_contact || 0) < 3 ? "User replied recently (within 3 days)" : generatingLeadId === lead.id ? "Generating..." : "Generate Follow-up"}
                           >
-                            <Sparkles className={cn("w-5 h-5", generatingLeadId === lead.id ? "animate-spin text-[#7C3AED]" : "text-[#7C3AED]")} />
+                            <Sparkles className={cn(
+                              "w-5 h-5", 
+                              generatingLeadId === lead.id 
+                                ? "animate-spin text-[#7C3AED] drop-shadow-[0_0_12px_rgba(124,58,237,0.8)]" 
+                                : "text-[#7C3AED] drop-shadow-[0_0_8px_rgba(124,58,237,0.6)]"
+                            )} />
                           </button>
                           {lead.has_ai_draft && (
                             <button
-                              className="p-2 rounded-xl hover:bg-[rgba(255,255,255,0.08)] transition-all duration-200 hover:scale-110"
+                              className="p-2.5 rounded-xl hover:bg-[rgba(124,58,237,0.15)] transition-all duration-200 hover:scale-110 shadow-lg shadow-[rgba(124,58,237,0.2)] hover:shadow-[rgba(124,58,237,0.4)]"
                               title="AI Draft Ready"
                             >
-                              <Sparkles className="w-5 h-5 text-[#7C3AED]" />
+                              <Sparkles className="w-5 h-5 text-[#7C3AED] drop-shadow-[0_0_8px_rgba(124,58,237,0.6)]" />
                             </button>
                           )}
                           <button
@@ -611,11 +680,11 @@ const Leads = () => {
 
                     {/* AI Suggestion */}
                     {lead.ai_suggestion && (
-                      <div className="mt-4 ml-20 flex items-center gap-3 p-3 rounded-xl bg-[rgba(124,58,237,0.1)] border border-[rgba(124,58,237,0.2)]">
-                        <Sparkles className="w-4 h-4 text-[#7C3AED] shrink-0" />
-                        <p className="text-sm text-[#7C3AED] font-semibold flex-1">{lead.ai_suggestion}</p>
+                      <div className="mt-4 ml-20 flex items-center gap-3 p-4 rounded-xl bg-gradient-to-r from-[rgba(124,58,237,0.15)] to-[rgba(34,211,238,0.1)] border border-[rgba(124,58,237,0.3)] backdrop-blur-sm shadow-lg shadow-[rgba(124,58,237,0.2)]">
+                        <Sparkles className="w-5 h-5 text-[#7C3AED] shrink-0 drop-shadow-[0_0_8px_rgba(124,58,237,0.6)]" />
+                        <p className="text-sm text-gradient-primary font-bold flex-1 leading-relaxed">{lead.ai_suggestion}</p>
                         {lead.has_ai_draft && (
-                          <Button variant="default" size="sm" className="ml-auto h-7 text-xs font-bold">
+                          <Button variant="default" size="sm" className="ml-auto h-8 text-xs font-bold shadow-lg shadow-[#7C3AED]/30 hover:shadow-[#7C3AED]/50">
                             View Draft
                           </Button>
                         )}
