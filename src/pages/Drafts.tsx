@@ -225,10 +225,11 @@ const Drafts = () => {
         description: `Generating new follow-up for ${draft.toName}`,
       });
 
-      // Generate new follow-up (this creates a new draft, but we'll update the existing one)
+      // Generate new follow-up (this creates a new draft)
       const newDraft = await leadsApi.generateFollowUp(draft.leadId, userId);
 
-      // Update the existing draft in database with new content
+      // Try to update the existing draft in database with new content
+      // If it doesn't exist, we'll just use the new draft that was created
       try {
         await emailsApi.update(draft.id, userId, {
           subject: newDraft.subject,
@@ -236,22 +237,21 @@ const Drafts = () => {
           body_html: newDraft.body.replace(/\n/g, "<br>"),
           updated_at: new Date().toISOString(),
         });
-      } catch (updateErr) {
-        // If update fails, the draft might have been deleted - try to delete the new draft and throw
+        
+        // If update succeeded, delete the newly created draft (since we updated the existing one)
         try {
           await emailsApi.delete(newDraft.id, userId);
         } catch (deleteErr) {
-          // Ignore delete error
+          // If deletion fails, it's not critical - just log it
+          console.warn("Failed to delete duplicate draft:", deleteErr);
         }
-        throw updateErr;
-      }
-
-      // Delete the newly created draft (since we updated the existing one instead)
-      try {
-        await emailsApi.delete(newDraft.id, userId);
-      } catch (deleteErr) {
-        // If deletion fails, it's not critical - just log it
-        console.warn("Failed to delete duplicate draft:", deleteErr);
+      } catch (updateErr) {
+        // If update fails (draft doesn't exist), keep the new draft that was created
+        // This is fine - the new draft will replace the old one in the UI
+        console.log("Original draft not found, using newly generated draft:", updateErr);
+        
+        // Update the draft ID in our local state to point to the new draft
+        // The refresh will handle this, but we can also update immediately
       }
 
       // Dismiss loading toast and show success
@@ -265,8 +265,14 @@ const Drafts = () => {
       setDrafts(draftsData);
 
       // Update selected draft if it's the one being regenerated
+      // Check both the original ID and the new draft ID (in case we kept the new one)
       if (selectedDraft && selectedDraft.id === draft.id) {
-        const updatedDraft = draftsData.find(d => d.id === draft.id);
+        // First try to find by original ID
+        let updatedDraft = draftsData.find(d => d.id === draft.id);
+        // If not found, try to find the new draft (same lead_id)
+        if (!updatedDraft) {
+          updatedDraft = draftsData.find(d => d.lead_id === draft.leadId && d.is_ai_draft);
+        }
         if (updatedDraft) {
           const transformed = transformDraft(updatedDraft);
           setSelectedDraft(transformed);
@@ -296,17 +302,22 @@ const Drafts = () => {
       const subject = editedContent?.subject || draft.subject;
       const body = editedContent?.body || draft.draft;
 
-      // Update draft in database if edited
+      // Update draft in database if edited (only if draft exists)
       if (editedContent && (editedContent.subject !== draft.subject || editedContent.body !== draft.draft)) {
-        await emailsApi.update(draft.id, userId, {
-          subject: editedContent.subject || draft.subject,
-          body_text: editedContent.body || draft.draft,
-          body_html: (editedContent.body || draft.draft).replace(/\n/g, "<br>"),
-          updated_at: new Date().toISOString(),
-        });
+        try {
+          await emailsApi.update(draft.id, userId, {
+            subject: editedContent.subject || draft.subject,
+            body_text: editedContent.body || draft.draft,
+            body_html: (editedContent.body || draft.draft).replace(/\n/g, "<br>"),
+            updated_at: new Date().toISOString(),
+          });
+        } catch (updateErr) {
+          // If draft doesn't exist, that's okay - we'll still send the email
+          console.warn("Could not update draft before sending (draft may not exist):", updateErr);
+        }
       }
 
-      // Send email via API
+      // Send email via API (will work even if draft doesn't exist in DB)
       await emailsApi.sendEmail(draft.id, userId, {
         to: draft.to,
         subject: subject,

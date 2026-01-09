@@ -242,24 +242,25 @@ export const emailsApi = {
         throw new Error("User not found in database");
       }
 
-      // Fetch email from database
-      const { data, error } = await supabase
-        .from("emails")
-        .select("*")
-        .eq("id", emailId)
-        .eq("user_id", userUuid)
-        .maybeSingle();
+      // Try to fetch email from database (optional - we can send without it)
+      try {
+        const { data, error } = await supabase
+          .from("emails")
+          .select("*")
+          .eq("id", emailId)
+          .eq("user_id", userUuid)
+          .maybeSingle();
 
-      if (error) {
-        console.error("Error fetching email:", error);
-        throw new Error(`Failed to fetch email: ${error.message}`);
+        if (error) {
+          console.warn("Error fetching email (will continue with provided options):", error);
+        } else if (data) {
+          emailData = data;
+        }
+        // If data is null, that's okay - we'll use the provided options
+      } catch (fetchErr) {
+        // If fetch fails, that's okay - we'll use the provided options
+        console.warn("Could not fetch email from database (will use provided options):", fetchErr);
       }
-
-      if (!data) {
-        throw new Error(`Email with id ${emailId} not found`);
-      }
-
-      emailData = data;
     }
 
     // Use provided options or email data from database
@@ -300,16 +301,17 @@ export const emailsApi = {
 
     const result = await response.json();
 
-    // Update email status in database if emailId was provided
-    if (emailId && emailData) {
+    // Update email status in database if emailId was provided and email exists
+    if (emailId) {
       try {
         await this.update(emailId, betterAuthUserId, {
           status: "sent",
           sent_at: new Date().toISOString(),
         });
       } catch (error) {
-        console.error("Error updating email status:", error);
         // Don't throw - email was sent successfully, just status update failed
+        // This is expected if the email doesn't exist in the database
+        console.warn("Could not update email status (email may not exist in database):", error);
       }
     }
 
