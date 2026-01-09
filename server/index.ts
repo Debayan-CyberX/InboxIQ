@@ -66,157 +66,122 @@ app.options(/.*/, cors());
 app.use(express.json());
 
 // Convert Express request to Web API Request for Better Auth
-async function expressToWebRequest(req: ExpressRequest): Promise<Request> {
-  // Use the baseURL from Better Auth config or construct from request
-  const authBaseURL = process.env.BETTER_AUTH_URL || process.env.VITE_BETTER_AUTH_URL || 
-    (req.secure ? 'https' : 'http') + '://' + (req.get('host') || 'localhost:3001');
-  
-  // Construct full URL - Better Auth expects the full path
-  const url = `${authBaseURL}${req.originalUrl}`;
-  
+function expressToWebRequest(req: ExpressRequest): Request {
+  // 1️⃣ Resolve base URL safely
+  const baseURL =
+    process.env.BETTER_AUTH_URL ||
+    process.env.VITE_BETTER_AUTH_URL ||
+    (req.protocol && req.headers.host
+      ? `${req.protocol}://${req.headers.host}`
+      : "http://localhost:3001");
+
+  // 2️⃣ Resolve path safely (IMPORTANT FIX)
+  const path =
+    req.originalUrl ||
+    req.url ||
+    "/api/auth/get-session"; // fallback for internal calls
+
+  // 3️⃣ Construct FINAL absolute URL
+  const fullUrl = new URL(path, baseURL).toString();
+
   const headers = new Headers();
-  
-  // Explicitly handle cookies - critical for session management
-  if (req.headers.cookie) {
-  const cookieValue = Array.isArray(req.headers.cookie) 
-      ? req.headers.cookie.join('; ') 
+
+  // ---- Cookies (CRITICAL for sessions) ----
+  if (req.headers?.cookie) {
+    const cookieValue = Array.isArray(req.headers.cookie)
+      ? req.headers.cookie.join("; ")
       : req.headers.cookie;
-    headers.set('Cookie', cookieValue);
+    headers.set("cookie", cookieValue);
   }
-  
-  // Copy other headers that Better Auth might need
-  const importantHeaders = ['origin', 'referer', 'user-agent', 'accept', 'accept-language'];
-  importantHeaders.forEach(key => {
-    const value = req.headers[key];
-    if (value) {
-      headers.set(key, Array.isArray(value) ? value.join(', ') : value);
-    }
-  });
-  
-  // Copy remaining headers
-  Object.keys(req.headers).forEach(key => {
-    // Skip cookie header as we already handled it
-    if (key.toLowerCase() === 'cookie') return;
-    // Skip already handled headers
-    if (importantHeaders.includes(key.toLowerCase())) return;
-    
-    const value = req.headers[key];
-    if (value) {
-      headers.set(key, Array.isArray(value) ? value.join(', ') : value);
-    }
-  });
 
+  // ---- Forward important headers ----
+  const forwardHeaders = [
+    "origin",
+    "referer",
+    "user-agent",
+    "accept",
+    "accept-language",
+  ];
+
+  for (const key of forwardHeaders) {
+    const value = req.headers?.[key];
+    if (value) {
+      headers.set(key, Array.isArray(value) ? value.join(", ") : value);
+    }
+  }
+
+  // ---- Copy remaining headers safely ----
+  for (const [key, value] of Object.entries(req.headers || {})) {
+    if (!value) continue;
+    if (headers.has(key)) continue;
+    headers.set(
+      key,
+      Array.isArray(value) ? value.join(", ") : String(value)
+    );
+  }
+
+  // ---- Body handling ----
   let body: string | undefined;
-  if (req.method !== 'GET' && req.method !== 'HEAD' && req.body) {
+  if (
+    req.method &&
+    !["GET", "HEAD"].includes(req.method.toUpperCase()) &&
+    req.body
+  ) {
     body = JSON.stringify(req.body);
-    if (!headers.has('Content-Type')) {
-    headers.set('Content-Type', 'application/json');
+    if (!headers.has("content-type")) {
+      headers.set("content-type", "application/json");
     }
   }
 
-  const init: RequestInit = {
-    method: req.method,
-    headers: headers,
-    body: body,
-  };
-  
-  return new Request(url, init);
+  return new Request(fullUrl, {
+    method: req.method || "GET",
+    headers,
+    body,
+  });
 }
 
 // Convert Web API Response to Express response
-async function webToExpressResponse(webResponse: Response, expressRes: ExpressResponse) {
+async function webToExpressResponse(
+  webResponse: Response,
+  expressRes: ExpressResponse
+) {
   expressRes.status(webResponse.status);
-  
-  // Copy all headers, especially Set-Cookie for session management
+
+  // Copy headers (especially Set-Cookie)
   webResponse.headers.forEach((value, key) => {
-    // Handle Set-Cookie specially - it can have multiple values
-    if (key.toLowerCase() === 'set-cookie') {
-      // Get all Set-Cookie headers
-      const setCookieHeaders = webResponse.headers.getSetCookie();
-      if (setCookieHeaders && setCookieHeaders.length > 0) {
-        // Express expects Set-Cookie as an array
-        expressRes.setHeader('Set-Cookie', setCookieHeaders);
-      } else {
-    expressRes.setHeader(key, value);
+    if (key.toLowerCase() === "set-cookie") {
+      const cookies = webResponse.headers.getSetCookie();
+      if (cookies.length > 0) {
+        expressRes.setHeader("Set-Cookie", cookies);
       }
     } else {
       expressRes.setHeader(key, value);
     }
   });
-  
+
   const body = await webResponse.text();
   expressRes.send(body);
 }
 
 // Better Auth API routes
-// Use app.use() to catch all routes starting with /api/auth
 app.use("/api/auth", async (req: ExpressRequest, res: ExpressResponse) => {
   try {
-    console.log(`📥 ${req.method} ${req.originalUrl}`);
-    console.log(`   Origin: ${req.get('origin') || 'none'}`);
-    
-    // Log cookies for debugging
-    if (req.headers.cookie) {
-      console.log(`   🍪 Cookies received: ${req.headers.cookie.substring(0, 100)}...`);
-    } else {
-      console.log(`   ⚠️ No cookies in request`);
+    // ✅ ALWAYS allow preflight
+    if (req.method === "OPTIONS") {
+      return res.sendStatus(200);
     }
-    
-    // Convert Express request to Web API Request
-    const webRequest = await expressToWebRequest(req);
-    
-    // Log cookies in Web API Request
-    const cookieHeader = webRequest.headers.get('Cookie');
-    if (cookieHeader) {
-      console.log(`   🍪 Cookies in Web Request: ${cookieHeader.substring(0, 100)}...`);
-    }
-    
-    // Call Better Auth handler
+
+    const webRequest = expressToWebRequest(req);
     const webResponse = await auth.handler(webRequest);
-    
-    // Log response status
-    console.log(`   Response: ${webResponse.status} ${webResponse.statusText}`);
-    
-    // Log Set-Cookie headers
-    const setCookieHeaders = webResponse.headers.getSetCookie();
-    if (setCookieHeaders && setCookieHeaders.length > 0) {
-      console.log(`   🍪 Set-Cookie headers: ${setCookieHeaders.length} cookie(s) being set`);
-      setCookieHeaders.forEach((cookie, index) => {
-        console.log(`      Cookie ${index + 1}: ${cookie.substring(0, 80)}...`);
-      });
-    }
-    
-    // Log response body for debugging
-    const responseClone = webResponse.clone();
-    const responseText = await responseClone.text();
-    if (responseText) {
-      try {
-        const responseJson = JSON.parse(responseText);
-        console.log(`   Response body:`, JSON.stringify(responseJson, null, 2));
-        if (responseJson.error) {
-          console.error(`   ❌ Error:`, responseJson.error);
-        }
-      } catch {
-        console.log(`   Response body (text):`, responseText.substring(0, 200));
-      }
-    } else {
-      console.log(`   Response body: null`);
-    }
-    
-    // Convert Web API Response back to Express response
     await webToExpressResponse(webResponse, res);
   } catch (error) {
     console.error("❌ Auth handler error:", error);
-    console.error("   Error type:", error?.constructor?.name);
-    console.error("   Message:", error instanceof Error ? error.message : String(error));
-    if (error instanceof Error && error.stack) {
-      console.error("   Stack:", error.stack);
-    }
+
     if (!res.headersSent) {
-      res.status(500).json({ 
-        error: "Internal server error", 
-        message: error instanceof Error ? error.message : String(error),
-        type: error?.constructor?.name || "Unknown"
+      res.status(500).json({
+        error: "Internal server error",
+        message:
+          error instanceof Error ? error.message : "Unknown auth error",
       });
     }
   }
