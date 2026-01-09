@@ -568,14 +568,14 @@ const Leads = () => {
                             "inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold border backdrop-blur-sm shadow-lg",
                             lead.status === "hot" ? "bg-[rgba(239,68,68,0.15)] text-gradient-hot text-glow-hot border-[#EF4444] shadow-[0_0_15px_rgba(239,68,68,0.3)]" :
                             lead.status === "warm" ? "bg-[rgba(245,158,11,0.15)] text-gradient-warm text-glow-warm border-[#F59E0B] shadow-[0_0_15px_rgba(245,158,11,0.3)]" :
-                            lead.status === "cold" ? "bg-[rgba(34,211,238,0.15)] text-gradient-cold text-glow-cold border-[#22D3EE] shadow-[0_0_15px_rgba(34,211,238,0.3)]" :
+                            lead.status === "cold" ? "bg-[rgba(14,165,233,0.15)] text-gradient-cold text-glow-cold border-[#0EA5E9] shadow-[0_0_15px_rgba(14,165,233,0.3)]" :
                             "bg-[rgba(255,255,255,0.08)] text-muted-foreground border-[rgba(255,255,255,0.12)]"
                           )}>
                             <StatusIcon className={cn(
                               "w-4 h-4",
                               lead.status === "hot" && "drop-shadow-[0_0_8px_rgba(239,68,68,0.6)]",
                               lead.status === "warm" && "drop-shadow-[0_0_8px_rgba(245,158,11,0.6)]",
-                              lead.status === "cold" && "drop-shadow-[0_0_8px_rgba(34,211,238,0.6)]"
+                              lead.status === "cold" && "drop-shadow-[0_0_8px_rgba(14,165,233,0.6)]"
                             )} />
                             <span className="capitalize">{lead.status}</span>
                           </div>

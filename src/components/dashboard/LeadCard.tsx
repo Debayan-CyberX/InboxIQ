@@ -28,7 +28,7 @@ const LeadCard = ({
   const statusColors = {
     hot: "border-l-[#EF4444] shadow-[0_0_20px_rgba(239,68,68,0.2)]",
     warm: "border-l-[#F59E0B] shadow-[0_0_20px_rgba(245,158,11,0.2)]",
-    cold: "border-l-[#22D3EE] shadow-[0_0_20px_rgba(34,211,238,0.2)]",
+    cold: "border-l-[#0EA5E9] shadow-[0_0_20px_rgba(14,165,233,0.2)]",
   };
 
   const isUrgent = daysSinceContact >= 4;

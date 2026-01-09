@@ -67,9 +67,9 @@ const Sidebar = () => {
     >
       {/* Logo */}
       <div className="h-16 flex items-center px-6 border-b border-[rgba(255,255,255,0.08)] shrink-0 relative">
-        <div className="absolute inset-0 bg-gradient-to-r from-[rgba(124,58,237,0.1)] to-transparent pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-to-r from-[rgba(59,130,246,0.1)] to-transparent pointer-events-none" />
         <div className="relative flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#7C3AED] to-[#22D3EE] flex items-center justify-center shadow-lg shadow-[#7C3AED]/30 glow-primary">
+          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#3B82F6] to-[#10B981] flex items-center justify-center shadow-lg shadow-[#3B82F6]/30 glow-primary">
             <Sparkles className="w-5 h-5 text-white" />
           </div>
           <span className="text-lg font-bold text-foreground tracking-tight">
@@ -96,7 +96,7 @@ const Sidebar = () => {
               className={cn(
                 "flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium transition-all duration-200 relative group",
                 isActive
-                  ? "bg-[rgba(124,58,237,0.15)] text-[#7C3AED] shadow-lg shadow-[#7C3AED]/20 border border-[rgba(124,58,237,0.2)]"
+                  ? "bg-[rgba(59,130,246,0.15)] text-[#3B82F6] shadow-lg shadow-[#3B82F6]/20 border border-[rgba(59,130,246,0.2)]"
                   : "text-foreground/70 hover:bg-[rgba(255,255,255,0.08)] hover:text-foreground hover:translate-x-1"
               )}
             >
@@ -104,7 +104,7 @@ const Sidebar = () => {
               <span className="flex-1">{item.name}</span>
 
               {item.badge && (
-                <span className="px-2 py-0.5 text-xs font-medium rounded-full bg-[#7C3AED] text-white">
+                <span className="px-2 py-0.5 text-xs font-medium rounded-full bg-[#3B82F6] text-white">
                   {item.badge}
                 </span>
               )}
@@ -125,7 +125,7 @@ const Sidebar = () => {
           className={cn(
             "flex items-center gap-3 px-3 py-3 rounded-lg text-sm font-medium transition-all duration-200",
             location.pathname === "/settings"
-              ? "bg-[rgba(124,58,237,0.15)] text-[#7C3AED] border border-[rgba(124,58,237,0.2)]"
+              ? "bg-[rgba(59,130,246,0.15)] text-[#3B82F6] border border-[rgba(59,130,246,0.2)]"
               : "text-foreground/70 hover:bg-[rgba(255,255,255,0.08)] hover:text-foreground"
           )}
         >
@@ -135,7 +135,7 @@ const Sidebar = () => {
 
         {/* User */}
         <div className="flex items-center gap-3 px-3 py-3 mt-2">
-          <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[#7C3AED] to-[#22D3EE] flex items-center justify-center text-white font-medium text-sm shrink-0 shadow-lg shadow-[#7C3AED]/30">
+          <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[#3B82F6] to-[#10B981] flex items-center justify-center text-white font-medium text-sm shrink-0 shadow-lg shadow-[#3B82F6]/30">
             {userInitials}
           </div>
 
