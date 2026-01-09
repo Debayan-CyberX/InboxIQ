@@ -747,9 +747,8 @@ app.post("/api/leads/:leadId/generate-followup", async (req, res) => {
       [betterAuthUserId]
     );
 
-    await pool.end();
-
     if (!userResult.rows[0]?.uuid) {
+      await pool.end();
       return res.status(404).json({
         error: "User not found",
         message: "User not found in database",
@@ -758,12 +757,30 @@ app.post("/api/leads/:leadId/generate-followup", async (req, res) => {
 
     const userUuid = userResult.rows[0].uuid;
 
+    // Get user email from Better Auth user table
+    const emailResult = await pool.query(
+      `SELECT email FROM public."user" WHERE id = $1 LIMIT 1`,
+      [betterAuthUserId]
+    );
+
+    await pool.end();
+
+    const userEmail = emailResult.rows[0]?.email || "";
+
+    if (!userEmail) {
+      return res.status(400).json({
+        error: "User email not found",
+        message: "User email is required for generating follow-ups",
+      });
+    }
+
     console.log(`🤖 Generating follow-up for lead: ${leadId}`);
 
     // Generate follow-up
     const result = await generateFollowUpForLead(
       leadId,
       userUuid,
+      userEmail,
       databaseUrl
     );
 

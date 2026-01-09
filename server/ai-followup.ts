@@ -117,6 +117,7 @@ Best regards`;
 export async function generateFollowUpForLead(
   leadId: string,
   userUuid: string,
+  userEmail: string,
   databaseUrl: string
 ): Promise<{ draftId: string; subject: string; body: string }> {
   const pool = new Pool({
@@ -194,15 +195,16 @@ export async function generateFollowUpForLead(
 
     const draftResult = await pool.query(
       `INSERT INTO public.emails (
-        user_id, lead_id, direction, to_email, subject,
+        user_id, lead_id, direction, from_email, to_email, subject,
         body_text, body_html, status, is_ai_draft, tone,
         created_at, updated_at
       )
-      VALUES ($1, $2, 'outgoing', $3, $4, $5, $6, 'draft', true, 'professional', NOW(), NOW())
+      VALUES ($1, $2, 'outgoing', $3, $4, $5, $6, $7, 'draft', true, 'professional', NOW(), NOW())
       RETURNING id`,
       [
         userUuid,
         leadId,
+        userEmail,
         lead.email,
         subject,
         body,
