@@ -28,6 +28,7 @@ const VITE_PORT = process.env.VITE_PORT || 8081;
 const productionFrontendUrl = "https://inboxiq.debx.co.in";
 const allowedOrigins = [
   // Development URLs
+  
   "https://inboxiq.debx.co.in",
     "http://localhost:8080",
   "http://localhost:8081",
@@ -47,9 +48,13 @@ app.use(
       // Allow server-to-server / curl / Postman
       if (!origin) return callback(null, true);
 
-      if (allowedOrigins.includes(origin)) {
-        return callback(null, true);
-      }
+      if (
+  allowedOrigins.includes(origin) ||
+  origin.endsWith(".vercel.app")
+) {
+  return callback(null, true);
+}
+
 
       // ❗ DO NOT throw error — allow but log
       console.warn(`⚠️ CORS blocked origin: ${origin}`);
