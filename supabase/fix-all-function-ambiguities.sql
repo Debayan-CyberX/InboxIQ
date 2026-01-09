@@ -44,3 +44,4 @@ DROP FUNCTION IF EXISTS public.get_recent_insights(UUID, INTEGER) CASCADE;
 
 
 
+

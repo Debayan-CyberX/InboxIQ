@@ -637,21 +637,54 @@ app.get("/api/email-connections/callback", async (req, res) => {
 
 // Helper: get session safely (skip OPTIONS)
 async function getSessionFromRequest(
-  req: any
+  req: ExpressRequest
 ): Promise<BetterAuthSession | null> {
   if (req.method === "OPTIONS") {
     return null;
   }
 
-  const sessionReq = {
-    ...req,
-    method: "GET",
-    url: "/api/auth/get-session",
-  };
+  // ✅ Use the same reliable pattern as /api/leads/detect
+  const authServerUrl =
+    process.env.BETTER_AUTH_URL ||
+    process.env.VITE_BETTER_AUTH_URL ||
+    `http://localhost:${PORT}`;
+  const sessionUrl = `${authServerUrl}/api/auth/get-session`;
 
-  const sessionRes = await auth.handler(
-    expressToWebRequest(sessionReq) as any
-  );
+  // ✅ Explicitly copy cookies and headers (critical for cross-origin)
+  const sessionHeaders = new Headers();
+  if (req.headers.cookie) {
+    sessionHeaders.set(
+      "Cookie",
+      Array.isArray(req.headers.cookie)
+        ? req.headers.cookie.join("; ")
+        : req.headers.cookie
+    );
+  }
+  // Copy origin for CORS validation
+  if (req.headers.origin) {
+    sessionHeaders.set(
+      "Origin",
+      Array.isArray(req.headers.origin)
+        ? req.headers.origin[0]
+        : req.headers.origin
+    );
+  }
+  // Copy user-agent
+  if (req.headers["user-agent"]) {
+    sessionHeaders.set(
+      "User-Agent",
+      Array.isArray(req.headers["user-agent"])
+        ? req.headers["user-agent"][0]
+        : req.headers["user-agent"]
+    );
+  }
+
+  const sessionRequest = new Request(sessionUrl, {
+    method: "GET",
+    headers: sessionHeaders,
+  });
+
+  const sessionRes = await auth.handler(sessionRequest);
 
   // 🔑 SAFELY read body
   const text = await sessionRes.text();
