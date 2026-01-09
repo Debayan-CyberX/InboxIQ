@@ -49,7 +49,6 @@ const LeadCard = ({
       <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent pointer-events-none" />
       
       <div className="relative space-y-3">
-      <div className="space-y-3">
         {/* Header */}
         <div className="flex items-start justify-between gap-2">
           <div className="flex-1 min-w-0">
@@ -104,6 +103,7 @@ const LeadCard = ({
             <ChevronRight className="w-5 h-5 text-muted-foreground group-hover:text-accent transition-colors shrink-0" />
           </motion.div>
         </div>
+      </div>
       </div>
     </motion.div>
   );
