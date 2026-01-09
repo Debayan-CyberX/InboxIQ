@@ -158,7 +158,7 @@ export async function generateFollowUpForLead(
       lastSubject = threadResult.rows[0].subject || lastSubject;
 
       const emailResult = await pool.query(
-        `SELECT body_text, snippet, received_at, sent_at, created_at
+        `SELECT body_text, received_at, sent_at, created_at
          FROM public.emails
          WHERE thread_id = $1 AND user_id = $2
          ORDER BY COALESCE(received_at, sent_at, created_at) DESC
@@ -168,7 +168,7 @@ export async function generateFollowUpForLead(
 
       if (emailResult.rows.length > 0) {
         const email = emailResult.rows[0];
-        lastSnippet = email.body_text || email.snippet || "";
+        lastSnippet = email.body_text || "";
 
         const lastDate =
           email.received_at || email.sent_at || email.created_at;
