@@ -26,9 +26,9 @@ const LeadCard = ({
   onClick
 }: LeadCardProps) => {
   const statusColors = {
-    hot: "border-l-status-hot shadow-[0_0_20px_rgba(251,113,133,0.15)]",
-    warm: "border-l-status-warm shadow-[0_0_20px_rgba(251,191,36,0.15)]",
-    cold: "border-l-status-cold shadow-[0_0_20px_rgba(59,130,246,0.15)]",
+    hot: "border-l-status-hot shadow-[0_0_20px_rgba(239,68,68,0.2)]",
+    warm: "border-l-status-warm shadow-[0_0_20px_rgba(245,158,11,0.2)]",
+    cold: "border-l-status-cold shadow-[0_0_20px_rgba(56,189,248,0.2)]",
   };
 
   const isUrgent = daysSinceContact >= 4;

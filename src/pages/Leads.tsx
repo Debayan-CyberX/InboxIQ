@@ -305,15 +305,15 @@ const Leads = () => {
             <div className="text-3xl font-bold text-foreground">{stats.total}</div>
             <div className="text-xs text-muted-foreground/70 mt-1.5 font-medium">Total Leads</div>
           </div>
-          <div className="glass-strong p-5 rounded-2xl border-l-4 border-l-status-hot hover-lift shadow-[0_0_20px_rgba(251,113,133,0.15)]">
+          <div className="glass-strong p-5 rounded-2xl border-l-4 border-l-status-hot hover-lift shadow-[0_0_20px_rgba(239,68,68,0.2)]">
             <div className="text-3xl font-bold text-status-hot">{stats.hot}</div>
             <div className="text-xs text-muted-foreground/70 mt-1.5 font-medium">Hot</div>
           </div>
-          <div className="glass-strong p-5 rounded-2xl border-l-4 border-l-status-warm hover-lift shadow-[0_0_20px_rgba(251,191,36,0.15)]">
+          <div className="glass-strong p-5 rounded-2xl border-l-4 border-l-status-warm hover-lift shadow-[0_0_20px_rgba(245,158,11,0.2)]">
             <div className="text-3xl font-bold text-status-warm">{stats.warm}</div>
             <div className="text-xs text-muted-foreground/70 mt-1.5 font-medium">Warm</div>
           </div>
-          <div className="glass-strong p-5 rounded-2xl border-l-4 border-l-status-cold hover-lift shadow-[0_0_20px_rgba(59,130,246,0.15)]">
+          <div className="glass-strong p-5 rounded-2xl border-l-4 border-l-status-cold hover-lift shadow-[0_0_20px_rgba(56,189,248,0.2)]">
             <div className="text-3xl font-bold text-status-cold">{stats.cold}</div>
             <div className="text-xs text-muted-foreground/70 mt-1.5 font-medium">Cold</div>
           </div>
@@ -470,7 +470,7 @@ const Leads = () => {
                       {/* Contact Info */}
                       <div className="flex-1 grid grid-cols-12 gap-4 items-center">
                         <div className="col-span-4 flex items-center gap-3 min-w-0">
-                          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-violet-500 flex items-center justify-center text-white font-semibold text-sm shrink-0">
+                          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center text-primary-foreground font-semibold text-sm shrink-0 shadow-lg">
                             {lead.contact_name.split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase()}
                           </div>
                           <div className="min-w-0 flex-1">

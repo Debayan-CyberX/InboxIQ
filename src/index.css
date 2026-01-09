@@ -1,4 +1,4 @@
-/* InboxIQ Design System — Midnight Indigo (AI SaaS) */
+/* InboxIQ Design System — Ocean Blue (Modern AI SaaS) */
 
 /* Fonts */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap');
@@ -12,86 +12,86 @@
    ========================= */
 @layer base {
   :root {
-    /* Core surfaces */
-    --background: 225 18% 8%;
-    --foreground: 220 15% 92%;
+    /* Core surfaces - Deep ocean blue slate */
+    --background: 222 47% 7%;
+    --foreground: 213 31% 91%;
 
-    --card: 225 18% 11%;
-    --card-foreground: 220 15% 92%;
+    --card: 222 42% 10%;
+    --card-foreground: 213 31% 91%;
 
-    --popover: 225 18% 11%;
-    --popover-foreground: 220 15% 92%;
+    --popover: 222 42% 10%;
+    --popover-foreground: 213 31% 91%;
 
-    /* Brand / primary */
-    --primary: 255 75% 62%;
-    --primary-foreground: 225 20% 8%;
+    /* Brand / primary - Bright cyan-blue */
+    --primary: 199 89% 60%;
+    --primary-foreground: 222 47% 7%;
 
     /* Secondary surfaces */
-    --secondary: 225 18% 14%;
-    --secondary-foreground: 220 15% 85%;
+    --secondary: 222 35% 14%;
+    --secondary-foreground: 213 25% 85%;
 
-    --muted: 225 18% 13%;
-    --muted-foreground: 220 10% 55%;
+    --muted: 222 30% 13%;
+    --muted-foreground: 213 15% 58%;
 
-    /* Accent (AI / CTA) */
-    --accent: 260 70% 60%;
-    --accent-foreground: 225 20% 8%;
+    /* Accent (AI / CTA) - Vibrant emerald-teal */
+    --accent: 172 66% 50%;
+    --accent-foreground: 222 47% 7%;
 
     --destructive: 0 72% 55%;
     --destructive-foreground: 0 0% 100%;
 
     /* Borders / inputs */
-    --border: 225 18% 18%;
-    --input: 225 18% 16%;
-    --ring: 255 75% 62%;
+    --border: 222 35% 18%;
+    --input: 222 32% 16%;
+    --ring: 199 89% 60%;
 
     --radius: 0.75rem;
 
-    /* Lead status */
-    --status-hot: 340 85% 65%;
-    --status-hot-bg: 340 60% 18%;
+    /* Lead status - Refined and vibrant */
+    --status-hot: 0 84% 60%;
+    --status-hot-bg: 0 60% 18%;
 
-    --status-warm: 45 95% 55%;
-    --status-warm-bg: 45 70% 18%;
+    --status-warm: 38 92% 50%;
+    --status-warm-bg: 38 70% 18%;
 
-    --status-cold: 200 80% 55%;
-    --status-cold-bg: 200 60% 18%;
+    --status-cold: 199 89% 60%;
+    --status-cold-bg: 199 60% 18%;
 
-    --status-success: 155 75% 45%;
-    --status-success-bg: 155 50% 18%;
+    --status-success: 172 66% 50%;
+    --status-success-bg: 172 50% 18%;
 
-    /* Sidebar */
-    --sidebar-background: 225 20% 6%;
-    --sidebar-foreground: 220 12% 78%;
-    --sidebar-primary: 255 75% 62%;
-    --sidebar-primary-foreground: 225 20% 8%;
-    --sidebar-accent: 225 18% 12%;
-    --sidebar-accent-foreground: 220 15% 92%;
-    --sidebar-border: 225 18% 14%;
-    --sidebar-ring: 255 75% 62%;
+    /* Sidebar - Deep navy */
+    --sidebar-background: 222 47% 5%;
+    --sidebar-foreground: 213 25% 78%;
+    --sidebar-primary: 199 89% 60%;
+    --sidebar-primary-foreground: 222 47% 7%;
+    --sidebar-accent: 222 35% 12%;
+    --sidebar-accent-foreground: 213 31% 91%;
+    --sidebar-border: 222 35% 14%;
+    --sidebar-ring: 199 89% 60%;
 
-    /* Gradients */
+    /* Gradients - Modern blue to cyan to emerald */
     --gradient-primary: linear-gradient(
       135deg,
-      hsl(255 75% 62%),
-      hsl(275 70% 58%)
+      hsl(199 89% 60%),
+      hsl(172 66% 50%)
     );
 
     --gradient-accent: linear-gradient(
       135deg,
-      hsl(260 70% 60%),
-      hsl(220 70% 55%)
+      hsl(172 66% 50%),
+      hsl(199 89% 60%)
     );
 
     --gradient-card: linear-gradient(
       180deg,
-      hsl(225 18% 13%),
-      hsl(225 20% 9%)
+      hsl(222 42% 13%),
+      hsl(222 47% 9%)
     );
 
     --gradient-glow: radial-gradient(
       ellipse at center,
-      hsl(255 75% 62% / 0.08),
+      hsl(199 89% 60% / 0.12),
       transparent 70%
     );
   }
@@ -158,11 +158,11 @@
   }
 
   .glow-accent {
-    box-shadow: 0 0 20px rgba(139, 92, 246, 0.3);
+    box-shadow: 0 0 20px rgba(56, 189, 248, 0.4);
   }
 
   .glow-accent-hover {
-    @apply transition-shadow duration-300 hover:shadow-[0_0_30px_rgba(139,92,246,0.5)];
+    @apply transition-shadow duration-300 hover:shadow-[0_0_30px_rgba(56,189,248,0.6)];
   }
 }
 

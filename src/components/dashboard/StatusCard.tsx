@@ -20,19 +20,19 @@ const StatusCard = ({ title, value, change, icon: Icon, variant, subtitle }: Sta
       iconBg: "bg-status-hot-bg/50 backdrop-blur-sm",
       iconColor: "text-status-hot",
       accent: "border-l-status-hot",
-      glow: "shadow-[0_0_20px_rgba(251,113,133,0.2)]",
+      glow: "shadow-[0_0_20px_rgba(239,68,68,0.25)]",
     },
     warm: {
       iconBg: "bg-status-warm-bg/50 backdrop-blur-sm",
       iconColor: "text-status-warm",
       accent: "border-l-status-warm",
-      glow: "shadow-[0_0_20px_rgba(251,191,36,0.2)]",
+      glow: "shadow-[0_0_20px_rgba(245,158,11,0.25)]",
     },
     risk: {
       iconBg: "bg-status-risk-bg/50 backdrop-blur-sm",
       iconColor: "text-status-risk",
       accent: "border-l-status-risk",
-      glow: "shadow-[0_0_20px_rgba(239,68,68,0.2)]",
+      glow: "shadow-[0_0_20px_rgba(239,68,68,0.25)]",
     },
     default: {
       iconBg: "bg-secondary/50 backdrop-blur-sm",
