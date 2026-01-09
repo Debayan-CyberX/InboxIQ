@@ -104,7 +104,6 @@ const LeadCard = ({
           </motion.div>
         </div>
       </div>
-      </div>
     </motion.div>
   );
 };
