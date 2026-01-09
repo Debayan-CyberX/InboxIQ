@@ -466,7 +466,7 @@ const Drafts = () => {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-4xl font-bold tracking-tight mb-2 flex items-center gap-3">
-              <Sparkles className="w-8 h-8 text-accent drop-shadow-[0_0_12px_rgba(34,211,238,0.6)]" />
+              <Sparkles className="w-8 h-8 text-accent drop-shadow-[0_0_10px_rgba(34,211,238,0.4)]" />
               <span className="text-gradient-primary text-glow-primary">AI Drafts</span>
             </h1>
             <p className="text-base text-muted-foreground/90 font-medium">
@@ -749,7 +749,7 @@ const Drafts = () => {
                     {/* AI Reason */}
                     <div className="p-3 rounded-xl bg-gradient-to-r from-[rgba(124,58,237,0.12)] to-[rgba(34,211,238,0.08)] border border-[rgba(124,58,237,0.25)] backdrop-blur-sm">
                       <div className="flex items-start gap-2">
-                        <Sparkles className="w-4 h-4 text-accent shrink-0 mt-0.5 drop-shadow-[0_0_8px_rgba(34,211,238,0.6)]" />
+                        <Sparkles className="w-4 h-4 text-accent shrink-0 mt-0.5 drop-shadow-[0_0_8px_rgba(34,211,238,0.4)]" />
                         <p className="text-xs text-accent font-semibold leading-relaxed">{draft.reason}</p>
                       </div>
                     </div>
@@ -759,7 +759,7 @@ const Drafts = () => {
                       <Button
                         variant="accent"
                         size="sm"
-                        className="flex-1 gap-2 font-semibold shadow-lg shadow-[#7C3AED]/30 hover:shadow-[#7C3AED]/50 transition-all"
+                        className="flex-1 gap-2 font-semibold shadow-lg shadow-[#7C3AED]/20 hover:shadow-[#7C3AED]/35 transition-all"
                         onClick={(e) => {
                           e.stopPropagation();
                           handleDraftClick(draft);

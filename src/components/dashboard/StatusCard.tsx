@@ -61,19 +61,25 @@ const StatusCard = ({ title, value, change, icon: Icon, variant, subtitle }: Sta
       
       <div className="relative flex items-start justify-between gap-3">
         <div className="space-y-2 flex-1 min-w-0">
-          <p className="text-sm font-medium text-muted-foreground/80 truncate">{title}</p>
+          <p className="text-sm font-semibold text-muted-foreground/80 truncate uppercase tracking-wider">{title}</p>
           <div className="flex items-baseline gap-3 flex-wrap">
-            <span className="text-4xl font-bold text-foreground tracking-tight">{value}</span>
+            <span className={cn(
+              "text-4xl font-bold tracking-tight",
+              variant === "hot" ? "text-gradient-hot text-glow-hot" :
+              variant === "warm" ? "text-gradient-warm text-glow-warm" :
+              variant === "risk" ? "text-gradient-hot text-glow-hot" :
+              "text-gradient text-glow"
+            )}>{value}</span>
             {change && (
               <motion.span
                 initial={{ scale: 0.8, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
                 transition={{ delay: 0.2 }}
                 className={cn(
-                  "text-xs font-semibold shrink-0 px-2 py-1 rounded-md backdrop-blur-sm",
-                  change.trend === "up" ? "text-status-success bg-status-success/10" : 
-                  change.trend === "down" ? "text-status-risk bg-status-risk/10" : 
-                  "text-muted-foreground bg-muted/50"
+                  "text-xs font-bold shrink-0 px-2.5 py-1 rounded-lg backdrop-blur-sm border",
+                  change.trend === "up" ? "text-status-success bg-status-success/10 border-status-success/20" : 
+                  change.trend === "down" ? "text-status-risk bg-status-risk/10 border-status-risk/20" : 
+                  "text-muted-foreground bg-muted/50 border-border"
                 )}
               >
                 {change.trend === "up" ? "↑" : change.trend === "down" ? "↓" : "→"}
@@ -82,15 +88,21 @@ const StatusCard = ({ title, value, change, icon: Icon, variant, subtitle }: Sta
             )}
           </div>
           {subtitle && (
-            <p className="text-xs text-muted-foreground/70 truncate">{subtitle}</p>
+            <p className="text-xs text-muted-foreground/70 truncate font-medium">{subtitle}</p>
           )}
         </div>
         <motion.div
           whileHover={{ scale: 1.1, rotate: 5 }}
           transition={{ type: "spring", stiffness: 400, damping: 10 }}
-          className={cn("p-3 rounded-xl shrink-0 transition-all duration-300", style.iconBg)}
+          className={cn("p-3 rounded-xl shrink-0 transition-all duration-300 shadow-lg", style.iconBg)}
         >
-          <Icon className={cn("w-6 h-6", style.iconColor)} />
+          <Icon className={cn(
+            "w-6 h-6",
+            style.iconColor,
+            variant === "hot" && "drop-shadow-[0_0_8px_rgba(239,68,68,0.5)]",
+            variant === "warm" && "drop-shadow-[0_0_8px_rgba(245,158,11,0.5)]",
+            variant === "risk" && "drop-shadow-[0_0_8px_rgba(239,68,68,0.5)]"
+          )} />
         </motion.div>
       </div>
     </motion.div>

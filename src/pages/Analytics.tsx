@@ -138,20 +138,21 @@ const Analytics = () => {
 
     return (
       <motion.div
-        className="card-elevated p-5 cursor-pointer hover:border-accent/40 transition-all"
+        className="glass-strong p-6 cursor-pointer hover:border-[rgba(124,58,237,0.4)] transition-all relative overflow-hidden group"
         onClick={() => setExpandedMetric(isExpanded ? null : id || null)}
-        whileHover={{ scale: 1.02 }}
+        whileHover={{ scale: 1.02, y: -2 }}
         whileTap={{ scale: 0.98 }}
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
       >
+        <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
         <div className="flex items-start justify-between mb-4">
           <motion.div
-            className="p-2.5 rounded-lg bg-accent/10"
-            whileHover={{ rotate: 360 }}
+            className="p-3 rounded-xl bg-gradient-to-br from-[rgba(124,58,237,0.15)] to-[rgba(34,211,238,0.1)] border border-[rgba(124,58,237,0.2)] shadow-lg"
+            whileHover={{ rotate: 360, scale: 1.1 }}
             transition={{ duration: 0.5 }}
           >
-            <Icon className="w-5 h-5 text-accent" />
+            <Icon className="w-5 h-5 text-accent drop-shadow-[0_0_8px_rgba(124,58,237,0.4)]" />
           </motion.div>
           {change !== 0 && (
             <div className={cn(
@@ -166,9 +167,9 @@ const Analytics = () => {
           )}
         </div>
         <div className="space-y-1">
-          <p className="text-sm font-medium text-muted-foreground">{title}</p>
+          <p className="text-sm font-semibold text-muted-foreground/80 uppercase tracking-wider">{title}</p>
           <motion.p
-            className="text-3xl font-bold text-foreground"
+            className="text-4xl font-bold text-gradient text-glow tracking-tight"
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
             transition={{ delay: 0.1, type: "spring" }}
@@ -194,6 +195,7 @@ const Analytics = () => {
             </motion.div>
           )}
         </AnimatePresence>
+        </div>
       </motion.div>
     );
   };
@@ -424,13 +426,13 @@ const Analytics = () => {
     <DashboardLayout>
       <div className="space-y-6 max-w-[1600px] mx-auto">
         {/* Header */}
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between mb-8">
           <div>
-            <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
-              <BarChart3 className="w-6 h-6 text-accent" />
-              Analytics
+            <h1 className="text-4xl font-bold tracking-tight mb-2 flex items-center gap-3">
+              <BarChart3 className="w-8 h-8 text-accent drop-shadow-[0_0_10px_rgba(34,211,238,0.4)]" />
+              <span className="text-gradient-primary text-glow-primary">Analytics</span>
             </h1>
-            <p className="text-sm text-muted-foreground mt-1">
+            <p className="text-base text-muted-foreground/90 font-medium">
               Track your email performance and lead management metrics
             </p>
           </div>
@@ -527,15 +529,17 @@ const Analytics = () => {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Email Performance Chart */}
           <motion.div
-            className="card-elevated p-6"
+            className="glass-strong p-6 rounded-2xl relative overflow-hidden"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
           >
+            <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent pointer-events-none" />
+            <div className="relative">
             <div className="flex items-center justify-between mb-6">
               <div>
-                <h3 className="text-lg font-semibold text-foreground">Email Performance</h3>
-                <p className="text-sm text-muted-foreground">Last 7 days</p>
+                <h3 className="text-xl font-bold text-foreground tracking-tight mb-1">Email Performance</h3>
+                <p className="text-sm text-muted-foreground/80 font-medium">Last 7 days</p>
               </div>
               <div className="flex items-center gap-1 border border-border rounded-lg p-1">
                 {(["all", "sent", "replied", "opened"] as ChartType[]).map((type) => (
@@ -631,14 +635,17 @@ const Analytics = () => {
                 <span className="text-xs text-muted-foreground">Opened</span>
               </button>
             </div>
+            </div>
           </motion.div>
 
           {/* Lead Distribution */}
-          <div className="card-elevated p-6">
+          <div className="glass-strong p-6 rounded-2xl relative overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent pointer-events-none" />
+            <div className="relative">
             <div className="flex items-center justify-between mb-6">
               <div>
-                <h3 className="text-lg font-semibold text-foreground">Lead Distribution</h3>
-                <p className="text-sm text-muted-foreground">By status</p>
+                <h3 className="text-xl font-bold text-foreground tracking-tight mb-1">Lead Distribution</h3>
+                <p className="text-sm text-muted-foreground/80 font-medium">By status</p>
               </div>
             </div>
             <div className="space-y-4">
@@ -663,17 +670,18 @@ const Analytics = () => {
             </div>
             <div className="mt-6 pt-6 border-t border-border grid grid-cols-3 gap-4 text-center">
               <div>
-                <div className="text-2xl font-bold text-status-hot">{leadStats.hot}</div>
-                <div className="text-xs text-muted-foreground">Hot</div>
+                <div className="text-3xl font-bold text-gradient-hot text-glow-hot mb-1">{leadStats.hot}</div>
+                <div className="text-xs text-muted-foreground/80 font-semibold uppercase tracking-wider">Hot</div>
               </div>
               <div>
-                <div className="text-2xl font-bold text-status-warm">{leadStats.warm}</div>
-                <div className="text-xs text-muted-foreground">Warm</div>
+                <div className="text-3xl font-bold text-gradient-warm text-glow-warm mb-1">{leadStats.warm}</div>
+                <div className="text-xs text-muted-foreground/80 font-semibold uppercase tracking-wider">Warm</div>
               </div>
               <div>
-                <div className="text-2xl font-bold text-status-cold">{leadStats.cold}</div>
-                <div className="text-xs text-muted-foreground">Cold</div>
+                <div className="text-3xl font-bold text-gradient-cold text-glow-cold mb-1">{leadStats.cold}</div>
+                <div className="text-xs text-muted-foreground/80 font-semibold uppercase tracking-wider">Cold</div>
               </div>
+            </div>
             </div>
           </div>
         </div>
@@ -681,11 +689,13 @@ const Analytics = () => {
         {/* Trends Row */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Reply Rate Trend */}
-          <div className="card-elevated p-6">
+          <div className="glass-strong p-6 rounded-2xl relative overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent pointer-events-none" />
+            <div className="relative">
             <div className="flex items-center justify-between mb-6">
               <div>
-                <h3 className="text-lg font-semibold text-foreground">Reply Rate Trend</h3>
-                <p className="text-sm text-muted-foreground">Last 4 weeks</p>
+                <h3 className="text-xl font-bold text-foreground tracking-tight mb-1">Reply Rate Trend</h3>
+                <p className="text-sm text-muted-foreground/80 font-medium">Last 4 weeks</p>
               </div>
             </div>
             <SimpleBarChart
@@ -697,18 +707,21 @@ const Analytics = () => {
             />
             <div className="mt-4 pt-4 border-t border-border">
               <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">Current Rate</span>
-                <span className="text-2xl font-bold text-status-success">{overviewMetrics.replyRate.current}%</span>
+                <span className="text-sm text-muted-foreground/80 font-semibold">Current Rate</span>
+                <span className="text-3xl font-bold text-gradient text-glow">{overviewMetrics.replyRate.current}%</span>
               </div>
+            </div>
             </div>
           </div>
 
           {/* Response Time Trend */}
-          <div className="card-elevated p-6">
+          <div className="glass-strong p-6 rounded-2xl relative overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent pointer-events-none" />
+            <div className="relative">
             <div className="flex items-center justify-between mb-6">
               <div>
-                <h3 className="text-lg font-semibold text-foreground">Response Time Trend</h3>
-                <p className="text-sm text-muted-foreground">Last 4 weeks (hours)</p>
+                <h3 className="text-xl font-bold text-foreground tracking-tight mb-1">Response Time Trend</h3>
+                <p className="text-sm text-muted-foreground/80 font-medium">Last 4 weeks (hours)</p>
               </div>
             </div>
             <SimpleBarChart
@@ -720,9 +733,10 @@ const Analytics = () => {
             />
             <div className="mt-4 pt-4 border-t border-border">
               <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">Average Time</span>
-                <span className="text-2xl font-bold text-foreground">{overviewMetrics.avgResponseTime.current}h</span>
+                <span className="text-sm text-muted-foreground/80 font-semibold">Average Time</span>
+                <span className="text-3xl font-bold text-gradient text-glow">{overviewMetrics.avgResponseTime.current}h</span>
               </div>
+            </div>
             </div>
           </div>
         </div>
@@ -730,50 +744,55 @@ const Analytics = () => {
         {/* Bottom Row */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* AI Usage Stats */}
-          <div className="card-elevated p-6">
+          <div className="glass-strong p-6 rounded-2xl relative overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent pointer-events-none" />
+            <div className="relative">
             <div className="flex items-center justify-between mb-6">
               <div>
-                <h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
-                  <Sparkles className="w-5 h-5 text-accent" />
+                <h3 className="text-xl font-bold text-foreground tracking-tight mb-1 flex items-center gap-2">
+                  <Sparkles className="w-5 h-5 text-accent drop-shadow-[0_0_8px_rgba(124,58,237,0.4)]" />
                   AI Usage Statistics
                 </h3>
-                <p className="text-sm text-muted-foreground">Performance metrics</p>
+                <p className="text-sm text-muted-foreground/80 font-medium">Performance metrics</p>
               </div>
             </div>
             <div className="space-y-4">
-              <div className="flex items-center justify-between p-3 rounded-lg bg-muted/30">
-                <span className="text-sm text-foreground">Drafts Generated</span>
-                <span className="text-lg font-bold text-foreground">{overviewMetrics.aiDraftsUsed.current}</span>
+              <div className="flex items-center justify-between p-4 rounded-xl bg-gradient-to-r from-[rgba(255,255,255,0.05)] to-[rgba(255,255,255,0.02)] border border-[rgba(255,255,255,0.08)] backdrop-blur-sm">
+                <span className="text-sm text-foreground/90 font-semibold">Drafts Generated</span>
+                <span className="text-xl font-bold text-gradient text-glow">{overviewMetrics.aiDraftsUsed.current}</span>
               </div>
-              <div className="flex items-center justify-between p-3 rounded-lg bg-muted/30">
-                <span className="text-sm text-foreground">Drafts Sent</span>
-                <span className="text-lg font-bold text-foreground">{emailStats.sent || 0}</span>
+              <div className="flex items-center justify-between p-4 rounded-xl bg-gradient-to-r from-[rgba(255,255,255,0.05)] to-[rgba(255,255,255,0.02)] border border-[rgba(255,255,255,0.08)] backdrop-blur-sm">
+                <span className="text-sm text-foreground/90 font-semibold">Drafts Sent</span>
+                <span className="text-xl font-bold text-gradient text-glow">{emailStats.sent || 0}</span>
               </div>
-              <div className="flex items-center justify-between p-3 rounded-lg bg-muted/30">
-                <span className="text-sm text-foreground">Adoption Rate</span>
-                <span className="text-lg font-bold text-status-success">
+              <div className="flex items-center justify-between p-4 rounded-xl bg-gradient-to-r from-[rgba(255,255,255,0.05)] to-[rgba(255,255,255,0.02)] border border-[rgba(255,255,255,0.08)] backdrop-blur-sm">
+                <span className="text-sm text-foreground/90 font-semibold">Adoption Rate</span>
+                <span className="text-xl font-bold text-gradient text-glow">
                   {overviewMetrics.aiDraftsUsed.current > 0 && emailStats.sent > 0
                     ? Math.round((emailStats.sent / overviewMetrics.aiDraftsUsed.current) * 100)
                     : 0}%
                 </span>
               </div>
-              <div className="flex items-center justify-between p-3 rounded-lg bg-muted/30">
-                <span className="text-sm text-foreground">Avg Confidence</span>
-                <span className="text-lg font-bold text-accent">85%</span>
+              <div className="flex items-center justify-between p-4 rounded-xl bg-gradient-to-r from-[rgba(255,255,255,0.05)] to-[rgba(255,255,255,0.02)] border border-[rgba(255,255,255,0.08)] backdrop-blur-sm">
+                <span className="text-sm text-foreground/90 font-semibold">Avg Confidence</span>
+                <span className="text-xl font-bold text-gradient-accent text-glow-accent">85%</span>
               </div>
-              <div className="flex items-center justify-between p-3 rounded-lg bg-accent/10 border border-accent/20">
-                <span className="text-sm text-foreground font-medium">Time Saved</span>
-                <span className="text-lg font-bold text-accent">{overviewMetrics.timeSaved.current}h</span>
+              <div className="flex items-center justify-between p-4 rounded-xl bg-gradient-to-r from-[rgba(124,58,237,0.12)] to-[rgba(34,211,238,0.08)] border border-[rgba(124,58,237,0.25)] backdrop-blur-sm shadow-lg shadow-[rgba(124,58,237,0.12)]">
+                <span className="text-sm text-foreground font-bold">Time Saved</span>
+                <span className="text-xl font-bold text-gradient-primary text-glow-primary">{overviewMetrics.timeSaved.current}h</span>
               </div>
+            </div>
             </div>
           </div>
 
           {/* Conversion Funnel */}
-          <div className="card-elevated p-6">
+          <div className="glass-strong p-6 rounded-2xl relative overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent pointer-events-none" />
+            <div className="relative">
             <div className="flex items-center justify-between mb-6">
               <div>
-                <h3 className="text-lg font-semibold text-foreground">Conversion Funnel</h3>
-                <p className="text-sm text-muted-foreground">Lead to close</p>
+                <h3 className="text-xl font-bold text-foreground tracking-tight mb-1">Conversion Funnel</h3>
+                <p className="text-sm text-muted-foreground/80 font-medium">Lead to close</p>
               </div>
             </div>
             <div className="space-y-4">
@@ -810,23 +829,26 @@ const Analytics = () => {
             </div>
             <div className="mt-6 pt-6 border-t border-border">
               <div className="text-center">
-                <div className="text-3xl font-bold text-foreground">
+                <div className="text-4xl font-bold text-gradient-primary text-glow-primary mb-1">
                   {leadStats.total > 0 ? ((0 / leadStats.total) * 100).toFixed(1) : "0.0"}%
                 </div>
-                <div className="text-sm text-muted-foreground">Conversion Rate</div>
+                <div className="text-sm text-muted-foreground/80 font-semibold uppercase tracking-wider">Conversion Rate</div>
               </div>
+            </div>
             </div>
           </div>
         </div>
 
         {/* Top Performing Leads */}
-        <div className="card-elevated p-6">
-          <div className="flex items-center justify-between mb-6">
-            <div>
-              <h3 className="text-lg font-semibold text-foreground">Top Performing Leads</h3>
-              <p className="text-sm text-muted-foreground">By engagement and value</p>
+        <div className="glass-strong p-6 rounded-2xl relative overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent pointer-events-none" />
+          <div className="relative">
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <h3 className="text-xl font-bold text-foreground tracking-tight mb-1">Top Performing Leads</h3>
+                <p className="text-sm text-muted-foreground/80 font-medium">By engagement and value</p>
+              </div>
             </div>
-          </div>
           <div className="space-y-3">
             {/* TODO: Fetch top performing leads from database */}
             {leadStats.total === 0 ? (
@@ -838,6 +860,7 @@ const Analytics = () => {
                 Top performing leads feature coming soon
               </div>
             )}
+          </div>
           </div>
         </div>
       </div>

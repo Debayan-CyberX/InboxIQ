@@ -498,7 +498,7 @@ const Leads = () => {
               >
                 <div className="relative inline-block mb-6">
                   <Users className="w-16 h-16 text-muted-foreground/40 mx-auto opacity-50" />
-                  <div className="absolute inset-0 bg-gradient-to-r from-[rgba(124,58,237,0.2)] to-[rgba(34,211,238,0.2)] blur-2xl -z-10" />
+                  <div className="absolute inset-0 bg-gradient-to-r from-[rgba(124,58,237,0.15)] to-[rgba(34,211,238,0.15)] blur-2xl -z-10" />
                 </div>
                 <p className="text-lg text-muted-foreground/90 font-semibold">
                   {searchQuery ? "No leads found matching your search" : `No ${statusFilter === "all" ? "" : statusFilter} leads`}
@@ -638,22 +638,22 @@ const Leads = () => {
                               }
                             }}
                             disabled={generatingLeadId === lead.id}
-                            className="p-2.5 rounded-xl hover:bg-[rgba(124,58,237,0.15)] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed hover:scale-110 shadow-lg shadow-[rgba(124,58,237,0.2)] hover:shadow-[rgba(124,58,237,0.4)]"
+                            className="p-2.5 rounded-xl hover:bg-[rgba(124,58,237,0.15)] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed hover:scale-110 shadow-lg shadow-[rgba(124,58,237,0.15)] hover:shadow-[rgba(124,58,237,0.25)]"
                             title={(lead.days_since_contact || 0) < 3 ? "User replied recently (within 3 days)" : generatingLeadId === lead.id ? "Generating..." : "Generate Follow-up"}
                           >
                             <Sparkles className={cn(
                               "w-5 h-5", 
                               generatingLeadId === lead.id 
-                                ? "animate-spin text-[#7C3AED] drop-shadow-[0_0_12px_rgba(124,58,237,0.8)]" 
-                                : "text-[#7C3AED] drop-shadow-[0_0_8px_rgba(124,58,237,0.6)]"
+                                ? "animate-spin text-[#7C3AED] drop-shadow-[0_0_10px_rgba(124,58,237,0.5)]" 
+                                : "text-[#7C3AED] drop-shadow-[0_0_8px_rgba(124,58,237,0.4)]"
                             )} />
                           </button>
                           {lead.has_ai_draft && (
                             <button
-                              className="p-2.5 rounded-xl hover:bg-[rgba(124,58,237,0.15)] transition-all duration-200 hover:scale-110 shadow-lg shadow-[rgba(124,58,237,0.2)] hover:shadow-[rgba(124,58,237,0.4)]"
+                              className="p-2.5 rounded-xl hover:bg-[rgba(124,58,237,0.15)] transition-all duration-200 hover:scale-110 shadow-lg shadow-[rgba(124,58,237,0.15)] hover:shadow-[rgba(124,58,237,0.25)]"
                               title="AI Draft Ready"
                             >
-                              <Sparkles className="w-5 h-5 text-[#7C3AED] drop-shadow-[0_0_8px_rgba(124,58,237,0.6)]" />
+                              <Sparkles className="w-5 h-5 text-[#7C3AED] drop-shadow-[0_0_8px_rgba(124,58,237,0.4)]" />
                             </button>
                           )}
                           <button
