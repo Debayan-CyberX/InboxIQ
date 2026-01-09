@@ -199,7 +199,7 @@ export async function generateFollowUpForLead(
         body_text, body_html, status, is_ai_draft, tone,
         created_at, updated_at
       )
-      VALUES ($1, $2, 'outgoing', $3, $4, $5, $6, $7, 'draft', true, 'professional', NOW(), NOW())
+      VALUES ($1, $2, 'outbound', $3, $4, $5, $6, $7, 'draft', true, 'professional', NOW(), NOW())
       RETURNING id`,
       [
         userUuid,
