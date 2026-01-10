@@ -61,9 +61,9 @@ const LeadPipeline = ({ leads, onLeadClick }: LeadPipelineProps) => {
         </p>
       </div>
 
-      {/* Mobile: horizontal scroll | Desktop: fixed grid */}
-      <div className="overflow-x-auto lg:overflow-x-hidden">
-        <div className="grid grid-cols-3 min-w-[600px] sm:min-w-[700px] lg:min-w-0 lg:grid-cols-3 divide-x divide-border">
+      {/* Responsive grid */}
+      <div className="overflow-x-hidden w-full">
+        <div className="grid grid-cols-1 sm:grid-cols-3 divide-y sm:divide-y-0 sm:divide-x divide-border min-w-0 w-full">
           {columns.map((column) => {
             const columnLeads = leads.filter(
               (lead) => lead.status === column.status
@@ -77,7 +77,7 @@ const LeadPipeline = ({ leads, onLeadClick }: LeadPipelineProps) => {
             return (
               <div
                 key={column.status}
-                className="min-h-[360px] flex flex-col overflow-hidden"
+                className="min-h-[360px] flex flex-col overflow-hidden min-w-0 w-full"
               >
                 {/* Column header */}
                 <div className="p-4 border-b border-border bg-muted/30 shrink-0">

@@ -217,9 +217,9 @@ const Index = () => {
 
   return (
     <DashboardLayout>
-      <div className="space-y-4 sm:space-y-6 w-full min-w-0 max-w-full">
+      <div className="space-y-4 sm:space-y-6 w-full min-w-0 max-w-full overflow-x-hidden">
         {/* Status Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 w-full min-w-0">
           <StatusCard
             title="Hot Leads"
             value={hotLeadsCount}
@@ -262,10 +262,10 @@ const Index = () => {
         <PerformanceSnapshot metrics={performanceMetricsWithIcons} />
 
         {/* Main content grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6 min-w-0 w-full">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6 min-w-0 w-full max-w-full overflow-x-hidden">
 
           {/* Lead Pipeline - Takes 8 columns */}
-          <div className="col-span-1 lg:col-span-8">
+          <div className="col-span-1 lg:col-span-8 min-w-0 w-full max-w-full overflow-x-hidden">
             <LeadPipeline 
               leads={transformedLeads}
               onLeadClick={handleLeadClick}
@@ -273,7 +273,7 @@ const Index = () => {
           </div>
 
           {/* Right column - Action Queue */}
-          <div className="col-span-1 lg:col-span-4">
+          <div className="col-span-1 lg:col-span-4 min-w-0 w-full max-w-full overflow-x-hidden">
             <ActionQueue 
               actions={transformedActions}
               onReviewSend={handleActionReviewSend}

@@ -545,6 +545,30 @@
       overflow: hidden !important;
       z-index: 30 !important;
     }
+    
+    /* Main content area width calculation */
+    main {
+      max-width: calc(100vw - 16rem) !important;
+      width: 100% !important;
+    }
+    
+    /* Header width calculation */
+    header {
+      max-width: calc(100vw - 16rem) !important;
+      width: 100% !important;
+    }
+  }
+  
+  /* Grid and flex containers should respect parent width */
+  .grid {
+    max-width: 100%;
+    min-width: 0;
+  }
+  
+  /* Prevent dashboard content from overflowing */
+  main > * {
+    max-width: 100%;
+    min-width: 0;
   }
 
   /* Ensure no horizontal overflow on any page */

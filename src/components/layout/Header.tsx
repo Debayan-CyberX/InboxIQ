@@ -81,34 +81,34 @@ const Header = () => {
 
   return (
     <>
-      <header className="h-14 sm:h-16 border-b border-[rgba(255,255,255,0.12)] glass-strong flex items-center justify-between px-3 sm:px-4 md:px-6 sticky top-0 z-30">
-        <div className="flex items-center gap-2 sm:gap-4 min-w-0 flex-1">
-          <div className="min-w-0">
+      <header className="h-14 sm:h-16 border-b border-[rgba(255,255,255,0.12)] glass-strong flex items-center justify-between px-3 sm:px-4 md:px-6 sticky top-0 z-30 w-full min-w-0 max-w-full overflow-x-hidden">
+        <div className="flex items-center gap-2 sm:gap-4 min-w-0 flex-1 max-w-full overflow-hidden">
+          <div className="min-w-0 flex-shrink">
             <h1 className="text-base sm:text-lg md:text-xl font-semibold text-foreground truncate">
               {getGreeting()},{" "}
               <span className="text-gradient">{userName}</span>
             </h1>
 
-            <p className="text-xs sm:text-sm text-muted-foreground flex items-center gap-1 sm:gap-1.5">
+            <p className="text-xs sm:text-sm text-muted-foreground flex items-center gap-1 sm:gap-1.5 min-w-0">
               <Calendar className="w-3 h-3 sm:w-3.5 sm:h-3.5 flex-shrink-0" />
               <span className="truncate">{today}</span>
             </p>
           </div>
         </div>
 
-        <div className="flex items-center gap-1.5 sm:gap-2 md:gap-3 flex-shrink-0">
+        <div className="flex items-center gap-1.5 sm:gap-2 md:gap-3 flex-shrink-0 min-w-0">
           {/* Search */}
-          <div className="relative hidden md:block">
+          <div className="relative hidden md:block flex-shrink-0">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <input
               type="text"
               placeholder="Search leads, emails..."
-              className="w-48 lg:w-64 h-8 sm:h-9 pl-9 pr-4 rounded-lg bg-[rgba(255,255,255,0.06)] backdrop-blur-md border border-[rgba(255,255,255,0.12)] text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-[#7C3AED]/50 focus:bg-[rgba(255,255,255,0.08)] transition-all"
+              className="w-40 lg:w-56 xl:w-64 h-8 sm:h-9 pl-9 pr-4 rounded-lg bg-[rgba(255,255,255,0.06)] backdrop-blur-md border border-[rgba(255,255,255,0.12)] text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-[#7C3AED]/50 focus:bg-[rgba(255,255,255,0.08)] transition-all max-w-full"
             />
           </div>
 
           {/* Notifications */}
-          <Button variant="ghost" size="icon-sm" className="relative h-8 w-8 sm:h-9 sm:w-9">
+          <Button variant="ghost" size="icon-sm" className="relative h-8 w-8 sm:h-9 sm:w-9 flex-shrink-0">
             <Bell className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             <span className="absolute top-0.5 right-0.5 sm:top-1 sm:right-1 w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-status-hot" />
           </Button>
@@ -118,12 +118,12 @@ const Header = () => {
             <Button
               variant="outline"
               size="sm"
-              className="gap-1.5 sm:gap-2 h-8 sm:h-9 px-2 sm:px-3"
+              className="gap-1.5 sm:gap-2 h-8 sm:h-9 px-2 sm:px-3 flex-shrink-0"
               onClick={() => setIsConnectDialogOpen(true)}
               title={connectedEmail ? `Connected: ${connectedEmail}` : "Email connected"}
             >
-              <CheckCircle2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-green-400" />
-              <span className="hidden lg:inline">
+              <CheckCircle2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-green-400 flex-shrink-0" />
+              <span className="hidden lg:inline truncate">
                 {connectedEmail ? connectedEmail.split("@")[0] : "Connected"}
               </span>
             </Button>
@@ -131,10 +131,10 @@ const Header = () => {
             <Button
               variant="accent"
               size="sm"
-              className="gap-1.5 sm:gap-2 h-8 sm:h-9 px-2 sm:px-3"
+              className="gap-1.5 sm:gap-2 h-8 sm:h-9 px-2 sm:px-3 flex-shrink-0"
               onClick={() => setIsConnectDialogOpen(true)}
             >
-              <Mail className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+              <Mail className="w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0" />
               <span className="hidden lg:inline">Connect Email</span>
               <span className="lg:hidden">Connect</span>
             </Button>
