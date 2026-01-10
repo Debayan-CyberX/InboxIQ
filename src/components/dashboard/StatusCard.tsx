@@ -55,7 +55,7 @@ const StatusCard = ({ title, value, change, icon: Icon, variant, subtitle }: Sta
         transition: { duration: 0.3, type: "spring", stiffness: 300 }
       }}
       className={cn(
-        "glass-strong p-6 sm:p-7 border-l-4 rounded-3xl hover-lift cursor-pointer group relative overflow-hidden transition-all duration-300",
+        "glass-strong p-6 sm:p-7 border-l-4 rounded-3xl hover-lift cursor-pointer group relative transition-all duration-300",
         style.accent,
         style.glow
       )}
@@ -95,7 +95,7 @@ const StatusCard = ({ title, value, change, icon: Icon, variant, subtitle }: Sta
       
       <div className="relative flex items-start justify-between gap-3">
         <div className="space-y-3 flex-1 min-w-0">
-          <p className="text-xs sm:text-sm font-bold text-muted-foreground/80 truncate uppercase tracking-[0.15em] letter-spacing-wider">{title}</p>
+          <p className="text-xs sm:text-sm font-bold text-muted-foreground/80 break-words uppercase tracking-[0.15em] leading-tight">{title}</p>
           <div className="flex items-baseline gap-3 flex-wrap">
             <motion.span
               initial={{ scale: 0.8, opacity: 0 }}
@@ -134,7 +134,7 @@ const StatusCard = ({ title, value, change, icon: Icon, variant, subtitle }: Sta
             )}
           </div>
           {subtitle && (
-            <p className="text-xs text-muted-foreground/70 truncate font-medium">{subtitle}</p>
+            <p className="text-xs text-muted-foreground/70 break-words font-medium leading-relaxed">{subtitle}</p>
           )}
         </div>
         <motion.div
