@@ -30,8 +30,18 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
     setMobileOpen(false);
   }, [location.pathname]);
 
+  // Prevent horizontal scrolling globally
+  useEffect(() => {
+    document.documentElement.style.overflowX = 'hidden';
+    document.body.style.overflowX = 'hidden';
+    return () => {
+      document.documentElement.style.overflowX = '';
+      document.body.style.overflowX = '';
+    };
+  }, []);
+
   return (
-    <div className="min-h-screen bg-[#0D0F14] flex relative">
+    <div className="min-h-screen bg-[#0D0F14] flex relative overflow-x-hidden">
       {/* Desktop Sidebar (fixed, no scroll) */}
       <div className="hidden lg:block lg:w-64 lg:flex-shrink-0 lg:relative">
         <Sidebar />
@@ -54,7 +64,7 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
       )}
 
       {/* Main Content Area */}
-      <div className="flex-1 flex flex-col lg:ml-64">
+      <div className="flex-1 flex flex-col lg:ml-64 min-w-0 overflow-x-hidden">
         {/* Mobile Header (sticky) */}
         <div className="lg:hidden sticky top-0 z-20 flex items-center justify-between h-14 px-4 border-b border-[rgba(255,255,255,0.12)] glass-strong">
           <button
@@ -73,8 +83,8 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
         </div>
 
         {/* Page Content */}
-        <main className="flex-1 p-3 sm:p-4 lg:p-8 pb-20 sm:pb-24 max-w-full overflow-x-hidden flex flex-col min-h-0">
-          <div className="max-w-[1600px] mx-auto flex-1 flex flex-col min-h-0 w-full">
+        <main className="flex-1 p-3 sm:p-4 lg:p-8 pb-20 sm:pb-24 flex flex-col min-h-0 min-w-0 overflow-x-hidden">
+          <div className="max-w-[1600px] mx-auto flex-1 flex flex-col min-h-0 w-full min-w-0">
             {children}
           </div>
         </main>

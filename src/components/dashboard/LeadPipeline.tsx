@@ -50,7 +50,7 @@ const LeadPipeline = ({ leads, onLeadClick }: LeadPipelineProps) => {
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
 
   return (
-    <div className="card-elevated animate-fade-in animation-delay-200 max-w-full overflow-hidden">
+    <div className="card-elevated animate-fade-in animation-delay-200 w-full max-w-full overflow-hidden min-w-0">
       {/* Header */}
       <div className="p-5 border-b border-border">
         <h2 className="text-base font-semibold text-foreground">
@@ -62,8 +62,8 @@ const LeadPipeline = ({ leads, onLeadClick }: LeadPipelineProps) => {
       </div>
 
       {/* Mobile: horizontal scroll | Desktop: fixed grid */}
-      <div className="overflow-x-auto lg:overflow-hidden">
-        <div className="grid grid-cols-3 min-w-[900px] lg:min-w-0 divide-x divide-border">
+      <div className="overflow-x-auto lg:overflow-x-hidden">
+        <div className="grid grid-cols-3 min-w-[600px] sm:min-w-[700px] lg:min-w-0 lg:grid-cols-3 divide-x divide-border">
           {columns.map((column) => {
             const columnLeads = leads.filter(
               (lead) => lead.status === column.status

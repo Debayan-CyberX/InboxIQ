@@ -11,6 +11,18 @@
    BASE LAYER - Premium Dark Glassmorphism
    ========================= */
 @layer base {
+  /* Prevent horizontal scrolling globally */
+  html {
+    overflow-x: hidden;
+    max-width: 100vw;
+  }
+  
+  body {
+    overflow-x: hidden;
+    max-width: 100vw;
+    position: relative;
+  }
+
   :root {
     /* Core Background - Deep Purple-Black */
     --background: 270 30% 8%; /* #0F0A1A equivalent - Deep purple-black */
