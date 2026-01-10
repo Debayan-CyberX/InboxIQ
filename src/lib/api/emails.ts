@@ -127,7 +127,11 @@ export const emailsApi = {
 
     if (error) {
       console.error("Error updating email:", error);
-      throw new Error(`Failed to update email: ${error.message}`);
+      // Provide more specific error message
+      if (error.code === "PGRST116") {
+        throw new Error(`Email with id ${emailId} not found`);
+      }
+      throw new Error(`Failed to update email: ${error.message} (code: ${error.code || "unknown"})`);
     }
 
     if (!data) {

@@ -230,14 +230,68 @@ const Drafts = () => {
       const toneValue = (tone || draft.tone) as "professional" | "short" | "confident" | "polite" | "sales-focused" | undefined;
       const newContent = await leadsApi.generateFollowUpText(draft.leadId, userId, toneValue);
 
-      // Update the existing draft in database with new content
-      await emailsApi.update(draft.id, userId, {
-        subject: newContent.subject,
-        body_text: newContent.body,
-        body_html: newContent.body.replace(/\n/g, "<br>"),
-        tone: toneValue || draft.tone || "professional",
-        updated_at: new Date().toISOString(),
-      });
+      // Try to update the existing draft in database with new content
+      // Don't pass updated_at - Supabase handles it automatically
+      try {
+        await emailsApi.update(draft.id, userId, {
+          subject: newContent.subject,
+          body_text: newContent.body,
+          body_html: newContent.body.replace(/\n/g, "<br>"),
+          tone: toneValue || draft.tone || "professional",
+        });
+      } catch (updateErr) {
+        // If update fails because draft doesn't exist, create a new draft instead
+        const errorMessage = updateErr instanceof Error ? updateErr.message : String(updateErr);
+        
+        // Check for "not found" error (either from our code or Supabase)
+        if (errorMessage.includes("not found") || errorMessage.includes("PGRST116")) {
+          console.log("Draft not found, creating new draft instead");
+          
+          // Get lead details for creating the draft
+          const lead = await leadsApi.getById(draft.leadId, userId);
+          if (!lead) {
+            throw new Error("Lead not found - cannot create draft");
+          }
+
+          // Create new draft
+          const newDraft = await emailsApi.create(
+            {
+              thread_id: draft.threadId || null,
+              lead_id: draft.leadId,
+              direction: "outbound",
+              from_email: "", // Will be set by backend
+              to_email: draft.to,
+              cc_emails: null,
+              bcc_emails: null,
+              subject: newContent.subject,
+              body_text: newContent.body,
+              body_html: newContent.body.replace(/\n/g, "<br>"),
+              status: "draft",
+              is_ai_draft: true,
+              tone: toneValue || draft.tone || "professional",
+              ai_reason: "AI-generated draft (regenerated)",
+              external_email_id: null,
+              sent_at: null,
+              received_at: null,
+              scheduled_for: null,
+            },
+            userId
+          );
+
+          // Update the draft ID for the rest of the function
+          const oldDraftId = draft.id;
+          draft.id = newDraft.id;
+          
+          // Update selectedDraft ID if it matches the old one
+          if (selectedDraft && selectedDraft.id === oldDraftId) {
+            selectedDraft.id = newDraft.id;
+          }
+        } else {
+          // For other errors (like 406), log and re-throw
+          console.error("Unexpected error updating draft:", updateErr);
+          throw updateErr;
+        }
+      }
 
       // Dismiss loading toast and show success
       toast.dismiss(loadingToast);
@@ -246,9 +300,11 @@ const Drafts = () => {
       });
 
       // Update the selected draft immediately with new content (optimistic update)
-      if (selectedDraft && selectedDraft.id === draft.id) {
+      // Use draft.id which may have been updated if we created a new draft
+      if (selectedDraft && (selectedDraft.id === draft.id || selectedDraft.leadId === draft.leadId)) {
         const updatedDraft: EmailDraft = {
           ...selectedDraft,
+          id: draft.id, // Use the current draft.id (may be updated)
           subject: newContent.subject,
           draft: newContent.body,
           tone: toneValue || selectedDraft.tone || "professional",
@@ -261,8 +317,16 @@ const Drafts = () => {
       setDrafts(draftsData);
 
       // Update selected draft from refreshed data to ensure consistency
-      if (selectedDraft && selectedDraft.id === draft.id) {
-        const updatedDraft = draftsData.find(d => d.id === draft.id);
+      // Use the current draft.id (which might have been updated if we created a new draft)
+      if (selectedDraft && (selectedDraft.id === draft.id || selectedDraft.leadId === draft.leadId)) {
+        // Try to find by the current draft.id first, then by lead_id if not found
+        let updatedDraft = draftsData.find(d => d.id === draft.id);
+        if (!updatedDraft && draft.leadId) {
+          // Find the most recent draft for this lead
+          updatedDraft = draftsData
+            .filter(d => d.lead_id === draft.leadId && d.is_ai_draft)
+            .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())[0];
+        }
         if (updatedDraft) {
           const transformed = transformDraft(updatedDraft);
           setSelectedDraft(transformed);
