@@ -62,6 +62,9 @@ export default function SignIn() {
         toast.error("Sign in failed", { description: message });
         setIsSubmitting(false);
       } else {
+        // Store transition flag in sessionStorage (more reliable than location.state)
+        sessionStorage.setItem("fromSignIn", "true");
+        
         // Start transition animation
         setIsTransitioning(true);
         
@@ -71,15 +74,11 @@ export default function SignIn() {
             // Small delay to allow cookie to be set
             await new Promise(resolve => setTimeout(resolve, 200));
             navigate("/dashboard", { 
-              replace: true,
-              state: { fromSignIn: true } // Pass state to indicate transition
+              replace: true
             });
           } catch (navError) {
             console.error("Navigation error:", navError);
-            navigate("/dashboard", { 
-              replace: true,
-              state: { fromSignIn: true }
-            });
+            navigate("/dashboard", { replace: true });
           }
         }, 500); // Match transition duration
       }

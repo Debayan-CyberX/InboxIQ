@@ -72,14 +72,14 @@ const AnimatedRoutes = () => {
         <Routes location={location} key={location.pathname}>
           {/* Public routes */}
           <Route path="/" element={<PageTransition><Landing /></PageTransition>} />
-          <Route path="/sign-in" element={<PageTransition><SignIn /></PageTransition>} />
+          <Route path="/sign-in" element={<SignIn />} />
           <Route path="/sign-up" element={<PageTransition><SignUp /></PageTransition>} />
           <Route path="/test" element={<PageTransition><Test /></PageTransition>} />
           
           {/* Protected routes */}
           <Route path="/dashboard" element={
               <ProtectedRoute>
-                <DashboardTransition isEntering={location.state?.fromSignIn === true}>
+                <DashboardTransition>
                   <PageTransition><Index /></PageTransition>
                 </DashboardTransition>
               </ProtectedRoute>

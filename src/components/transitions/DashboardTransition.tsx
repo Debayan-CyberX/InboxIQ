@@ -1,4 +1,4 @@
-import { ReactNode } from "react";
+import { ReactNode, useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { useLocation } from "react-router-dom";
 
@@ -16,9 +16,19 @@ export const DashboardTransition = ({
   isEntering = false 
 }: DashboardTransitionProps) => {
   const location = useLocation();
+  const [shouldAnimate, setShouldAnimate] = useState(false);
   
-  // Check if coming from sign-in (check both location state and prop)
-  const fromSignIn = isEntering || location.state?.fromSignIn === true;
+  // Check if coming from sign-in using sessionStorage (more reliable)
+  useEffect(() => {
+    const fromSignIn = sessionStorage.getItem("fromSignIn") === "true";
+    if (fromSignIn || isEntering || location.state?.fromSignIn === true) {
+      setShouldAnimate(true);
+      // Clear the flag after reading it
+      sessionStorage.removeItem("fromSignIn");
+    }
+  }, [isEntering, location.state]);
+  
+  const fromSignIn = shouldAnimate;
 
   // Check if user prefers reduced motion
   const prefersReducedMotion = typeof window !== "undefined" 
@@ -43,6 +53,11 @@ export const DashboardTransition = ({
       }
     }
   };
+
+  // Only animate if coming from sign-in
+  if (!fromSignIn) {
+    return <div className="w-full h-full">{children}</div>;
+  }
 
   return (
     <motion.div

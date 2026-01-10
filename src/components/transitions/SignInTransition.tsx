@@ -71,7 +71,7 @@ export const SignInTransition = ({
             initial="initial"
             animate="animate"
             exit="initial"
-            className="fixed inset-0 bg-[#0D0F14] z-40 pointer-events-none"
+            className="fixed inset-0 bg-[#0D0F14] z-[9999] pointer-events-none"
           />
         )}
       </AnimatePresence>
@@ -87,6 +87,7 @@ export const SignInTransition = ({
           }
         }}
         className="relative z-10"
+        style={{ willChange: shouldAnimate ? 'opacity, transform, filter' : 'auto' }}
       >
         {children}
       </motion.div>

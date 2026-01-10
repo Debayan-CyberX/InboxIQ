@@ -29,8 +29,12 @@ const Sidebar = () => {
   const handleSignOut = async () => {
     try {
       await signOut();
+      // Clear any stored state
+      sessionStorage.removeItem("landingLoaderShown");
+      sessionStorage.removeItem("fromSignIn");
       toast.success("Signed out successfully");
-      navigate("/", { replace: true });
+      // Use window.location for a hard redirect to ensure clean state
+      window.location.href = "/";
     } catch (error) {
       toast.error("Failed to sign out");
       console.error("Sign out error:", error);
@@ -51,22 +55,7 @@ const Sidebar = () => {
 
   return (
     <aside
-      className="
-        fixed
-        top-0
-        left-0
-        bottom-0
-        z-40
-        w-64
-        h-screen
-        flex
-        flex-col
-        glass-strong
-        border-r
-        border-[rgba(255,255,255,0.08)]
-        overflow-hidden
-      "
-      style={{ position: 'fixed' }}
+      className="sidebar-fixed flex flex-col glass-strong border-r border-[rgba(255,255,255,0.08)]"
     >
       {/* Logo */}
       <div className="h-16 flex items-center px-6 border-b border-[rgba(255,255,255,0.08)] shrink-0 relative">
