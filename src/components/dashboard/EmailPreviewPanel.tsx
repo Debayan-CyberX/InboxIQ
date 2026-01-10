@@ -23,7 +23,7 @@ const tones = [
   { id: "short", label: "Short" },
   { id: "confident", label: "Confident" },
   { id: "polite", label: "Polite" },
-  { id: "sales", label: "Sales-focused" },
+  { id: "sales-focused", label: "Sales-focused" },
 ];
 
 const EmailPreviewPanel = ({
@@ -47,7 +47,11 @@ const EmailPreviewPanel = ({
     if (email?.subject) {
       setSubjectContent(email.subject);
     }
-  }, [email?.draft, email?.subject]);
+    // Reset tone when email changes
+    if (email) {
+      setSelectedTone("professional");
+    }
+  }, [email?.draft, email?.subject, email]);
 
   const handleSend = async () => {
     if (!onSend) return;
@@ -161,11 +165,13 @@ const EmailPreviewPanel = ({
                 {tones.map((tone) => (
                   <button
                     key={tone.id}
-                    onClick={() => {
-                      setSelectedTone(tone.id);
-                      // Trigger regeneration with new tone
-                      if (onRegenerate && email) {
-                        handleRegenerate(tone.id);
+                    onClick={async () => {
+                      if (onRegenerate && email && !isRegenerating) {
+                        setSelectedTone(tone.id);
+                        // Trigger regeneration with new tone immediately
+                        await handleRegenerate(tone.id);
+                      } else {
+                        setSelectedTone(tone.id);
                       }
                     }}
                     disabled={isRegenerating}

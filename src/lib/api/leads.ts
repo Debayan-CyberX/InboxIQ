@@ -253,7 +253,7 @@ export const leadsApi = {
     return data || [];
   },
 
-  // Generate AI follow-up for a lead
+  // Generate AI follow-up for a lead (creates a new draft)
   async generateFollowUp(leadId: string, betterAuthUserId: string, tone?: "professional" | "short" | "confident" | "polite" | "sales-focused"): Promise<{ id: string; subject: string; body: string }> {
     const authServerUrl = import.meta.env.VITE_BETTER_AUTH_URL || "http://localhost:3001";
 
@@ -273,6 +273,31 @@ export const leadsApi = {
 
     const result = await response.json();
     return result.draft;
+  },
+
+  // Generate follow-up text only (doesn't create a draft - for regeneration)
+  async generateFollowUpText(leadId: string, betterAuthUserId: string, tone?: "professional" | "short" | "confident" | "polite" | "sales-focused"): Promise<{ subject: string; body: string }> {
+    const authServerUrl = import.meta.env.VITE_BETTER_AUTH_URL || "http://localhost:3001";
+
+    const response = await fetch(`${authServerUrl}/api/leads/${leadId}/generate-followup-text`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+      body: JSON.stringify({ tone }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({ error: "Unknown error" }));
+      throw new Error(errorData.message || errorData.error || `Failed to generate follow-up text: ${response.statusText}`);
+    }
+
+    const result = await response.json();
+    return {
+      subject: result.subject,
+      body: result.body,
+    };
   },
 };
 

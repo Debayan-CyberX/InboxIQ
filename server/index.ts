@@ -6,7 +6,7 @@ import cors from "cors";
 import { Pool } from "pg";
 import { auth } from "./auth.js";
 import { detectLeadsFromEmailThreads } from "./lead-detection.js";
-import { generateFollowUpForLead } from "./ai-followup.js";
+import { generateFollowUpForLead, generateFollowUpText } from "./ai-followup.js";
 import { updateAllLeadsContactInfo } from "./update-lead-contact.js";
 
 type BetterAuthSession = {
@@ -808,6 +808,79 @@ app.post("/api/leads/:leadId/generate-followup", async (req, res) => {
         subject: result.subject,
         body: result.body,
       },
+    });
+  } catch (error) {
+    console.error("❌ Follow-up generation error:", error);
+    return res.status(500).json({
+      error: "Follow-up generation failed",
+      message: error instanceof Error ? error.message : "Unknown error",
+    });
+  }
+});
+
+// New endpoint: Generate follow-up text without creating a draft (for regeneration)
+app.post("/api/leads/:leadId/generate-followup-text", async (req, res) => {
+  if (req.method === "OPTIONS") {
+    return res.sendStatus(200);
+  }
+
+  try {
+    const { leadId } = req.params;
+    const sessionData = await getSessionFromRequest(req);
+
+    if (!sessionData || !sessionData.user || !sessionData.user.id) {
+      return res.status(401).json({
+        error: "Unauthorized",
+        message: "You must be logged in",
+      });
+    }
+
+    const betterAuthUserId = sessionData.user.id;
+    const databaseUrl = process.env.DATABASE_URL;
+    
+    if (!databaseUrl) {
+      return res.status(500).json({
+        error: "Database not configured",
+        message: "DATABASE_URL environment variable is not set",
+      });
+    }
+
+    const pool = new Pool({
+      connectionString: databaseUrl,
+      ssl: databaseUrl.includes("supabase.co")
+        ? { rejectUnauthorized: false }
+        : false,
+    });
+
+    const userResult = await pool.query(
+      `SELECT public.get_user_uuid_from_better_auth_id($1) AS uuid`,
+      [betterAuthUserId]
+    );
+
+    if (!userResult.rows[0]?.uuid) {
+      await pool.end();
+      return res.status(404).json({
+        error: "User not found",
+        message: "User not found in database",
+      });
+    }
+
+    const userUuid = userResult.rows[0].uuid;
+    await pool.end();
+
+    const tone = (req.body?.tone as "professional" | "short" | "confident" | "polite" | "sales-focused") || undefined;
+    
+    const result = await generateFollowUpText(
+      leadId,
+      userUuid,
+      databaseUrl,
+      tone
+    );
+
+    return res.json({
+      success: true,
+      subject: result.subject,
+      body: result.body,
     });
   } catch (error) {
     console.error("❌ Follow-up generation error:", error);

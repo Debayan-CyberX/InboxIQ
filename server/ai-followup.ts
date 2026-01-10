@@ -151,6 +151,99 @@ function generateFallbackFollowUp(
   return { subject, body };
 }
 
+// Generate follow-up text without creating a draft (for regeneration)
+export async function generateFollowUpText(
+  leadId: string,
+  userUuid: string,
+  databaseUrl: string,
+  tone?: "professional" | "short" | "confident" | "polite" | "sales-focused"
+): Promise<{ subject: string; body: string }> {
+  const pool = new Pool({
+    connectionString: databaseUrl,
+    ssl: databaseUrl.includes("supabase.co")
+      ? { rejectUnauthorized: false }
+      : false,
+  });
+
+  try {
+    const leadResult = await pool.query(
+      `SELECT id, email, contact_name, days_since_contact
+       FROM public.leads
+       WHERE id = $1 AND user_id = $2
+       LIMIT 1`,
+      [leadId, userUuid]
+    );
+
+    if (leadResult.rows.length === 0) {
+      throw new Error("Lead not found");
+    }
+
+    const lead = leadResult.rows[0];
+
+    const threadResult = await pool.query(
+      `SELECT id, subject
+       FROM public.email_threads
+       WHERE lead_id = $1 AND user_id = $2
+       ORDER BY updated_at DESC
+       LIMIT 1`,
+      [leadId, userUuid]
+    );
+
+    let lastSubject = "our conversation";
+    let lastSnippet = "";
+    let daysSinceLastReply = lead.days_since_contact || 0;
+
+    if (threadResult.rows.length > 0) {
+      lastSubject = threadResult.rows[0].subject || lastSubject;
+
+      const emailResult = await pool.query(
+        `SELECT body_text, received_at, sent_at, created_at
+         FROM public.emails
+         WHERE thread_id = $1 AND user_id = $2
+         ORDER BY COALESCE(received_at, sent_at, created_at) DESC
+         LIMIT 1`,
+        [threadResult.rows[0].id, userUuid]
+      );
+
+      if (emailResult.rows.length > 0) {
+        const email = emailResult.rows[0];
+        lastSnippet = email.body_text || "";
+
+        const lastDate =
+          email.received_at || email.sent_at || email.created_at;
+
+        if (lastDate) {
+          daysSinceLastReply = Math.floor(
+            (Date.now() - new Date(lastDate).getTime()) /
+              (1000 * 60 * 60 * 24)
+          );
+        }
+      }
+    }
+
+    const selectedTone = tone || "professional";
+    const variation = Math.floor(Math.random() * 10000);
+    
+    const context: FollowUpContext = {
+      recipientName: lead.contact_name,
+      recipientEmail: lead.email,
+      lastSubject,
+      lastSnippet: lastSnippet.slice(0, 200),
+      daysSinceLastReply,
+      tone: selectedTone,
+      variation,
+    };
+
+    const { subject, body } = await generateFollowUpWithAI(context);
+
+    await pool.end();
+    return { subject, body };
+  } catch (error) {
+    await pool.end();
+    throw error;
+  }
+}
+
 export async function generateFollowUpForLead(
   leadId: string,
   userUuid: string,

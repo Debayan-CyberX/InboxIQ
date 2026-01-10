@@ -226,35 +226,18 @@ const Drafts = () => {
         description: `Generating new follow-up for ${draft.toName}`,
       });
 
-      // Generate new follow-up with tone (this creates a new draft)
+      // Generate new follow-up text with tone (doesn't create a new draft)
       const toneValue = (tone || draft.tone) as "professional" | "short" | "confident" | "polite" | "sales-focused" | undefined;
-      const newDraft = await leadsApi.generateFollowUp(draft.leadId, userId, toneValue);
+      const newContent = await leadsApi.generateFollowUpText(draft.leadId, userId, toneValue);
 
-      // Try to update the existing draft in database with new content
-      // If it doesn't exist, we'll just use the new draft that was created
-      try {
-        await emailsApi.update(draft.id, userId, {
-          subject: newDraft.subject,
-          body_text: newDraft.body,
-          body_html: newDraft.body.replace(/\n/g, "<br>"),
-          updated_at: new Date().toISOString(),
-        });
-        
-        // If update succeeded, delete the newly created draft (since we updated the existing one)
-        try {
-          await emailsApi.delete(newDraft.id, userId);
-        } catch (deleteErr) {
-          // If deletion fails, it's not critical - just log it
-          console.warn("Failed to delete duplicate draft:", deleteErr);
-        }
-      } catch (updateErr) {
-        // If update fails (draft doesn't exist), keep the new draft that was created
-        // This is fine - the new draft will replace the old one in the UI
-        console.log("Original draft not found, using newly generated draft:", updateErr);
-        
-        // Update the draft ID in our local state to point to the new draft
-        // The refresh will handle this, but we can also update immediately
-      }
+      // Update the existing draft in database with new content
+      await emailsApi.update(draft.id, userId, {
+        subject: newContent.subject,
+        body_text: newContent.body,
+        body_html: newContent.body.replace(/\n/g, "<br>"),
+        tone: toneValue || draft.tone || "professional",
+        updated_at: new Date().toISOString(),
+      });
 
       // Dismiss loading toast and show success
       toast.dismiss(loadingToast);
@@ -262,19 +245,24 @@ const Drafts = () => {
         description: `New follow-up generated for ${draft.toName}`,
       });
 
-      // Refresh drafts list
+      // Update the selected draft immediately with new content (optimistic update)
+      if (selectedDraft && selectedDraft.id === draft.id) {
+        const updatedDraft: EmailDraft = {
+          ...selectedDraft,
+          subject: newContent.subject,
+          draft: newContent.body,
+          tone: toneValue || selectedDraft.tone || "professional",
+        };
+        setSelectedDraft(updatedDraft);
+      }
+
+      // Refresh drafts list in background
       const draftsData = await emailsApi.getDrafts(userId);
       setDrafts(draftsData);
 
-      // Update selected draft if it's the one being regenerated
-      // Check both the original ID and the new draft ID (in case we kept the new one)
+      // Update selected draft from refreshed data to ensure consistency
       if (selectedDraft && selectedDraft.id === draft.id) {
-        // First try to find by original ID
-        let updatedDraft = draftsData.find(d => d.id === draft.id);
-        // If not found, try to find the new draft (same lead_id)
-        if (!updatedDraft) {
-          updatedDraft = draftsData.find(d => d.lead_id === draft.leadId && d.is_ai_draft);
-        }
+        const updatedDraft = draftsData.find(d => d.id === draft.id);
         if (updatedDraft) {
           const transformed = transformDraft(updatedDraft);
           setSelectedDraft(transformed);
