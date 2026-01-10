@@ -53,8 +53,9 @@ const Sidebar = () => {
     <aside
       className="
         fixed
-        inset-y-0
+        top-0
         left-0
+        bottom-0
         z-40
         w-64
         h-screen
@@ -63,7 +64,9 @@ const Sidebar = () => {
         glass-strong
         border-r
         border-[rgba(255,255,255,0.08)]
+        overflow-hidden
       "
+      style={{ position: 'fixed' }}
     >
       {/* Logo */}
       <div className="h-16 flex items-center px-6 border-b border-[rgba(255,255,255,0.08)] shrink-0 relative">

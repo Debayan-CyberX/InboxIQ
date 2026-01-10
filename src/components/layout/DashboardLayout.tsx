@@ -33,9 +33,9 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
   return (
     <div className="min-h-screen bg-[#0D0F14] flex">
       {/* Desktop Sidebar (fixed, no scroll) */}
-      <aside className="hidden lg:fixed lg:inset-y-0 lg:z-30 lg:flex lg:w-64">
+      <div className="hidden lg:block lg:fixed lg:top-0 lg:left-0 lg:bottom-0 lg:z-30 lg:w-64">
         <Sidebar />
-      </aside>
+      </div>
 
       {/* Mobile Sidebar Drawer */}
       {mobileOpen && (
