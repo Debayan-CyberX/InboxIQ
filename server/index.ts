@@ -207,6 +207,120 @@ app.get("/api/test", (req, res) => {
   });
 });
 
+// Update email draft endpoint (bypasses RLS)
+app.put("/api/emails/:emailId", async (req, res) => {
+  if (req.method === "OPTIONS") {
+    return res.sendStatus(200);
+  }
+
+  try {
+    const { emailId } = req.params;
+    const updates = req.body;
+
+    // Get session
+    const sessionData = await getSessionFromRequest(req);
+    if (!sessionData || !sessionData.user || !sessionData.user.id) {
+      return res.status(401).json({
+        error: "Unauthorized",
+        message: "You must be logged in",
+      });
+    }
+
+    const betterAuthUserId = sessionData.user.id;
+    const databaseUrl = process.env.DATABASE_URL;
+    
+    if (!databaseUrl) {
+      return res.status(500).json({
+        error: "Database not configured",
+        message: "DATABASE_URL environment variable is not set",
+      });
+    }
+
+    const pool = new Pool({
+      connectionString: databaseUrl,
+      ssl: databaseUrl.includes("supabase.co")
+        ? { rejectUnauthorized: false }
+        : false,
+    });
+
+    // Get user UUID
+    const userResult = await pool.query(
+      `SELECT public.get_user_uuid_from_better_auth_id($1) AS uuid`,
+      [betterAuthUserId]
+    );
+
+    if (!userResult.rows[0]?.uuid) {
+      await pool.end();
+      return res.status(404).json({
+        error: "User not found",
+        message: "User not found in database",
+      });
+    }
+
+    const userUuid = userResult.rows[0].uuid;
+
+    // Build update query dynamically
+    const updateFields: string[] = [];
+    const updateValues: any[] = [];
+    let paramIndex = 1;
+
+    const allowedFields = [
+      "subject", "body_text", "body_html", "tone", "status", 
+      "is_ai_draft", "ai_reason", "scheduled_for"
+    ];
+
+    for (const [key, value] of Object.entries(updates)) {
+      if (allowedFields.includes(key) && value !== undefined) {
+        updateFields.push(`${key} = $${paramIndex}`);
+        updateValues.push(value);
+        paramIndex++;
+      }
+    }
+
+    if (updateFields.length === 0) {
+      await pool.end();
+      return res.status(400).json({
+        error: "No valid fields to update",
+        message: "No valid update fields provided",
+      });
+    }
+
+    // Always update updated_at
+    updateFields.push(`updated_at = NOW()`);
+
+    // Update the email
+    const updateQuery = `
+      UPDATE public.emails
+      SET ${updateFields.join(", ")}
+      WHERE id = $${paramIndex} AND user_id = $${paramIndex + 1}
+      RETURNING *
+    `;
+    updateValues.push(emailId, userUuid);
+
+    const result = await pool.query(updateQuery, updateValues);
+
+    await pool.end();
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({
+        error: "Email not found",
+        message: `Email with id ${emailId} not found`,
+      });
+    }
+
+    return res.json({
+      success: true,
+      email: result.rows[0],
+    });
+  } catch (error) {
+    console.error("❌ Email update error:", error);
+    return res.status(500).json({
+      error: "Email update failed",
+      message: error instanceof Error ? error.message : "Unknown error",
+    });
+  }
+});
+
 // Email sending endpoint
 app.post("/api/emails/send", async (req, res) => {
   try {

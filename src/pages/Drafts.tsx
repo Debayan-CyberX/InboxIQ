@@ -240,23 +240,22 @@ const Drafts = () => {
           tone: toneValue || draft.tone || "professional",
         });
       } catch (updateErr) {
-        // If update fails because draft doesn't exist, use backend endpoint to create draft
-        // This bypasses RLS since backend has direct database access
+        // If update fails, log the error but don't create a new draft
+        // The backend endpoint should handle RLS, so if it still fails, the draft truly doesn't exist
         const errorMessage = updateErr instanceof Error ? updateErr.message : String(updateErr);
+        console.error("Failed to update draft:", errorMessage);
         
-        // Check for "not found" error (either from our code or Supabase)
-        if (errorMessage.includes("not found") || errorMessage.includes("PGRST116")) {
-          console.log("Draft not found, creating new draft via backend instead");
+        // Only create a new draft if the error explicitly says the draft doesn't exist
+        if (errorMessage.includes("not found") && errorMessage.includes("Email with id")) {
+          console.log("Draft not found, creating new draft via backend");
           
           if (!draft.leadId) {
             throw new Error("Cannot create draft: No lead ID available");
           }
 
           // Use the backend endpoint that creates drafts (bypasses RLS)
-          // This will create a new draft with the generated content
           const newDraft = await leadsApi.generateFollowUp(draft.leadId, userId, toneValue);
           
-          // The backend already created the draft, so we just need to update our local state
           // Update the draft ID for the rest of the function
           const oldDraftId = draft.id;
           draft.id = newDraft.id;
@@ -270,8 +269,7 @@ const Drafts = () => {
           newContent.subject = newDraft.subject;
           newContent.body = newDraft.body;
         } else {
-          // For other errors (like 406, RLS violations), log and re-throw
-          console.error("Unexpected error updating draft:", updateErr);
+          // For other errors, re-throw to show to user
           throw updateErr;
         }
       }

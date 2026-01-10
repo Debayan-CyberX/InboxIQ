@@ -103,42 +103,26 @@ export const emailsApi = {
     return data;
   },
 
-  // Update an email
+  // Update an email (uses backend endpoint to bypass RLS)
   async update(emailId: string, betterAuthUserId: string, updates: UpdateEmail): Promise<Email> {
-    if (!supabase) {
-      throw new Error("Supabase client not initialized");
+    const authServerUrl = import.meta.env.VITE_BETTER_AUTH_URL || "http://localhost:3001";
+
+    const response = await fetch(`${authServerUrl}/api/emails/${emailId}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+      body: JSON.stringify(updates),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({ error: "Unknown error" }));
+      throw new Error(errorData.message || errorData.error || `Failed to update email: ${response.statusText}`);
     }
 
-    // Get user UUID
-    const { getUserIdFromBetterAuth } = await import("./utils");
-    const userUuid = await getUserIdFromBetterAuth(betterAuthUserId);
-    
-    if (!userUuid) {
-      throw new Error("User not found in database");
-    }
-
-    const { data, error } = await supabase
-      .from("emails")
-      .update(updates)
-      .eq("id", emailId)
-      .eq("user_id", userUuid)
-      .select()
-      .maybeSingle();
-
-    if (error) {
-      console.error("Error updating email:", error);
-      // Provide more specific error message
-      if (error.code === "PGRST116") {
-        throw new Error(`Email with id ${emailId} not found`);
-      }
-      throw new Error(`Failed to update email: ${error.message} (code: ${error.code || "unknown"})`);
-    }
-
-    if (!data) {
-      throw new Error(`Email with id ${emailId} not found`);
-    }
-
-    return data;
+    const result = await response.json();
+    return result.email;
   },
 
   // Delete an email
