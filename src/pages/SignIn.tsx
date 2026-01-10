@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate, Link, Navigate } from "react-router-dom";
 import { signIn, useSession } from "@/lib/auth-client";
+import { motion } from "framer-motion";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,6 +15,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { SignInTransition } from "@/components/transitions/SignInTransition";
 
 import { Sparkles, Mail, Lock, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
@@ -29,6 +31,7 @@ export default function SignIn() {
   const [password, setPassword] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isTransitioning, setIsTransitioning] = useState(false);
 
   // Redirect if already signed in
   useEffect(() => {
@@ -57,23 +60,28 @@ export default function SignIn() {
         const message = result.error.message || "Failed to sign in";
         setError(message);
         toast.error("Sign in failed", { description: message });
+        setIsSubmitting(false);
       } else {
-        toast.success("Signed in successfully!");
+        // Start transition animation
+        setIsTransitioning(true);
         
-        // Wait a moment for the session cookie to be set, then navigate
-        // This ensures the session is available when ProtectedRoute checks it
+        // Wait for transition animation to complete, then navigate
         setTimeout(async () => {
-          // Try to verify session is available
           try {
             // Small delay to allow cookie to be set
             await new Promise(resolve => setTimeout(resolve, 200));
-            navigate("/dashboard", { replace: true });
+            navigate("/dashboard", { 
+              replace: true,
+              state: { fromSignIn: true } // Pass state to indicate transition
+            });
           } catch (navError) {
             console.error("Navigation error:", navError);
-            // Navigate anyway - ProtectedRoute will handle session check
-            navigate("/dashboard", { replace: true });
+            navigate("/dashboard", { 
+              replace: true,
+              state: { fromSignIn: true }
+            });
           }
-        }, 100);
+        }, 500); // Match transition duration
       }
     } catch (err) {
       console.error("❌ Sign in error:", err);
@@ -92,11 +100,45 @@ export default function SignIn() {
 
   /* -------------------- UI -------------------- */
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background px-4">
-      <Card className="w-full max-w-md">
-        <CardHeader className="space-y-2 text-center">
+    <SignInTransition 
+      isTransitioning={isTransitioning}
+      onTransitionComplete={() => {
+        // Transition complete callback (optional)
+      }}
+    >
+      <div className="min-h-screen flex items-center justify-center bg-background px-4">
+        <Card className="w-full max-w-md relative overflow-hidden">
+          {/* Subtle glow effect on card when submitting */}
+          {isSubmitting && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ 
+                opacity: [0.3, 0.6, 0.3],
+              }}
+              exit={{ opacity: 0 }}
+              transition={{
+                duration: 2,
+                repeat: Infinity,
+                ease: "easeInOut"
+              }}
+              className="absolute inset-0 bg-gradient-to-r from-[#7C3AED]/10 via-[#22D3EE]/10 to-[#7C3AED]/10 pointer-events-none"
+            />
+          )}
+        <CardHeader className="space-y-2 text-center relative z-10">
           <div className="flex justify-center">
-            <Sparkles className="h-8 w-8 text-primary" />
+            <motion.div
+              animate={isSubmitting ? { 
+                scale: [1, 1.1, 1],
+                rotate: [0, 5, -5, 0]
+              } : {}}
+              transition={{ 
+                duration: 1.5, 
+                repeat: isSubmitting ? Infinity : 0,
+                ease: "easeInOut"
+              }}
+            >
+              <Sparkles className="h-8 w-8 text-primary" />
+            </motion.div>
           </div>
           <CardTitle className="text-2xl">Sign in to InboxIQ</CardTitle>
           <CardDescription>
@@ -104,8 +146,8 @@ export default function SignIn() {
           </CardDescription>
         </CardHeader>
 
-        <form onSubmit={handleSubmit}>
-          <CardContent className="space-y-4">
+          <form onSubmit={handleSubmit}>
+          <CardContent className="space-y-4 relative z-10">
             {error && (
               <Alert variant="destructive">
                 <AlertCircle className="h-4 w-4" />
@@ -125,6 +167,7 @@ export default function SignIn() {
                   onChange={(e) => setEmail(e.target.value)}
                   className="pl-9"
                   required
+                  disabled={isSubmitting || isTransitioning}
                 />
               </div>
             </div>
@@ -140,19 +183,42 @@ export default function SignIn() {
                   onChange={(e) => setPassword(e.target.value)}
                   className="pl-9"
                   required
+                  disabled={isSubmitting || isTransitioning}
                 />
               </div>
             </div>
           </CardContent>
 
-          <CardFooter className="flex flex-col gap-4">
-            <Button
-              type="submit"
+          <CardFooter className="flex flex-col gap-4 relative z-10">
+            <motion.div
+              whileHover={!isSubmitting && !isTransitioning ? { scale: 1.02 } : {}}
+              whileTap={!isSubmitting && !isTransitioning ? { scale: 0.98 } : {}}
               className="w-full"
-              disabled={isSubmitting || isPending}
             >
-              {isSubmitting ? "Signing in..." : "Sign In"}
-            </Button>
+              <Button
+                type="submit"
+                className="w-full relative overflow-hidden"
+                disabled={isSubmitting || isPending || isTransitioning}
+              >
+                {/* Glow effect on button */}
+                {isSubmitting && (
+                  <motion.div
+                    className="absolute inset-0 bg-gradient-to-r from-[#7C3AED] via-[#22D3EE] to-[#7C3AED] opacity-30"
+                    animate={{
+                      x: ["-100%", "100%"],
+                    }}
+                    transition={{
+                      duration: 2,
+                      repeat: Infinity,
+                      ease: "linear"
+                    }}
+                  />
+                )}
+                <span className="relative z-10">
+                  {isSubmitting ? "Signing in..." : "Sign In"}
+                </span>
+              </Button>
+            </motion.div>
 
             <p className="text-sm text-muted-foreground">
               Don’t have an account?{" "}
@@ -167,5 +233,6 @@ export default function SignIn() {
         </form>
       </Card>
     </div>
+    </SignInTransition>
   );
 }
