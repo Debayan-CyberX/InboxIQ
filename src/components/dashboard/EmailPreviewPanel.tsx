@@ -98,7 +98,7 @@ const EmailPreviewPanel = ({
     {/* Panel */}
     <div
       className="
-        fixed inset-y-0 right-0 z-50
+        fixed top-0 right-0 z-50
         w-full sm:w-[420px] lg:w-[480px]
         bg-card border-l border-border shadow-xl
         flex flex-col animate-slide-in
