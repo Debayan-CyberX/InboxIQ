@@ -423,15 +423,30 @@ const Drafts = () => {
   };
 
   const handleDelete = async (draftId: string) => {
+    if (!userId) {
+      toast.error("User not authenticated");
+      return;
+    }
+
     try {
-      // TODO: Implement delete in database
-      // await emailsApi.delete(draftId, userId);
+      // Delete from database
+      await emailsApi.delete(draftId, userId);
       
       // Update local state
       setDrafts(prev => prev.filter(d => d.id !== draftId));
+      
+      // Also update selected draft if it's the one being deleted
+      if (selectedDraft && selectedDraft.id === draftId) {
+        setSelectedDraft(null);
+        setIsPreviewOpen(false);
+      }
+      
       toast.success("Draft deleted");
     } catch (err) {
-      toast.error("Failed to delete draft");
+      console.error("Error deleting draft:", err);
+      toast.error("Failed to delete draft", {
+        description: err instanceof Error ? err.message : "Unknown error",
+      });
     }
   };
 

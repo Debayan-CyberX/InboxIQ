@@ -397,6 +397,85 @@ app.post("/api/emails/send", async (req, res) => {
   }
 });
 
+// Delete email endpoint (bypasses RLS)
+app.delete("/api/emails/:emailId", async (req, res) => {
+  if (req.method === "OPTIONS") {
+    return res.sendStatus(200);
+  }
+
+  try {
+    const { emailId } = req.params;
+
+    // Get session
+    const sessionData = await getSessionFromRequest(req);
+    if (!sessionData || !sessionData.user || !sessionData.user.id) {
+      return res.status(401).json({
+        error: "Unauthorized",
+        message: "You must be logged in",
+      });
+    }
+
+    const betterAuthUserId = sessionData.user.id;
+    const databaseUrl = process.env.DATABASE_URL;
+    
+    if (!databaseUrl) {
+      return res.status(500).json({
+        error: "Database not configured",
+        message: "DATABASE_URL environment variable is not set",
+      });
+    }
+
+    const pool = new Pool({
+      connectionString: databaseUrl,
+      ssl: databaseUrl.includes("supabase.co")
+        ? { rejectUnauthorized: false }
+        : false,
+    });
+
+    // Get user UUID
+    const userResult = await pool.query(
+      `SELECT public.get_user_uuid_from_better_auth_id($1) AS uuid`,
+      [betterAuthUserId]
+    );
+
+    if (!userResult.rows[0]?.uuid) {
+      await pool.end();
+      return res.status(404).json({
+        error: "User not found",
+        message: "User not found in database",
+      });
+    }
+
+    const userUuid = userResult.rows[0].uuid;
+
+    // Delete the email
+    const deleteResult = await pool.query(
+      `DELETE FROM public.emails WHERE id = $1 AND user_id = $2 RETURNING id`,
+      [emailId, userUuid]
+    );
+
+    await pool.end();
+
+    if (deleteResult.rows.length === 0) {
+      return res.status(404).json({
+        error: "Email not found",
+        message: `Email with id ${emailId} not found`,
+      });
+    }
+
+    return res.json({
+      success: true,
+      message: "Email deleted successfully",
+    });
+  } catch (error) {
+    console.error("❌ Email delete error:", error);
+    return res.status(500).json({
+      error: "Email delete failed",
+      message: error instanceof Error ? error.message : "Unknown error",
+    });
+  }
+});
+
 // Email connection endpoints
 app.post("/api/email-connections/connect", async (req, res) => {
   try {

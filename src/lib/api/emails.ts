@@ -139,16 +139,23 @@ export const emailsApi = {
       throw new Error("User not found in database");
     }
 
-    const { error } = await supabase
-      .from("emails")
-      .delete()
-      .eq("id", emailId)
-      .eq("user_id", userUuid);
+    // Use backend endpoint to bypass RLS
+    const authServerUrl = import.meta.env.VITE_BETTER_AUTH_URL || "http://localhost:3001";
 
-    if (error) {
-      console.error("Error deleting email:", error);
-      throw new Error(`Failed to delete email: ${error.message}`);
+    const response = await fetch(`${authServerUrl}/api/emails/${emailId}`, {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({ error: "Unknown error" }));
+      throw new Error(errorData.message || errorData.error || `Failed to delete email: ${response.statusText}`);
     }
+
+    // No return value needed for delete
   },
 
   // Archive a thread
