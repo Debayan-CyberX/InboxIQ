@@ -15,7 +15,6 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { SignInTransition } from "@/components/transitions/SignInTransition";
 
 import { Sparkles, Mail, Lock, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
@@ -31,7 +30,6 @@ export default function SignIn() {
   const [password, setPassword] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [isTransitioning, setIsTransitioning] = useState(false);
 
   // Redirect if already signed in
   useEffect(() => {
@@ -62,25 +60,8 @@ export default function SignIn() {
         toast.error("Sign in failed", { description: message });
         setIsSubmitting(false);
       } else {
-        // Store transition flag in sessionStorage (more reliable than location.state)
-        sessionStorage.setItem("fromSignIn", "true");
-        
-        // Start transition animation
-        setIsTransitioning(true);
-        
-        // Wait for transition animation to complete, then navigate
-        setTimeout(async () => {
-          try {
-            // Small delay to allow cookie to be set
-            await new Promise(resolve => setTimeout(resolve, 200));
-            navigate("/dashboard", { 
-              replace: true
-            });
-          } catch (navError) {
-            console.error("Navigation error:", navError);
-            navigate("/dashboard", { replace: true });
-          }
-        }, 500); // Match transition duration
+        // Navigate immediately after successful sign in
+        navigate("/dashboard", { replace: true });
       }
     } catch (err) {
       console.error("❌ Sign in error:", err);
@@ -99,13 +80,7 @@ export default function SignIn() {
 
   /* -------------------- UI -------------------- */
   return (
-    <SignInTransition 
-      isTransitioning={isTransitioning}
-      onTransitionComplete={() => {
-        // Transition complete callback (optional)
-      }}
-    >
-      <div className="min-h-screen flex items-center justify-center bg-background px-4">
+    <div className="min-h-screen flex items-center justify-center bg-background px-4">
         <Card className="w-full max-w-md relative overflow-hidden">
           {/* Subtle glow effect on card when submitting */}
           {isSubmitting && (
@@ -166,7 +141,7 @@ export default function SignIn() {
                   onChange={(e) => setEmail(e.target.value)}
                   className="pl-9"
                   required
-                  disabled={isSubmitting || isTransitioning}
+                  disabled={isSubmitting}
                 />
               </div>
             </div>
@@ -182,7 +157,7 @@ export default function SignIn() {
                   onChange={(e) => setPassword(e.target.value)}
                   className="pl-9"
                   required
-                  disabled={isSubmitting || isTransitioning}
+                  disabled={isSubmitting}
                 />
               </div>
             </div>
@@ -190,14 +165,14 @@ export default function SignIn() {
 
           <CardFooter className="flex flex-col gap-4 relative z-10">
             <motion.div
-              whileHover={!isSubmitting && !isTransitioning ? { scale: 1.02 } : {}}
-              whileTap={!isSubmitting && !isTransitioning ? { scale: 0.98 } : {}}
+              whileHover={!isSubmitting ? { scale: 1.02 } : {}}
+              whileTap={!isSubmitting ? { scale: 0.98 } : {}}
               className="w-full"
             >
               <Button
                 type="submit"
                 className="w-full relative overflow-hidden"
-                disabled={isSubmitting || isPending || isTransitioning}
+                  disabled={isSubmitting || isPending}
               >
                 {/* Glow effect on button */}
                 {isSubmitting && (
@@ -232,6 +207,5 @@ export default function SignIn() {
         </form>
       </Card>
     </div>
-    </SignInTransition>
   );
 }

@@ -9,7 +9,6 @@ import { useState, useEffect } from "react";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import LandingLoader from "@/components/LandingLoader";
-import { DashboardTransition } from "@/components/transitions/DashboardTransition";
 import Landing from "./pages/Landing";
 import Index from "./pages/Index";
 import Inbox from "./pages/Inbox";
@@ -79,9 +78,7 @@ const AnimatedRoutes = () => {
           {/* Protected routes */}
           <Route path="/dashboard" element={
               <ProtectedRoute>
-                <DashboardTransition>
-                  <Index />
-                </DashboardTransition>
+                <Index />
               </ProtectedRoute>
             }
           />
