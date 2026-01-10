@@ -264,6 +264,10 @@ const Index = () => {
 
   return (
     <DashboardLayout>
+      <div className="fixed bottom-4 right-4 z-50 bg-red-600 text-white px-4 py-2 rounded-lg text-sm">
+  COMMIT TEST v1
+</div>
+
       {/* Futuristic animated background */}
       <div className="fixed inset-0 -z-10 overflow-hidden pointer-events-none">
         {/* Deep gradient base */}
