@@ -290,7 +290,7 @@ const Inbox = () => {
 
   return (
     <DashboardLayout>
-      <div className="space-y-4 sm:space-y-6 max-w-[1600px] mx-auto">
+      <div className="space-y-4 sm:space-y-6 max-w-[1600px] mx-auto flex-1 flex flex-col min-h-0 w-full">
         {/* Header */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4 mb-6 sm:mb-8">
           <div>
@@ -313,7 +313,7 @@ const Inbox = () => {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6 flex-1 min-h-0">
           {/* Left Sidebar - Filters */}
           <div className="col-span-1 lg:col-span-3 space-y-3 sm:space-y-4">
             {/* Search */}
@@ -368,10 +368,10 @@ const Inbox = () => {
           </div>
 
           {/* Main Content - Email Threads */}
-          <div className="col-span-1 lg:col-span-9">
-            <div className="glass-strong rounded-xl sm:rounded-2xl overflow-hidden">
-              {/* Thread List */}
-              <div className="divide-y divide-[rgba(255,255,255,0.08)] max-h-[calc(100vh-280px)] sm:max-h-[calc(100vh-300px)] overflow-y-auto">
+          <div className="col-span-1 lg:col-span-9 flex flex-col min-h-0">
+            <div className="glass-strong rounded-xl sm:rounded-2xl overflow-hidden flex flex-col flex-1 min-h-0">
+              {/* Thread List - Scrollable Container */}
+              <div className="divide-y divide-[rgba(255,255,255,0.08)] overflow-y-auto overflow-x-hidden flex-1 min-h-0 max-h-[calc(100dvh-220px)] sm:max-h-[calc(100vh-280px)] lg:max-h-[calc(100vh-300px)]" style={{ WebkitOverflowScrolling: 'touch' }}>
                 {filteredThreads.length === 0 ? (
                   <div className="p-8 sm:p-12 md:p-16 text-center">
                     <MailOpen className="w-12 h-12 sm:w-16 sm:h-16 text-muted-foreground/40 mx-auto mb-4 sm:mb-6" />
