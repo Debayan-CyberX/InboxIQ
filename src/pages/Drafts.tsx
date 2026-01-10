@@ -240,44 +240,23 @@ const Drafts = () => {
           tone: toneValue || draft.tone || "professional",
         });
       } catch (updateErr) {
-        // If update fails because draft doesn't exist, create a new draft instead
+        // If update fails because draft doesn't exist, use backend endpoint to create draft
+        // This bypasses RLS since backend has direct database access
         const errorMessage = updateErr instanceof Error ? updateErr.message : String(updateErr);
         
         // Check for "not found" error (either from our code or Supabase)
         if (errorMessage.includes("not found") || errorMessage.includes("PGRST116")) {
-          console.log("Draft not found, creating new draft instead");
+          console.log("Draft not found, creating new draft via backend instead");
           
-          // We already have all the info we need from the draft object
-          // No need to fetch the lead - just create the draft directly
           if (!draft.leadId) {
             throw new Error("Cannot create draft: No lead ID available");
           }
 
-          // Create new draft with the information we already have
-          const newDraft = await emailsApi.create(
-            {
-              thread_id: draft.threadId || null,
-              lead_id: draft.leadId,
-              direction: "outbound",
-              from_email: "", // Will be set by backend
-              to_email: draft.to,
-              cc_emails: null,
-              bcc_emails: null,
-              subject: newContent.subject,
-              body_text: newContent.body,
-              body_html: newContent.body.replace(/\n/g, "<br>"),
-              status: "draft",
-              is_ai_draft: true,
-              tone: toneValue || draft.tone || "professional",
-              ai_reason: "AI-generated draft (regenerated)",
-              external_email_id: null,
-              sent_at: null,
-              received_at: null,
-              scheduled_for: null,
-            },
-            userId
-          );
-
+          // Use the backend endpoint that creates drafts (bypasses RLS)
+          // This will create a new draft with the generated content
+          const newDraft = await leadsApi.generateFollowUp(draft.leadId, userId, toneValue);
+          
+          // The backend already created the draft, so we just need to update our local state
           // Update the draft ID for the rest of the function
           const oldDraftId = draft.id;
           draft.id = newDraft.id;
@@ -286,8 +265,12 @@ const Drafts = () => {
           if (selectedDraft && selectedDraft.id === oldDraftId) {
             selectedDraft.id = newDraft.id;
           }
+          
+          // Update the content to match what was generated
+          newContent.subject = newDraft.subject;
+          newContent.body = newDraft.body;
         } else {
-          // For other errors (like 406), log and re-throw
+          // For other errors (like 406, RLS violations), log and re-throw
           console.error("Unexpected error updating draft:", updateErr);
           throw updateErr;
         }
