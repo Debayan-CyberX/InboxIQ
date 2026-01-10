@@ -51,21 +51,27 @@ const StatusCard = ({ title, value, change, icon: Icon, variant, subtitle }: Sta
       transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
       whileHover={{ y: -6, transition: { duration: 0.2 } }}
       className={cn(
-        "glass-strong p-6 border-l-4 rounded-2xl hover-lift cursor-pointer group relative overflow-hidden transition-all duration-300",
+        "glass-strong p-6 sm:p-7 border-l-4 rounded-2xl hover-lift cursor-pointer group relative overflow-hidden transition-all duration-300",
         style.accent,
         style.glow
       )}
     >
-      {/* Enhanced gradient overlay */}
-      <div className="absolute inset-0 bg-gradient-to-br from-white/8 via-white/3 to-transparent pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-      <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-white/5 to-transparent rounded-full blur-2xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
+      {/* Enhanced gradient overlay with more visibility */}
+      <div className="absolute inset-0 bg-gradient-to-br from-white/12 via-white/5 to-transparent pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+      <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-white/8 to-transparent rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
+      {variant === "hot" && (
+        <div className="absolute top-0 right-0 w-24 h-24 bg-[#EF4444]/10 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
+      )}
+      {variant === "warm" && (
+        <div className="absolute top-0 right-0 w-24 h-24 bg-[#F59E0B]/10 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
+      )}
       
       <div className="relative flex items-start justify-between gap-3">
-        <div className="space-y-2 flex-1 min-w-0">
-          <p className="text-sm font-semibold text-muted-foreground/80 truncate uppercase tracking-wider">{title}</p>
+        <div className="space-y-2.5 flex-1 min-w-0">
+          <p className="text-xs sm:text-sm font-semibold text-muted-foreground/90 truncate uppercase tracking-wider">{title}</p>
           <div className="flex items-baseline gap-3 flex-wrap">
             <span className={cn(
-              "text-4xl font-bold tracking-tight",
+              "text-4xl sm:text-5xl font-bold tracking-tight",
               variant === "hot" ? "text-gradient-hot text-glow-hot" :
               variant === "warm" ? "text-gradient-warm text-glow-warm" :
               variant === "risk" ? "text-gradient-hot text-glow-hot" :
@@ -93,16 +99,16 @@ const StatusCard = ({ title, value, change, icon: Icon, variant, subtitle }: Sta
           )}
         </div>
         <motion.div
-          whileHover={{ scale: 1.1, rotate: 5 }}
+          whileHover={{ scale: 1.15, rotate: 8 }}
           transition={{ type: "spring", stiffness: 400, damping: 10 }}
-          className={cn("p-3 rounded-xl shrink-0 transition-all duration-300 shadow-lg", style.iconBg)}
+          className={cn("p-3.5 sm:p-4 rounded-xl shrink-0 transition-all duration-300 shadow-xl", style.iconBg)}
         >
           <Icon className={cn(
-            "w-6 h-6",
+            "w-6 h-6 sm:w-7 sm:h-7",
             style.iconColor,
-            variant === "hot" && "drop-shadow-[0_0_8px_rgba(239,68,68,0.5)]",
-            variant === "warm" && "drop-shadow-[0_0_8px_rgba(245,158,11,0.5)]",
-            variant === "risk" && "drop-shadow-[0_0_8px_rgba(239,68,68,0.5)]"
+            variant === "hot" && "drop-shadow-[0_0_12px_rgba(239,68,68,0.6)]",
+            variant === "warm" && "drop-shadow-[0_0_12px_rgba(245,158,11,0.6)]",
+            variant === "risk" && "drop-shadow-[0_0_12px_rgba(239,68,68,0.6)]"
           )} />
         </motion.div>
       </div>

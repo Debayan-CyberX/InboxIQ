@@ -22,34 +22,36 @@ const PerformanceSnapshot = ({ metrics }: PerformanceSnapshotProps) => {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
-      className="card-elevated p-6 relative overflow-hidden"
+      className="card-elevated p-6 sm:p-7 relative overflow-hidden"
     >
-      {/* Subtle background gradient */}
-      <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 via-transparent to-purple-500/5 pointer-events-none" />
+      {/* Enhanced background gradient */}
+      <div className="absolute inset-0 bg-gradient-to-br from-blue-500/8 via-purple-500/5 to-transparent pointer-events-none" />
+      <div className="absolute top-0 right-0 w-72 h-72 bg-blue-500/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
       
       <div className="relative">
-        <div className="flex items-center justify-between mb-6">
-          <h3 className="text-base font-semibold text-foreground tracking-tight">Performance Metrics</h3>
-          <span className="text-xs text-muted-foreground bg-muted/30 px-2.5 py-1 rounded-full">Last 7 days</span>
+        <div className="flex items-center justify-between mb-7">
+          <h3 className="text-base sm:text-lg font-semibold text-foreground tracking-tight">Performance Metrics</h3>
+          <span className="text-xs text-muted-foreground bg-muted/40 px-3 py-1.5 rounded-full border border-border/50">Last 7 days</span>
         </div>
         
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 sm:gap-8">
           {metrics.map((metric, index) => (
             <motion.div
               key={index}
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.3 + index * 0.1, duration: 0.4 }}
-              className="space-y-3 min-w-0 p-4 rounded-xl hover:bg-muted/30 transition-colors group"
+              whileHover={{ scale: 1.02, transition: { duration: 0.2 } }}
+              className="space-y-3 min-w-0 p-5 rounded-xl hover:bg-muted/40 transition-all duration-200 group border border-transparent hover:border-border/30"
             >
               <div className="flex items-center gap-2.5 text-muted-foreground">
-                <div className="p-1.5 rounded-lg bg-muted/50 group-hover:bg-accent/10 transition-colors">
-                  <metric.icon className="w-4 h-4 shrink-0" />
+                <div className="p-2 rounded-lg bg-muted/60 group-hover:bg-accent/15 transition-colors shadow-sm">
+                  <metric.icon className="w-4 h-4 sm:w-5 sm:h-5 shrink-0" />
                 </div>
-                <span className="text-xs font-medium truncate">{metric.label}</span>
+                <span className="text-xs sm:text-sm font-medium truncate">{metric.label}</span>
               </div>
               <div className="flex items-baseline gap-2 min-w-0">
-                <span className="text-3xl font-bold text-foreground truncate tracking-tight">{metric.value}</span>
+                <span className="text-3xl sm:text-4xl font-bold text-foreground truncate tracking-tight">{metric.value}</span>
                 {metric.change && (
                   <span className={cn(
                     "text-xs font-semibold shrink-0 px-2 py-0.5 rounded-full backdrop-blur-sm",

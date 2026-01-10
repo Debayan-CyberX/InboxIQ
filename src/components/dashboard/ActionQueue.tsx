@@ -43,21 +43,24 @@ const ActionQueue = ({
 
   return (
     <div className="card-elevated animate-fade-in animation-delay-300 max-w-full overflow-hidden relative">
-      {/* Subtle background accent */}
-      <div className="absolute top-0 right-0 w-40 h-40 bg-accent/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
+      {/* Enhanced background accent */}
+      <div className="absolute top-0 right-0 w-48 h-48 bg-accent/8 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
+      <div className="absolute bottom-0 left-0 w-32 h-32 bg-purple-500/5 rounded-full blur-2xl translate-y-1/2 -translate-x-1/2 pointer-events-none" />
       
       {/* Header */}
-      <div className="relative p-5 sm:p-6 border-b border-border/50 flex items-start sm:items-center justify-between gap-3 bg-gradient-to-r from-accent/5 via-transparent to-transparent">
+      <div className="relative p-5 sm:p-6 border-b border-border/50 flex items-start sm:items-center justify-between gap-3 bg-gradient-to-r from-accent/8 via-accent/3 to-transparent">
         <div>
-          <h2 className="text-base font-semibold text-foreground flex items-center gap-2">
-            <Sparkles className="w-4 h-4 text-accent shrink-0" />
+          <h2 className="text-base sm:text-lg font-semibold text-foreground flex items-center gap-2.5">
+            <div className="p-1.5 rounded-lg bg-accent/20 border border-accent/30">
+              <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 text-accent shrink-0 drop-shadow-[0_0_8px_rgba(124,58,237,0.5)]" />
+            </div>
             Action Queue
           </h2>
-          <p className="text-sm text-muted-foreground mt-0.5">
+          <p className="text-sm text-muted-foreground/90 mt-1">
             AI-prioritized tasks for today
           </p>
         </div>
-        <span className="text-xs font-medium text-accent bg-accent/10 px-2.5 py-1 rounded-full shrink-0">
+        <span className="text-xs sm:text-sm font-semibold text-accent bg-accent/15 border border-accent/20 px-3 py-1.5 rounded-full shrink-0 shadow-sm">
           {actions.length} pending
         </span>
       </div>
@@ -68,30 +71,31 @@ const ActionQueue = ({
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.4 }}
-          className="p-10 sm:p-14 text-center relative"
+          className="p-12 sm:p-16 text-center relative"
         >
           <div className="absolute inset-0 flex items-center justify-center">
-            <div className="w-32 h-32 bg-accent/5 rounded-full blur-2xl" />
+            <div className="w-40 h-40 bg-accent/8 rounded-full blur-3xl" />
+            <div className="w-24 h-24 bg-purple-500/5 rounded-full blur-2xl absolute" />
           </div>
           <div className="relative">
             <motion.div
               animate={{ 
-                scale: [1, 1.1, 1],
-                rotate: [0, 5, -5, 0]
+                scale: [1, 1.15, 1],
+                rotate: [0, 8, -8, 0]
               }}
               transition={{ 
-                duration: 2,
+                duration: 2.5,
                 repeat: Infinity,
-                repeatDelay: 3
+                repeatDelay: 2.5
               }}
-              className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-br from-accent/20 to-accent/10 border border-accent/20 mb-5 shadow-lg shadow-accent/10"
+              className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-accent/30 via-accent/20 to-accent/10 border-2 border-accent/30 mb-6 shadow-xl shadow-accent/20"
             >
-              <Sparkles className="w-7 h-7 text-accent" />
+              <Sparkles className="w-8 h-8 text-accent drop-shadow-[0_0_12px_rgba(124,58,237,0.7)]" />
             </motion.div>
-            <h3 className="text-base font-semibold text-foreground mb-2">
+            <h3 className="text-lg sm:text-xl font-bold text-foreground mb-3">
               You're all caught up 🎉
             </h3>
-            <p className="text-sm text-muted-foreground max-w-xs mx-auto">
+            <p className="text-sm sm:text-base text-muted-foreground/90 max-w-sm mx-auto leading-relaxed">
               InboxIQ will suggest actions as emails arrive
             </p>
           </div>
@@ -106,33 +110,35 @@ const ActionQueue = ({
               transition={{ delay: index * 0.05, duration: 0.3 }}
               whileHover={{ x: 4, transition: { duration: 0.2 } }}
               className={cn(
-                "p-4 sm:p-5 border-l-4 transition-all duration-200 hover:bg-muted/40 rounded-r-lg group",
+                "p-4 sm:p-5 border-l-4 transition-all duration-200 hover:bg-muted/50 rounded-r-lg group border-r border-r-transparent hover:border-r-border/20",
                 priorityStyles[action.priority]
               )}
             >
+              {/* Subtle gradient on hover */}
+              <div className="absolute inset-0 bg-gradient-to-r from-accent/3 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none rounded-r-lg" />
               {/* Mobile-first layout */}
-              <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
+              <div className="relative flex flex-col sm:flex-row gap-3 sm:gap-4">
                 {/* Content */}
                 <div className="flex-1 min-w-0 space-y-2">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <h4 className="font-medium text-foreground truncate">
+                    <h4 className="font-semibold text-foreground truncate text-base">
                       {action.company}
                     </h4>
 
                     {action.hasAIDraft && (
-                      <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs font-medium bg-accent/10 text-accent shrink-0">
+                      <span className="inline-flex items-center gap-1.5 px-2 py-1 rounded-md text-xs font-semibold bg-accent/15 border border-accent/20 text-accent shrink-0 shadow-sm">
                         <Sparkles className="w-3 h-3 shrink-0" />
                         AI Draft
                       </span>
                     )}
                   </div>
 
-                  <p className="text-sm text-foreground/90 line-clamp-2 break-words">
+                  <p className="text-sm sm:text-base text-foreground/95 line-clamp-2 break-words font-medium">
                     {action.subject}
                   </p>
 
-                  <p className="text-xs text-muted-foreground flex items-start gap-1.5">
-                    <Clock className="w-3 h-3 shrink-0 mt-0.5" />
+                  <p className="text-xs sm:text-sm text-muted-foreground/90 flex items-start gap-1.5">
+                    <Clock className="w-3.5 h-3.5 shrink-0 mt-0.5" />
                     <span className="line-clamp-2 break-words">
                       {action.reason}
                     </span>

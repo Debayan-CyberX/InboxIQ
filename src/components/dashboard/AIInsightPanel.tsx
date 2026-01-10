@@ -16,28 +16,29 @@ const AIInsightPanel = ({ insight, highlights }: AIInsightPanelProps) => {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-      className="card-elevated p-6 relative overflow-hidden group"
+      className="card-elevated p-6 sm:p-7 relative overflow-hidden group"
     >
-      {/* Subtle gradient overlay */}
-      <div className="absolute inset-0 bg-gradient-to-br from-accent/5 via-transparent to-purple-500/5 pointer-events-none" />
-      <div className="absolute top-0 right-0 w-64 h-64 bg-accent/3 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
+      {/* Enhanced gradient overlay */}
+      <div className="absolute inset-0 bg-gradient-to-br from-accent/10 via-purple-500/5 to-transparent pointer-events-none" />
+      <div className="absolute top-0 right-0 w-80 h-80 bg-accent/8 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
+      <div className="absolute bottom-0 left-0 w-64 h-64 bg-purple-500/5 rounded-full blur-2xl translate-y-1/2 -translate-x-1/2 pointer-events-none" />
       
       <div className="relative flex items-start gap-5">
         <motion.div
-          whileHover={{ scale: 1.1, rotate: 5 }}
+          whileHover={{ scale: 1.15, rotate: 10 }}
           transition={{ type: "spring", stiffness: 400, damping: 10 }}
-          className="p-3 rounded-xl bg-gradient-to-br from-accent/25 via-accent/15 to-accent/5 border border-accent/20 shrink-0 shadow-lg shadow-accent/10"
+          className="p-4 rounded-xl bg-gradient-to-br from-accent/30 via-accent/20 to-accent/10 border border-accent/30 shrink-0 shadow-xl shadow-accent/20"
         >
-          <Sparkles className="w-6 h-6 text-accent drop-shadow-[0_0_8px_rgba(124,58,237,0.5)]" />
+          <Sparkles className="w-7 h-7 text-accent drop-shadow-[0_0_12px_rgba(124,58,237,0.7)]" />
         </motion.div>
         
         <div className="flex-1 min-w-0 space-y-4">
           <div className="flex items-center justify-between gap-3">
-            <h3 className="text-base font-semibold text-foreground tracking-tight">Today's AI Digest</h3>
-            <span className="text-xs text-muted-foreground shrink-0 bg-muted/30 px-2.5 py-1 rounded-full">Updated 2 min ago</span>
+            <h3 className="text-base sm:text-lg font-semibold text-foreground tracking-tight">Today's AI Digest</h3>
+            <span className="text-xs text-muted-foreground shrink-0 bg-muted/40 px-3 py-1.5 rounded-full border border-border/50">Updated 2 min ago</span>
           </div>
           
-          <p className="text-sm text-foreground/85 leading-relaxed break-words">
+          <p className="text-sm sm:text-base text-foreground/90 leading-relaxed break-words">
             {insight}
           </p>
 
