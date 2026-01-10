@@ -62,7 +62,7 @@ export const SignInTransition = ({
   };
 
   return (
-    <div className="relative min-h-screen">
+    <div className="relative min-h-screen w-full overflow-x-hidden max-w-full">
       {/* Background overlay - darkens during transition */}
       <AnimatePresence>
         {isTransitioning && (
@@ -72,6 +72,7 @@ export const SignInTransition = ({
             animate="animate"
             exit="initial"
             className="fixed inset-0 bg-[#0D0F14] z-[9999] pointer-events-none"
+            style={{ width: '100vw', maxWidth: '100vw', left: 0, right: 0 }}
           />
         )}
       </AnimatePresence>
@@ -86,8 +87,12 @@ export const SignInTransition = ({
             onTransitionComplete();
           }
         }}
-        className="relative z-10"
-        style={{ willChange: shouldAnimate ? 'opacity, transform, filter' : 'auto' }}
+        className="relative z-10 w-full min-w-0 max-w-full overflow-x-hidden"
+        style={{ 
+          willChange: shouldAnimate ? 'opacity, transform, filter' : 'auto',
+          width: '100%',
+          maxWidth: '100%'
+        }}
       >
         {children}
       </motion.div>

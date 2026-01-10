@@ -80,7 +80,7 @@ const AnimatedRoutes = () => {
           <Route path="/dashboard" element={
               <ProtectedRoute>
                 <DashboardTransition>
-                  <PageTransition><Index /></PageTransition>
+                  <Index />
                 </DashboardTransition>
               </ProtectedRoute>
             }

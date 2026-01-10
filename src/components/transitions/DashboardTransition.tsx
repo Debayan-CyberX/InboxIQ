@@ -10,6 +10,7 @@ interface DashboardTransitionProps {
 /**
  * Premium transition wrapper for Dashboard pages
  * Handles the entrance animation: fade + slide in from bottom
+ * Simplified to not interfere with layout
  */
 export const DashboardTransition = ({ 
   children, 
@@ -17,6 +18,7 @@ export const DashboardTransition = ({
 }: DashboardTransitionProps) => {
   const location = useLocation();
   const [shouldAnimate, setShouldAnimate] = useState(false);
+  const [mounted, setMounted] = useState(false);
   
   // Check if coming from sign-in using sessionStorage (more reliable)
   useEffect(() => {
@@ -26,45 +28,48 @@ export const DashboardTransition = ({
       // Clear the flag after reading it
       sessionStorage.removeItem("fromSignIn");
     }
+    setMounted(true);
   }, [isEntering, location.state]);
   
-  const fromSignIn = shouldAnimate;
+  const fromSignIn = shouldAnimate && mounted;
 
   // Check if user prefers reduced motion
   const prefersReducedMotion = typeof window !== "undefined" 
     ? window.matchMedia("(prefers-reduced-motion: reduce)").matches 
     : false;
 
-  // Entrance animation variants
+  // Simplified animation - minimal impact on layout
   const containerVariants = {
     initial: { 
-      opacity: 0, 
-      y: prefersReducedMotion ? 0 : 30,
-      filter: prefersReducedMotion ? "blur(0px)" : "blur(4px)"
+      opacity: prefersReducedMotion ? 1 : 0,
     },
     animate: { 
-      opacity: 1, 
-      y: 0,
-      filter: "blur(0px)",
+      opacity: 1,
       transition: {
-        duration: prefersReducedMotion ? 0.2 : 0.6,
-        delay: prefersReducedMotion ? 0 : 0.2, // Slight delay for smooth sequence
-        ease: [0.22, 1, 0.36, 1], // easeOutCubic
+        duration: prefersReducedMotion ? 0 : 0.3,
+        ease: "easeOut",
       }
     }
   };
 
-  // Only animate if coming from sign-in
-  if (!fromSignIn) {
-    return <div className="w-full h-full">{children}</div>;
+  // Always return children without layout-affecting wrappers when not animating
+  if (!fromSignIn || prefersReducedMotion) {
+    return <>{children}</>;
   }
 
+  // Minimal transition wrapper
   return (
     <motion.div
       variants={containerVariants}
       initial="initial"
       animate="animate"
-      className="w-full h-full"
+      style={{ 
+        width: '100%', 
+        maxWidth: '100%',
+        minWidth: 0,
+        overflow: 'hidden'
+      }}
+      className="w-full min-w-0 max-w-full overflow-x-hidden"
     >
       {children}
     </motion.div>
