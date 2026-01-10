@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { X, Sparkles, Send, Edit3, RotateCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -7,13 +7,14 @@ interface EmailPreviewPanelProps {
   isOpen: boolean;
   onClose: () => void;
   onSend?: (editedContent?: { subject?: string; body?: string }) => void | Promise<void>;
-  onRegenerate?: () => void | Promise<void>;
+  onRegenerate?: (tone?: string) => void | Promise<void>;
   email: {
     to: string;
     subject: string;
     draft: string;
     reason: string;
     company: string;
+    leadId?: string;
   } | null;
 }
 
@@ -66,19 +67,19 @@ const EmailPreviewPanel = ({
     }
   };
 
-  const handleRegenerate = async () => {
+  const handleRegenerate = useCallback(async (toneOverride?: string) => {
     if (!onRegenerate) return;
 
     try {
       setIsRegenerating(true);
-      await onRegenerate();
+      await onRegenerate(toneOverride || selectedTone);
       // Content will be updated via useEffect when email prop changes
     } catch (err) {
       console.error("Regenerate failed:", err);
     } finally {
       setIsRegenerating(false);
     }
-  };
+  }, [onRegenerate, selectedTone]);
 
   if (!isOpen || !email) return null;
 
@@ -160,12 +161,20 @@ const EmailPreviewPanel = ({
                 {tones.map((tone) => (
                   <button
                     key={tone.id}
-                    onClick={() => setSelectedTone(tone.id)}
+                    onClick={() => {
+                      setSelectedTone(tone.id);
+                      // Trigger regeneration with new tone
+                      if (onRegenerate && email) {
+                        handleRegenerate(tone.id);
+                      }
+                    }}
+                    disabled={isRegenerating}
                     className={cn(
-                      "px-3 py-1.5 rounded-full text-xs font-medium",
+                      "px-3 py-1.5 rounded-full text-xs font-medium transition-all",
                       selectedTone === tone.id
                         ? "bg-accent text-accent-foreground"
-                        : "bg-muted text-muted-foreground hover:bg-muted/80"
+                        : "bg-muted text-muted-foreground hover:bg-muted/80",
+                      isRegenerating && "opacity-50 cursor-not-allowed"
                     )}
                   >
                     {tone.label}
@@ -214,7 +223,7 @@ const EmailPreviewPanel = ({
               <Button
                 variant="outline"
                 className="gap-2"
-                onClick={handleRegenerate}
+                onClick={() => handleRegenerate()}
                 disabled={isSending || isRegenerating}
               >
                 <RotateCcw className={cn("w-4 h-4", isRegenerating && "animate-spin")} />

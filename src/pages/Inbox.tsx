@@ -27,6 +27,7 @@ import type { EmailThread as DBEmailThread } from "@/types/database";
 import { toast } from "sonner";
 import { formatDistanceToNow } from "date-fns";
 import EmailThreadDetailPanel from "@/components/dashboard/EmailThreadDetailPanel";
+import EmailComposeDialog from "@/components/dashboard/EmailComposeDialog";
 
 type FilterType = "all" | "unread" | "important" | "starred" | "archived" | "drafts";
 
@@ -106,6 +107,7 @@ const Inbox = () => {
   const [selectedThreads, setSelectedThreads] = useState<Set<string>>(new Set());
   const [selectedThread, setSelectedThread] = useState<DBEmailThread & { lead_company?: string; lead_contact_name?: string; lead_email?: string } | null>(null);
   const [isDetailPanelOpen, setIsDetailPanelOpen] = useState(false);
+  const [isComposeOpen, setIsComposeOpen] = useState(false);
 
   // Fetch email threads from database
   const fetchThreads = async () => {
@@ -305,7 +307,12 @@ const Inbox = () => {
               <Filter className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
               <span className="hidden sm:inline">Filters</span>
             </Button>
-            <Button variant="default" size="sm" className="gap-2 text-xs sm:text-sm flex-1 sm:flex-initial">
+            <Button 
+              variant="default" 
+              size="sm" 
+              className="gap-2 text-xs sm:text-sm flex-1 sm:flex-initial"
+              onClick={() => setIsComposeOpen(true)}
+            >
               <Mail className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
               <span className="hidden sm:inline">Compose</span>
               <span className="sm:hidden">New</span>
@@ -542,6 +549,17 @@ const Inbox = () => {
           }}
         />
       )}
+
+      {/* Email Compose Dialog */}
+      <EmailComposeDialog
+        isOpen={isComposeOpen}
+        onClose={() => setIsComposeOpen(false)}
+        mode="new"
+        onSent={() => {
+          setIsComposeOpen(false);
+          fetchThreads();
+        }}
+      />
     </DashboardLayout>
   );
 };

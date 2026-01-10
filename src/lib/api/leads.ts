@@ -254,7 +254,7 @@ export const leadsApi = {
   },
 
   // Generate AI follow-up for a lead
-  async generateFollowUp(leadId: string, betterAuthUserId: string): Promise<{ id: string; subject: string; body: string }> {
+  async generateFollowUp(leadId: string, betterAuthUserId: string, tone?: "professional" | "short" | "confident" | "polite" | "sales-focused"): Promise<{ id: string; subject: string; body: string }> {
     const authServerUrl = import.meta.env.VITE_BETTER_AUTH_URL || "http://localhost:3001";
 
     const response = await fetch(`${authServerUrl}/api/leads/${leadId}/generate-followup`, {
@@ -263,6 +263,7 @@ export const leadsApi = {
         "Content-Type": "application/json",
       },
       credentials: "include",
+      body: JSON.stringify({ tone }),
     });
 
     if (!response.ok) {

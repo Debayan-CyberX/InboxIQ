@@ -790,11 +790,14 @@ app.post("/api/leads/:leadId/generate-followup", async (req, res) => {
     console.log(`🤖 Generating follow-up for lead: ${leadId}`);
 
     // Generate follow-up
+    const tone = (req.body?.tone as "professional" | "short" | "confident" | "polite" | "sales-focused") || undefined;
+    
     const result = await generateFollowUpForLead(
       leadId,
       userUuid,
       userEmail,
-      databaseUrl
+      databaseUrl,
+      tone
     );
 
     return res.json({

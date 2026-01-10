@@ -209,7 +209,7 @@ const Drafts = () => {
     setIsPreviewOpen(true);
   };
 
-  const handleRegenerate = async (draft: EmailDraft) => {
+  const handleRegenerate = async (draft: EmailDraft, tone?: string) => {
     if (!userId) {
       toast.error("User not authenticated");
       return;
@@ -226,8 +226,9 @@ const Drafts = () => {
         description: `Generating new follow-up for ${draft.toName}`,
       });
 
-      // Generate new follow-up (this creates a new draft)
-      const newDraft = await leadsApi.generateFollowUp(draft.leadId, userId);
+      // Generate new follow-up with tone (this creates a new draft)
+      const toneValue = (tone || draft.tone) as "professional" | "short" | "confident" | "polite" | "sales-focused" | undefined;
+      const newDraft = await leadsApi.generateFollowUp(draft.leadId, userId, toneValue);
 
       // Try to update the existing draft in database with new content
       // If it doesn't exist, we'll just use the new draft that was created
@@ -830,13 +831,14 @@ const Drafts = () => {
             setSelectedDraft(null);
           }}
           onSend={(editedContent) => handleSend(selectedDraft, editedContent)}
-          onRegenerate={() => handleRegenerate(selectedDraft)}
+          onRegenerate={(tone) => handleRegenerate(selectedDraft, tone)}
           email={{
             to: selectedDraft.to,
             subject: selectedDraft.subject,
             draft: selectedDraft.draft,
             reason: selectedDraft.reason,
             company: selectedDraft.company,
+            leadId: selectedDraft.leadId,
           }}
         />
       )}
