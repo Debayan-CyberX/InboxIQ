@@ -6,6 +6,7 @@ export { insightsApi } from "./insights";
 export { analyticsApi } from "./analytics";
 export { settingsApi } from "./settings";
 export { emailConnectionsApi } from "./email-connections";
+export { actionQueueApi } from "./action-queue";
 
 // Helper function to get current user ID from session
 export async function getCurrentUserId(): Promise<string | null> {

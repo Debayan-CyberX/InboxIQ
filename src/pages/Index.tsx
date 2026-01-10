@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { Flame, Bell, FileEdit, AlertTriangle, TrendingUp, Clock, Zap } from "lucide-react";
 import DashboardLayout from "@/components/layout/DashboardLayout";
 import StatusCard from "@/components/dashboard/StatusCard";
@@ -10,8 +11,8 @@ import PerformanceSnapshot from "@/components/dashboard/PerformanceSnapshot";
 import { LoadingState } from "@/components/LoadingState";
 import { ErrorState } from "@/components/ErrorState";
 import { useUserId } from "@/hooks/useUserId";
-import { leadsApi, actionsApi, insightsApi, analyticsApi } from "@/lib/api";
-import type { Lead, Action, AIInsight } from "@/types/database";
+import { leadsApi, insightsApi, analyticsApi, actionQueueApi, type ActionQueueTask } from "@/lib/api";
+import type { Lead, AIInsight } from "@/types/database";
 import { toast } from "sonner";
 
 // Transform database Lead to component Lead format
@@ -27,19 +28,42 @@ const transformLead = (lead: Lead) => ({
   hasAIDraft: lead.has_ai_draft,
 });
 
-// Transform database Action to component Action format
-const transformAction = (action: Action) => ({
-  id: action.id,
-  company: action.lead_company || "Unknown",
-  subject: action.subject || "",
-  priority: action.priority,
-  type: action.type,
-  reason: action.reason || "",
-  hasAIDraft: action.has_ai_draft,
-});
+// Transform ActionQueueTask to component Action format
+const transformActionQueueTask = (task: ActionQueueTask, leads: Lead[]) => {
+  // Find the lead if leadId is provided
+  const relatedLead = task.leadId ? leads.find(l => l.id === task.leadId) : null;
+  
+  // Determine company name and subject based on task type
+  let company = "Contact";
+  let subject = task.title;
+  
+  if (relatedLead) {
+    company = relatedLead.company || relatedLead.contact_name || "Contact";
+  }
+  
+  // Map task types to component action types
+  const actionType = task.type === "followup" 
+    ? "follow-up" 
+    : task.type === "review" || task.type === "send"
+    ? "reply"
+    : "follow-up";
+  
+  return {
+    id: task.id,
+    company,
+    subject: task.title,
+    priority: task.priority,
+    type: actionType,
+    reason: task.description,
+    hasAIDraft: task.type === "review" || task.type === "send",
+    leadId: task.leadId,
+    emailId: task.emailId,
+  };
+};
 
 const Index = () => {
   const userId = useUserId();
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
   const [emailPanelOpen, setEmailPanelOpen] = useState(false);
@@ -53,7 +77,7 @@ const Index = () => {
   
   // Data state
   const [leads, setLeads] = useState<Lead[]>([]);
-  const [actions, setActions] = useState<Action[]>([]);
+  const [actionQueueTasks, setActionQueueTasks] = useState<ActionQueueTask[]>([]);
   const [insights, setInsights] = useState<AIInsight[]>([]);
   const [statistics, setStatistics] = useState({
     total: 0,
@@ -77,15 +101,18 @@ const Index = () => {
         setError(null);
 
         // Fetch all data in parallel
-        const [leadsData, actionsData, insightsData, statsData] = await Promise.all([
+        const [leadsData, actionQueueData, insightsData, statsData] = await Promise.all([
           leadsApi.getAll(userId),
-          actionsApi.getAll(userId, "pending"),
+          actionQueueApi.getTasks(userId).catch((err) => {
+            console.error("Error fetching action queue:", err);
+            return []; // Return empty array on error
+          }),
           insightsApi.getRecent(userId, 1),
           leadsApi.getStatistics(userId),
         ]);
 
         setLeads(leadsData);
-        setActions(actionsData);
+        setActionQueueTasks(actionQueueData);
         setInsights(insightsData);
         setStatistics({
           total: Number(statsData.total_leads) || 0,
@@ -123,17 +150,35 @@ const Index = () => {
     }
   };
 
-  const handleActionReviewSend = (action: ReturnType<typeof transformAction>) => {
-    const dbAction = actions.find(a => a.id === action.id);
-    const relatedLead = leads.find(l => l.id === dbAction?.lead_id);
-    setSelectedEmail({
-      to: relatedLead?.email || "contact@company.com",
-      subject: action.subject,
-      company: action.company,
-      reason: action.reason,
-      draft: "AI draft content would go here...", // TODO: Fetch actual draft
-    });
-    setEmailPanelOpen(true);
+  const handleActionReviewSend = (action: ReturnType<typeof transformActionQueueTask>) => {
+    // Find the original task
+    const task = actionQueueTasks.find(t => t.id === action.id);
+    if (!task) return;
+
+    // Handle navigation based on task type
+    if (task.type === "followup") {
+      // Navigate to Leads page - the user can create a draft there
+      navigate("/leads");
+    } else if (task.type === "review" || task.type === "send") {
+      // Navigate to Drafts page where the user can review/send
+      navigate("/drafts");
+    } else {
+      // Fallback: try to open email preview if we have lead info
+      const relatedLead = action.leadId ? leads.find(l => l.id === action.leadId) : null;
+      if (relatedLead) {
+        setSelectedEmail({
+          to: relatedLead.email || "contact@company.com",
+          subject: action.subject,
+          company: action.company,
+          reason: action.reason,
+          draft: "AI draft content would go here...", // TODO: Fetch actual draft
+        });
+        setEmailPanelOpen(true);
+      } else {
+        // Navigate to drafts as fallback
+        navigate("/drafts");
+      }
+    }
   };
 
   // Calculate performance metrics (simplified for now)
@@ -163,7 +208,8 @@ const Index = () => {
 
   // Transform leads for components
   const transformedLeads = leads.map(transformLead);
-  const transformedActions = actions.map(transformAction);
+  // Transform action queue tasks to component actions
+  const transformedActions = actionQueueTasks.map(task => transformActionQueueTask(task, leads));
 
   // Calculate stats from real data
   const hotLeadsCount = statistics.hot;

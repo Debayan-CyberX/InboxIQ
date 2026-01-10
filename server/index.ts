@@ -815,6 +815,215 @@ app.post("/api/leads/:leadId/generate-followup", async (req, res) => {
   }
 });
 
+// Action Queue endpoint - Generate smart tasks based on leads and emails
+app.get("/api/action-queue", async (req, res) => {
+  try {
+    // Get session from Better Auth
+    const sessionData = await getSessionFromRequest(req);
+
+    if (!sessionData || !sessionData.user || !sessionData.user.id) {
+      return res.status(401).json({
+        error: "Unauthorized",
+        message: "You must be logged in",
+      });
+    }
+
+    const betterAuthUserId = sessionData.user.id;
+    const databaseUrl = process.env.DATABASE_URL;
+
+    if (!databaseUrl) {
+      return res.status(500).json({
+        error: "Database not configured",
+        message: "DATABASE_URL environment variable is not set",
+      });
+    }
+
+    // Get user UUID from Better Auth ID
+    const pool = new Pool({
+      connectionString: databaseUrl,
+      ssl: databaseUrl.includes("supabase.co")
+        ? { rejectUnauthorized: false }
+        : false,
+    });
+
+    const userResult = await pool.query(
+      `SELECT public.get_user_uuid_from_better_auth_id($1) AS uuid`,
+      [betterAuthUserId]
+    );
+
+    if (!userResult.rows[0]?.uuid) {
+      await pool.end();
+      return res.status(404).json({
+        error: "User not found",
+        message: "User not found in database",
+      });
+    }
+
+    const userUuid = userResult.rows[0].uuid;
+    const tasks: Array<{
+      id: string;
+      type: "followup" | "review" | "send";
+      title: string;
+      description: string;
+      leadId?: string;
+      emailId?: string;
+      priority: "high" | "medium" | "low";
+    }> = [];
+
+    // Rule 1: Follow-up tasks - leads with days_since_contact >= 3 and no sent reply
+    // Only include leads that don't have any sent emails to avoid duplicate follow-ups
+    const followUpLeadsResult = await pool.query(
+      `
+      SELECT 
+        l.id,
+        l.company,
+        l.contact_name,
+        l.email,
+        l.days_since_contact,
+        l.ai_suggestion
+      FROM public.leads l
+      WHERE l.user_id = $1
+        AND l.days_since_contact >= 3
+        -- Exclude leads that already have a sent email (user has already followed up)
+        AND NOT EXISTS (
+          SELECT 1 
+          FROM public.email_threads et
+          JOIN public.emails e ON e.thread_id = et.id
+          WHERE et.lead_id = l.id 
+            AND e.user_id = l.user_id
+            AND e.direction IN ('outgoing', 'outbound', 'sent')
+            AND e.status = 'sent'
+        )
+      ORDER BY l.days_since_contact DESC
+      LIMIT 5
+      `,
+      [userUuid]
+    );
+
+    // Generate follow-up tasks
+    for (const lead of followUpLeadsResult.rows) {
+      // Priority: high if >= 7 days, medium if >= 5 days, low otherwise
+      const priority: "high" | "medium" | "low" =
+        lead.days_since_contact >= 7
+          ? "high"
+          : lead.days_since_contact >= 5
+          ? "medium"
+          : "low";
+
+      tasks.push({
+        id: `followup-${lead.id}`,
+        type: "followup",
+        title: `Follow up with ${lead.contact_name || lead.company}`,
+        description: lead.ai_suggestion ||
+          `No contact for ${lead.days_since_contact} days. Time to re-engage.`,
+        leadId: lead.id,
+        priority,
+      });
+    }
+
+    // Rule 2: Review AI drafts - emails with is_ai_draft = true and status = 'draft'
+    const aiDraftsResult = await pool.query(
+      `
+      SELECT 
+        e.id,
+        e.subject,
+        e.body_text,
+        e.body_html,
+        e.ai_reason,
+        l.id as lead_id,
+        l.company,
+        l.contact_name
+      FROM public.emails e
+      LEFT JOIN public.email_threads et ON et.id = e.thread_id
+      LEFT JOIN public.leads l ON l.id = et.lead_id
+      WHERE e.user_id = $1
+        AND e.is_ai_draft = true
+        AND e.status = 'draft'
+      ORDER BY e.created_at DESC
+      LIMIT 5
+      `,
+      [userUuid]
+    );
+
+    // Generate review tasks
+    for (const draft of aiDraftsResult.rows) {
+      const company = draft.company || "Contact";
+      const hasLead = !!draft.lead_id;
+
+      tasks.push({
+        id: `review-${draft.id}`,
+        type: "review",
+        title: `Review AI draft for ${company}`,
+        description: draft.ai_reason || "AI-generated draft ready for review",
+        leadId: draft.lead_id || undefined,
+        emailId: draft.id,
+        priority: hasLead ? "high" : "medium", // Prioritize drafts with leads
+      });
+    }
+
+    // Rule 3: Send drafts - drafts that exist and haven't been sent
+    // This overlaps with review tasks, but we want to prioritize ones without AI flag
+    const regularDraftsResult = await pool.query(
+      `
+      SELECT 
+        e.id,
+        e.subject,
+        e.body_text,
+        e.body_html,
+        l.id as lead_id,
+        l.company,
+        l.contact_name
+      FROM public.emails e
+      LEFT JOIN public.email_threads et ON et.id = e.thread_id
+      LEFT JOIN public.leads l ON l.id = et.lead_id
+      WHERE e.user_id = $1
+        AND e.status = 'draft'
+        AND (e.is_ai_draft IS NULL OR e.is_ai_draft = false)
+      ORDER BY e.updated_at DESC
+      LIMIT 3
+      `,
+      [userUuid]
+    );
+
+    // Generate send tasks (avoid duplicates with review tasks)
+    const existingEmailIds = new Set(
+      tasks.filter((t) => t.emailId).map((t) => t.emailId)
+    );
+
+    for (const draft of regularDraftsResult.rows) {
+      if (existingEmailIds.has(draft.id)) continue; // Skip if already in review tasks
+
+      const company = draft.company || "Contact";
+
+      tasks.push({
+        id: `send-${draft.id}`,
+        type: "send",
+        title: `Send draft to ${company}`,
+        description: draft.subject || "Ready to send",
+        leadId: draft.lead_id || undefined,
+        emailId: draft.id,
+        priority: "medium",
+      });
+    }
+
+    await pool.end();
+
+    // Sort by priority: high -> medium -> low, then limit to 5
+    const priorityOrder = { high: 0, medium: 1, low: 2 };
+    tasks.sort((a, b) => priorityOrder[a.priority] - priorityOrder[b.priority]);
+    const limitedTasks = tasks.slice(0, 5);
+
+    return res.json({
+      tasks: limitedTasks,
+    });
+  } catch (error) {
+    console.error("❌ Action queue generation error:", error);
+    return res.status(500).json({
+      error: "Failed to generate action queue",
+      message: error instanceof Error ? error.message : "Unknown error",
+    });
+  }
+});
 
 // Update lead contact info endpoint (recalculate days_since_contact)
 app.post("/api/leads/update-contact-info", async (req, res) => {

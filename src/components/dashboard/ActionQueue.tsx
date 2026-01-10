@@ -11,12 +11,14 @@ import { cn } from "@/lib/utils";
 
 interface Action {
   id: string;
-  type: "follow-up" | "reply" | "meeting";
+  type: "follow-up" | "reply" | "meeting" | "followup" | "review" | "send";
   company: string;
   subject: string;
   reason: string;
   priority: "high" | "medium" | "low";
-  hasAIDraft: boolean;
+  hasAIDraft?: boolean;
+  leadId?: string;
+  emailId?: string;
 }
 
 interface ActionQueueProps {
@@ -57,8 +59,21 @@ const ActionQueue = ({
       </div>
 
       {/* Actions list */}
-      <div className="divide-y divide-border">
-        {actions.map((action, index) => (
+      {actions.length === 0 ? (
+        <div className="p-8 sm:p-12 text-center">
+          <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-muted/30 mb-4">
+            <Sparkles className="w-6 h-6 text-muted-foreground" />
+          </div>
+          <h3 className="text-base font-medium text-foreground mb-1.5">
+            You're all caught up 🎉
+          </h3>
+          <p className="text-sm text-muted-foreground">
+            InboxIQ will suggest actions as emails arrive
+          </p>
+        </div>
+      ) : (
+        <div className="divide-y divide-border">
+          {actions.map((action, index) => (
           <div
             key={action.id}
             className={cn(
@@ -105,8 +120,14 @@ const ActionQueue = ({
                   className="gap-1.5 whitespace-nowrap"
                 >
                   <Send className="w-3.5 h-3.5 shrink-0" />
-                  <span className="hidden sm:inline">Review & Send</span>
-                  <span className="sm:hidden">Review</span>
+                  <span className="hidden sm:inline">
+                    {action.type === "follow-up" || action.type === "followup" 
+                      ? "View Lead" 
+                      : "Review & Send"}
+                  </span>
+                  <span className="sm:hidden">
+                    {action.type === "follow-up" || action.type === "followup" ? "View" : "Review"}
+                  </span>
                 </Button>
 
                 <Button
