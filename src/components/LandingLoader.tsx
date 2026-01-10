@@ -6,6 +6,21 @@ interface LandingLoaderProps {
   minDuration?: number; // Minimum display time in ms (default: 2000)
 }
 
+/**
+ * InboxIQLoader - Brand-specific loading animation
+ * 
+ * Animation Concept: "Signal Ring Scanning"
+ * - Central inbox core pulses gently (intelligence at work)
+ * - Scanning rings expand outward like radar, detecting email signals
+ * - Subtle email particles light up as signals are detected
+ * - Motion implies: "Analyzing inbox → detecting signals → preparing insights"
+ * 
+ * Visual Identity:
+ * - Dark background (#0D0F14) with glassmorphism
+ * - Violet (#7C3AED) and cyan (#22D3EE) accents used sparingly
+ * - Calm, confident, intelligent motion
+ * - No text, no progress bars - pure intentional motion
+ */
 const LandingLoader = ({ onComplete, minDuration = 2000 }: LandingLoaderProps) => {
   const [isVisible, setIsVisible] = useState(true);
   const [startTime] = useState(Date.now());
@@ -20,7 +35,7 @@ const LandingLoader = ({ onComplete, minDuration = 2000 }: LandingLoaderProps) =
         // Delay onComplete to allow exit animation
         setTimeout(() => {
           onComplete?.();
-        }, 800);
+        }, 600);
       }, remaining);
     };
 
@@ -43,232 +58,137 @@ const LandingLoader = ({ onComplete, minDuration = 2000 }: LandingLoaderProps) =
       {isVisible && (
         <motion.div
           initial={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.8, ease: [0.4, 0, 0.2, 1] }}
+          exit={{ opacity: 0, scale: 1.02 }}
+          transition={{ duration: 0.6, ease: [0.4, 0, 0.2, 1] }}
           className="fixed inset-0 z-[9999] flex items-center justify-center overflow-hidden"
-          style={{ pointerEvents: isVisible ? "auto" : "none" }}
+          style={{ 
+            pointerEvents: isVisible ? "auto" : "none",
+            backgroundColor: "#0D0F14"
+          }}
         >
-          {/* Dark premium background with depth */}
+          {/* Frosted glass overlay */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.6 }}
-            className="absolute inset-0 bg-gradient-to-br from-[#0F0A1A] via-[#1A0F2E] to-[#0F0A1A]"
-          />
-
-          {/* Animated gradient orbs for depth */}
-          <motion.div
-            className="absolute inset-0 overflow-hidden"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 1 }}
-          >
-            {/* Violet orb */}
-            <motion.div
-              className="absolute rounded-full blur-3xl"
-              style={{
-                width: "600px",
-                height: "600px",
-                background: "radial-gradient(circle, rgba(139, 92, 246, 0.4) 0%, transparent 70%)",
-                left: "20%",
-                top: "30%",
-              }}
-              animate={{
-                x: [0, 100, 0],
-                y: [0, -80, 0],
-                scale: [1, 1.2, 1],
-              }}
-              transition={{
-                duration: 8,
-                repeat: Infinity,
-                ease: "easeInOut",
-              }}
-            />
-            {/* Cyan orb */}
-            <motion.div
-              className="absolute rounded-full blur-3xl"
-              style={{
-                width: "500px",
-                height: "500px",
-                background: "radial-gradient(circle, rgba(34, 211, 238, 0.3) 0%, transparent 70%)",
-                right: "25%",
-                bottom: "25%",
-              }}
-              animate={{
-                x: [0, -80, 0],
-                y: [0, 100, 0],
-                scale: [1, 1.15, 1],
-              }}
-              transition={{
-                duration: 10,
-                repeat: Infinity,
-                ease: "easeInOut",
-              }}
-            />
-          </motion.div>
-
-          {/* Frosted glass overlay */}
-          <motion.div
-            initial={{ opacity: 0, backdropFilter: "blur(0px)" }}
-            animate={{ opacity: 1, backdropFilter: "blur(20px)" }}
-            exit={{ opacity: 0, backdropFilter: "blur(0px)" }}
-            transition={{ duration: 0.8 }}
+            transition={{ duration: 0.5 }}
             className="absolute inset-0"
             style={{
-              background: "rgba(15, 10, 26, 0.7)",
-              WebkitBackdropFilter: "blur(20px)",
+              background: "rgba(255, 255, 255, 0.06)",
+              backdropFilter: "blur(24px)",
+              WebkitBackdropFilter: "blur(24px)",
             }}
           />
 
-          {/* Central animated core */}
+          {/* Central scanning core */}
           <motion.div
-            initial={{ scale: 0.8, opacity: 0 }}
+            initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
-            exit={{ scale: 1.1, opacity: 0 }}
+            exit={{ scale: 0.95, opacity: 0 }}
             transition={{
-              duration: 1.2,
-              ease: [0.16, 1, 0.3, 1],
+              duration: 0.8,
+              ease: [0.22, 1, 0.36, 1],
             }}
             className="relative z-10"
           >
-            {/* Outer rotating ring */}
-            <motion.div
-              animate={{ rotate: 360 }}
-              transition={{
-                duration: 20,
-                repeat: Infinity,
-                ease: "linear",
-              }}
-              className="absolute inset-0"
-              style={{
-                width: "200px",
-                height: "200px",
-                margin: "-100px",
-              }}
-            >
-              <svg
-                width="200"
-                height="200"
-                viewBox="0 0 200 200"
-                className="absolute inset-0"
+            {/* Scanning rings - expanding outward like radar */}
+            {[0, 1, 2].map((ringIndex) => (
+              <motion.div
+                key={ringIndex}
+                className="absolute inset-0 flex items-center justify-center"
+                style={{
+                  width: "300px",
+                  height: "300px",
+                  margin: "-150px",
+                }}
+                initial={{ scale: 0.3, opacity: 0 }}
+                animate={{
+                  scale: [0.3, 1.2, 1.2],
+                  opacity: [0, 0.4, 0],
+                }}
+                transition={{
+                  duration: 2.5,
+                  repeat: Infinity,
+                  delay: ringIndex * 0.8,
+                  ease: [0.4, 0, 0.2, 1],
+                  times: [0, 0.4, 1],
+                }}
               >
-                <motion.circle
-                  cx="100"
-                  cy="100"
-                  r="95"
-                  fill="none"
-                  stroke="url(#ringGradient)"
-                  strokeWidth="2"
-                  strokeDasharray="8 4"
-                  opacity={0.6}
-                  initial={{ pathLength: 0 }}
-                  animate={{ pathLength: 1 }}
-                  transition={{ duration: 1.5, ease: "easeOut" }}
-                />
-                <defs>
-                  <linearGradient id="ringGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" stopColor="#8B5CF6" stopOpacity="0.8" />
-                    <stop offset="50%" stopColor="#22D3EE" stopOpacity="0.6" />
-                    <stop offset="100%" stopColor="#8B5CF6" stopOpacity="0.8" />
-                  </linearGradient>
-                </defs>
-              </svg>
-            </motion.div>
+                <svg
+                  width="300"
+                  height="300"
+                  viewBox="0 0 300 300"
+                  className="absolute inset-0"
+                >
+                  <motion.circle
+                    cx="150"
+                    cy="150"
+                    r="140"
+                    fill="none"
+                    stroke={ringIndex % 2 === 0 ? "#7C3AED" : "#22D3EE"}
+                    strokeWidth="1.5"
+                    strokeOpacity={0.6}
+                    initial={{ pathLength: 0 }}
+                    animate={{ pathLength: 1 }}
+                    transition={{
+                      duration: 0.8,
+                      ease: "easeOut",
+                      delay: ringIndex * 0.8,
+                    }}
+                  />
+                </svg>
+              </motion.div>
+            ))}
 
-            {/* Middle rotating ring (counter-rotation) */}
-            <motion.div
-              animate={{ rotate: -360 }}
-              transition={{
-                duration: 15,
-                repeat: Infinity,
-                ease: "linear",
-              }}
-              className="absolute inset-0"
-              style={{
-                width: "150px",
-                height: "150px",
-                margin: "-75px",
-              }}
-            >
-              <svg
-                width="150"
-                height="150"
-                viewBox="0 0 150 150"
-                className="absolute inset-0"
-              >
-                <motion.circle
-                  cx="75"
-                  cy="75"
-                  r="70"
-                  fill="none"
-                  stroke="url(#ringGradient2)"
-                  strokeWidth="1.5"
-                  strokeDasharray="6 3"
-                  opacity={0.5}
-                  initial={{ pathLength: 0 }}
-                  animate={{ pathLength: 1 }}
-                  transition={{ duration: 1.2, ease: "easeOut", delay: 0.2 }}
-                />
-                <defs>
-                  <linearGradient id="ringGradient2" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" stopColor="#22D3EE" stopOpacity="0.7" />
-                    <stop offset="50%" stopColor="#8B5CF6" stopOpacity="0.5" />
-                    <stop offset="100%" stopColor="#22D3EE" stopOpacity="0.7" />
-                  </linearGradient>
-                </defs>
-              </svg>
-            </motion.div>
-
-            {/* Central pulsing orb */}
+            {/* Central inbox core - gentle intelligence pulse */}
             <motion.div
               animate={{
-                scale: [1, 1.1, 1],
-                opacity: [0.8, 1, 0.8],
+                scale: [1, 1.05, 1],
+                opacity: [0.9, 1, 0.9],
               }}
               transition={{
-                duration: 2,
+                duration: 2.5,
                 repeat: Infinity,
                 ease: "easeInOut",
               }}
               className="relative"
               style={{
-                width: "80px",
-                height: "80px",
+                width: "60px",
+                height: "60px",
               }}
             >
-              {/* Outer glow */}
+              {/* Outer intelligence glow */}
               <motion.div
                 animate={{
-                  scale: [1, 1.3, 1],
-                  opacity: [0.3, 0.6, 0.3],
+                  scale: [1, 1.4, 1],
+                  opacity: [0.2, 0.4, 0.2],
                 }}
                 transition={{
-                  duration: 2.5,
+                  duration: 3,
                   repeat: Infinity,
                   ease: "easeInOut",
                 }}
                 className="absolute inset-0 rounded-full"
                 style={{
-                  background: "radial-gradient(circle, rgba(139, 92, 246, 0.6) 0%, rgba(34, 211, 238, 0.4) 50%, transparent 100%)",
-                  filter: "blur(20px)",
+                  background: "radial-gradient(circle, rgba(124, 58, 237, 0.4) 0%, rgba(34, 211, 238, 0.2) 50%, transparent 100%)",
+                  filter: "blur(16px)",
                 }}
               />
               
-              {/* Inner core */}
+              {/* Inner core - inbox intelligence */}
               <motion.div
                 className="absolute inset-0 rounded-full"
                 style={{
-                  background: "radial-gradient(circle at 30% 30%, rgba(139, 92, 246, 1) 0%, rgba(34, 211, 238, 0.8) 50%, rgba(139, 92, 246, 0.6) 100%)",
-                  boxShadow: "0 0 40px rgba(139, 92, 246, 0.6), 0 0 80px rgba(34, 211, 238, 0.4), inset 0 0 20px rgba(255, 255, 255, 0.1)",
+                  background: "radial-gradient(circle at 35% 35%, rgba(124, 58, 237, 0.9) 0%, rgba(34, 211, 238, 0.7) 50%, rgba(124, 58, 237, 0.5) 100%)",
+                  boxShadow: "0 0 24px rgba(124, 58, 237, 0.4), inset 0 0 12px rgba(255, 255, 255, 0.08)",
                 }}
               />
             </motion.div>
 
-            {/* Energy particles / lines */}
-            {[...Array(8)].map((_, i) => {
-              const angle = (i * 360) / 8;
-              const radius = 100;
+            {/* Email signal particles - light up as detected */}
+            {[...Array(12)].map((_, i) => {
+              const angle = (i * 360) / 12;
+              const radius = 120;
               const x = Math.cos((angle * Math.PI) / 180) * radius;
               const y = Math.sin((angle * Math.PI) / 180) * radius;
 
@@ -277,37 +197,37 @@ const LandingLoader = ({ onComplete, minDuration = 2000 }: LandingLoaderProps) =
                   key={i}
                   initial={{ opacity: 0, scale: 0 }}
                   animate={{
-                    opacity: [0, 0.6, 0],
-                    scale: [0.5, 1, 0.5],
-                    x: [0, x * 0.5, x],
-                    y: [0, y * 0.5, y],
+                    opacity: [0, 0.7, 0.3, 0],
+                    scale: [0, 1, 0.8, 0],
                   }}
                   transition={{
-                    duration: 2,
+                    duration: 2.5,
                     repeat: Infinity,
-                    delay: i * 0.15,
-                    ease: "easeInOut",
+                    delay: (i * 0.2) + 0.5,
+                    ease: [0.4, 0, 0.2, 1],
+                    times: [0, 0.3, 0.6, 1],
                   }}
                   className="absolute top-1/2 left-1/2"
                   style={{
-                    width: "4px",
-                    height: "4px",
-                    marginLeft: "-2px",
-                    marginTop: "-2px",
-                    background: i % 2 === 0 ? "rgba(139, 92, 246, 0.8)" : "rgba(34, 211, 238, 0.8)",
+                    width: "3px",
+                    height: "3px",
+                    marginLeft: "-1.5px",
+                    marginTop: "-1.5px",
+                    x: x,
+                    y: y,
+                    background: i % 3 === 0 ? "#7C3AED" : i % 3 === 1 ? "#22D3EE" : "#7C3AED",
                     borderRadius: "50%",
-                    boxShadow: `0 0 10px ${i % 2 === 0 ? "rgba(139, 92, 246, 0.8)" : "rgba(34, 211, 238, 0.8)"}`,
+                    boxShadow: `0 0 8px ${i % 3 === 0 ? "rgba(124, 58, 237, 0.8)" : "rgba(34, 211, 238, 0.8)"}`,
                   }}
                 />
               );
             })}
           </motion.div>
 
-          {/* Subtle camera movement effect (parallax) */}
+          {/* Subtle ambient depth */}
           <motion.div
             animate={{
-              scale: [1, 1.05, 1],
-              y: [0, -10, 0],
+              scale: [1, 1.02, 1],
             }}
             transition={{
               duration: 4,
@@ -317,51 +237,6 @@ const LandingLoader = ({ onComplete, minDuration = 2000 }: LandingLoaderProps) =
             className="absolute inset-0"
             style={{ pointerEvents: "none" }}
           />
-
-          {/* Loading text (optional, minimal) */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            transition={{
-              duration: 0.8,
-              delay: 0.5,
-              ease: [0.16, 1, 0.3, 1],
-            }}
-            className="absolute bottom-[25%] z-10"
-          >
-            <motion.p
-              className="text-sm font-medium tracking-wider"
-              style={{
-                color: "rgba(139, 92, 246, 0.8)",
-                textShadow: "0 0 20px rgba(139, 92, 246, 0.5)",
-              }}
-            >
-              INITIALIZING
-            </motion.p>
-            <motion.div
-              className="mt-2 h-0.5 w-32 mx-auto overflow-hidden rounded-full"
-              style={{
-                background: "rgba(139, 92, 246, 0.2)",
-              }}
-            >
-              <motion.div
-                className="h-full rounded-full"
-                style={{
-                  background: "linear-gradient(90deg, transparent, rgba(139, 92, 246, 0.8), rgba(34, 211, 238, 0.8), transparent)",
-                  width: "40%",
-                }}
-                animate={{
-                  x: ["-100%", "300%"],
-                }}
-                transition={{
-                  duration: 1.5,
-                  repeat: Infinity,
-                  ease: "linear",
-                }}
-              />
-            </motion.div>
-          </motion.div>
         </motion.div>
       )}
     </AnimatePresence>
