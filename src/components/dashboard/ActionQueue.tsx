@@ -198,7 +198,7 @@ const ActionQueue = ({
                 transition: { duration: 0.2, type: "spring", stiffness: 300 }
               }}
               className={cn(
-                "relative p-4 sm:p-5 border-l-4 transition-all duration-300 hover:bg-muted/60 rounded-r-2xl group border-r border-r-transparent hover:border-r-accent/30 overflow-hidden",
+                "relative p-4 sm:p-5 border-l-4 transition-all duration-300 hover:bg-muted/60 rounded-r-2xl group border-r border-r-transparent hover:border-r-accent/30",
                 priorityStyles[action.priority]
               )}
               style={{
@@ -240,8 +240,8 @@ const ActionQueue = ({
               <div className="relative flex flex-col sm:flex-row gap-3 sm:gap-4">
                 {/* Content */}
                 <div className="flex-1 min-w-0 space-y-2">
-                  <div className="flex items-center gap-2.5 flex-wrap">
-                    <h4 className="font-bold text-foreground text-base sm:text-lg truncate flex-1 min-w-0">
+                  <div className="flex items-start gap-2.5 flex-wrap">
+                    <h4 className="font-bold text-foreground text-base sm:text-lg break-words flex-1 min-w-0 leading-tight">
                       {action.company}
                     </h4>
 
@@ -256,13 +256,13 @@ const ActionQueue = ({
                     )}
                   </div>
 
-                  <p className="text-sm sm:text-base text-foreground/95 line-clamp-2 font-semibold">
+                  <p className="text-sm sm:text-base text-foreground/95 break-words font-semibold leading-relaxed">
                     {action.subject}
                   </p>
 
                   <p className="text-xs sm:text-sm text-muted-foreground/90 flex items-start gap-2">
-                    <Clock className="w-4 h-4 shrink-0 mt-0.5 text-accent/60" />
-                    <span className="line-clamp-2 flex-1 min-w-0">
+                    <Clock className="w-4 h-4 shrink-0 mt-0.5 text-accent/60 flex-shrink-0" />
+                    <span className="break-words flex-1 min-w-0 leading-relaxed">
                       {action.reason}
                     </span>
                   </p>
