@@ -296,7 +296,25 @@ export const emailsApi = {
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({ error: "Unknown error" }));
-      throw new Error(errorData.message || errorData.error || `Failed to send email: ${response.statusText}`);
+      
+      // Handle specific error cases with helpful messages
+      let errorMessage = errorData.message || errorData.error || `Failed to send email: ${response.statusText}`;
+      
+      if (response.status === 500) {
+        if (errorMessage.includes("Cannot find package 'resend'") || errorMessage.includes("resend")) {
+          errorMessage = "Email service not configured. The 'resend' package needs to be installed on the server. Please run 'npm install' in the server directory.";
+        } else if (errorMessage.includes("RESEND_API_KEY")) {
+          errorMessage = "Email service not configured. Please set RESEND_API_KEY environment variable on the server.";
+        } else {
+          errorMessage = `Server error: ${errorMessage}. Please check server logs.`;
+        }
+      } else if (response.status === 503) {
+        errorMessage = "Email service not available. Please configure RESEND_API_KEY on the server.";
+      } else if (response.status === 400) {
+        errorMessage = `Invalid request: ${errorMessage}`;
+      }
+      
+      throw new Error(errorMessage);
     }
 
     const result = await response.json();

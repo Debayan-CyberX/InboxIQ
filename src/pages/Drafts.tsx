@@ -337,9 +337,25 @@ const Drafts = () => {
       setSelectedDraft(null);
     } catch (err) {
       console.error("Error sending email:", err);
-      toast.error("Failed to send email", {
-        description: err instanceof Error ? err.message : "Unknown error occurred",
-      });
+      
+      // Dismiss loading toast if still showing
+      toast.dismiss();
+      
+      // Show detailed error message
+      const errorMessage = err instanceof Error ? err.message : "Unknown error occurred";
+      
+      // Check if it's a server configuration issue
+      if (errorMessage.includes("resend") || errorMessage.includes("RESEND_API_KEY") || errorMessage.includes("Email service not")) {
+        toast.error("Email Service Not Configured", {
+          description: errorMessage + " Please contact support or check server configuration.",
+          duration: 8000,
+        });
+      } else {
+        toast.error("Failed to send email", {
+          description: errorMessage,
+          duration: 6000,
+        });
+      }
     }
   };
 

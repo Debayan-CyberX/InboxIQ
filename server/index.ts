@@ -263,9 +263,22 @@ app.post("/api/emails/send", async (req, res) => {
     });
   } catch (error) {
     console.error("❌ Email sending error:", error);
-    res.status(500).json({ 
-      error: "Internal server error",
-      message: error instanceof Error ? error.message : String(error)
+    
+    // Provide helpful error message for missing resend package
+    let errorMessage = error instanceof Error ? error.message : String(error);
+    let statusCode = 500;
+    
+    if (errorMessage.includes("Cannot find package 'resend'") || errorMessage.includes("Cannot find module 'resend'")) {
+      statusCode = 503;
+      errorMessage = "Email service package not installed. Please run 'npm install resend' on the server and restart.";
+    } else if (errorMessage.includes("RESEND_API_KEY")) {
+      statusCode = 503;
+      errorMessage = "Email service not configured. RESEND_API_KEY environment variable is required.";
+    }
+    
+    res.status(statusCode).json({ 
+      error: statusCode === 503 ? "Service Unavailable" : "Internal server error",
+      message: errorMessage
     });
   }
 });

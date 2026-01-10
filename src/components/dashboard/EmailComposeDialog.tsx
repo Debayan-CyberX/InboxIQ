@@ -146,9 +146,21 @@ const EmailComposeDialog = ({
       onClose();
     } catch (error) {
       console.error("Error sending email:", error);
-      toast.error("Failed to send email", {
-        description: error instanceof Error ? error.message : "Unknown error",
-      });
+      
+      const errorMessage = error instanceof Error ? error.message : "Unknown error";
+      
+      // Check if it's a server configuration issue
+      if (errorMessage.includes("resend") || errorMessage.includes("RESEND_API_KEY") || errorMessage.includes("Email service not")) {
+        toast.error("Email Service Not Configured", {
+          description: errorMessage + " Please contact support or check server configuration.",
+          duration: 8000,
+        });
+      } else {
+        toast.error("Failed to send email", {
+          description: errorMessage,
+          duration: 6000,
+        });
+      }
     } finally {
       setIsSending(false);
     }
