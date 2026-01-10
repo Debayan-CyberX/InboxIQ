@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { motion } from "framer-motion";
 
 interface Action {
   id: string;
@@ -41,9 +42,12 @@ const ActionQueue = ({
   };
 
   return (
-    <div className="card-elevated animate-fade-in animation-delay-300 max-w-full overflow-hidden">
+    <div className="card-elevated animate-fade-in animation-delay-300 max-w-full overflow-hidden relative">
+      {/* Subtle background accent */}
+      <div className="absolute top-0 right-0 w-40 h-40 bg-accent/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
+      
       {/* Header */}
-      <div className="p-5 border-b border-border flex items-start sm:items-center justify-between gap-3">
+      <div className="relative p-5 sm:p-6 border-b border-border/50 flex items-start sm:items-center justify-between gap-3 bg-gradient-to-r from-accent/5 via-transparent to-transparent">
         <div>
           <h2 className="text-base font-semibold text-foreground flex items-center gap-2">
             <Sparkles className="w-4 h-4 text-accent shrink-0" />
@@ -60,27 +64,51 @@ const ActionQueue = ({
 
       {/* Actions list */}
       {actions.length === 0 ? (
-        <div className="p-8 sm:p-12 text-center">
-          <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-muted/30 mb-4">
-            <Sparkles className="w-6 h-6 text-muted-foreground" />
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.4 }}
+          className="p-10 sm:p-14 text-center relative"
+        >
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className="w-32 h-32 bg-accent/5 rounded-full blur-2xl" />
           </div>
-          <h3 className="text-base font-medium text-foreground mb-1.5">
-            You're all caught up 🎉
-          </h3>
-          <p className="text-sm text-muted-foreground">
-            InboxIQ will suggest actions as emails arrive
-          </p>
-        </div>
+          <div className="relative">
+            <motion.div
+              animate={{ 
+                scale: [1, 1.1, 1],
+                rotate: [0, 5, -5, 0]
+              }}
+              transition={{ 
+                duration: 2,
+                repeat: Infinity,
+                repeatDelay: 3
+              }}
+              className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-br from-accent/20 to-accent/10 border border-accent/20 mb-5 shadow-lg shadow-accent/10"
+            >
+              <Sparkles className="w-7 h-7 text-accent" />
+            </motion.div>
+            <h3 className="text-base font-semibold text-foreground mb-2">
+              You're all caught up 🎉
+            </h3>
+            <p className="text-sm text-muted-foreground max-w-xs mx-auto">
+              InboxIQ will suggest actions as emails arrive
+            </p>
+          </div>
+        </motion.div>
       ) : (
         <div className="divide-y divide-border">
           {actions.map((action, index) => (
-          <div
+          <motion.div
             key={action.id}
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: index * 0.05, duration: 0.3 }}
+            whileHover={{ x: 4, transition: { duration: 0.2 } }}
             className={cn(
-              "p-4 border-l-4 transition-colors hover:bg-muted/30",
+              "p-4 sm:p-5 border-l-4 transition-all duration-200 hover:bg-muted/40 rounded-r-lg group",
               priorityStyles[action.priority]
             )}
-            style={{ animationDelay: `${index * 50}ms` }}
           >
             {/* Mobile-first layout */}
             <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">

@@ -263,9 +263,9 @@ const Index = () => {
 
   return (
     <DashboardLayout>
-      <div className="space-y-4 sm:space-y-6 w-full min-w-0 max-w-full overflow-x-hidden">
+      <div className="space-y-5 sm:space-y-7 w-full min-w-0 max-w-full overflow-x-hidden pb-6">
         {/* Status Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 w-full min-w-0">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5 w-full min-w-0">
           <StatusCard
             title="Hot Leads"
             value={hotLeadsCount}
@@ -307,8 +307,15 @@ const Index = () => {
         {/* Performance Metrics - Full Width */}
         <PerformanceSnapshot metrics={performanceMetricsWithIcons} />
 
+        {/* Section Divider */}
+        <div className="relative py-2">
+          <div className="absolute inset-0 flex items-center">
+            <div className="w-full border-t border-border/50"></div>
+          </div>
+        </div>
+
         {/* Main content grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6 min-w-0 w-full max-w-full overflow-x-hidden">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 sm:gap-6 min-w-0 w-full max-w-full overflow-x-hidden">
 
           {/* Lead Pipeline - Takes 8 columns */}
           <div className="col-span-1 lg:col-span-8 min-w-0 w-full max-w-full overflow-x-hidden">

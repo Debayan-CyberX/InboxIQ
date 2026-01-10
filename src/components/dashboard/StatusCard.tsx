@@ -49,15 +49,16 @@ const StatusCard = ({ title, value, change, icon: Icon, variant, subtitle }: Sta
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-      whileHover={{ y: -4, transition: { duration: 0.2 } }}
+      whileHover={{ y: -6, transition: { duration: 0.2 } }}
       className={cn(
-        "glass-strong p-6 border-l-4 rounded-2xl hover-lift cursor-pointer group relative overflow-hidden",
+        "glass-strong p-6 border-l-4 rounded-2xl hover-lift cursor-pointer group relative overflow-hidden transition-all duration-300",
         style.accent,
         style.glow
       )}
     >
-      {/* Subtle gradient overlay */}
-      <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent pointer-events-none" />
+      {/* Enhanced gradient overlay */}
+      <div className="absolute inset-0 bg-gradient-to-br from-white/8 via-white/3 to-transparent pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+      <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-white/5 to-transparent rounded-full blur-2xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
       
       <div className="relative flex items-start justify-between gap-3">
         <div className="space-y-2 flex-1 min-w-0">
