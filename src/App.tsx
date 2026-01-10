@@ -20,6 +20,8 @@ import NotFound from "./pages/NotFound";
 import Test from "./pages/Test";
 import SignIn from "./pages/SignIn";
 import SignUp from "./pages/SignUp";
+import ChatBot from "./components/ChatBot";
+import { useLocation } from "react-router-dom";
 
 const queryClient = new QueryClient();
 
@@ -43,6 +45,9 @@ const AnimatedRoutes = () => {
   const location = useLocation();
   const [showLoader, setShowLoader] = useState(false);
   const [hasShownLoader, setHasShownLoader] = useState(false);
+  
+  // Show chatbot only on protected routes (dashboard pages)
+  const isProtectedRoute = !["/", "/sign-in", "/sign-up", "/test"].includes(location.pathname);
 
   // Show loader only on first visit to landing page
   useEffect(() => {
@@ -67,6 +72,8 @@ const AnimatedRoutes = () => {
   return (
     <>
       {showLoader && <LandingLoader onComplete={handleLoaderComplete} minDuration={2000} />}
+      {/* Chatbot - Only show on protected routes */}
+      {isProtectedRoute && <ChatBot />}
       <AnimatePresence mode="wait">
         <Routes location={location} key={location.pathname}>
           {/* Public routes */}

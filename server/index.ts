@@ -8,6 +8,7 @@ import { auth } from "./auth.js";
 import { detectLeadsFromEmailThreads } from "./lead-detection.js";
 import { generateFollowUpForLead, generateFollowUpText } from "./ai-followup.js";
 import { updateAllLeadsContactInfo } from "./update-lead-contact.js";
+import { generateChatResponse } from "./chat.js";
 
 type BetterAuthSession = {
   user?: {
@@ -1007,6 +1008,42 @@ app.post("/api/leads/:leadId/generate-followup", async (req, res) => {
     return res.status(500).json({
       error: "Follow-up generation failed",
       message: error instanceof Error ? error.message : "Unknown error",
+    });
+  }
+});
+
+// Chat endpoint - AI assistant chatbot
+app.post("/api/chat", async (req, res) => {
+  if (req.method === "OPTIONS") {
+    return res.sendStatus(200);
+  }
+
+  try {
+    const { message, conversationHistory = [] } = req.body;
+
+    if (!message || typeof message !== "string" || message.trim().length === 0) {
+      return res.status(400).json({
+        error: "Invalid message",
+        message: "Message is required and must be a non-empty string",
+      });
+    }
+
+    // Get session (optional for chat, but good for tracking)
+    const sessionData = await getSessionFromRequest(req).catch(() => null);
+    
+    // Generate response using the chat function
+    const cleanResponse = await generateChatResponse(message, conversationHistory);
+
+    return res.json({
+      success: true,
+      response: cleanResponse,
+    });
+  } catch (error) {
+    console.error("❌ Chat error:", error);
+    return res.status(500).json({
+      error: "Chat failed",
+      message: error instanceof Error ? error.message : "Unknown error",
+      response: "I apologize, but I'm having trouble processing your request right now. Please try again in a moment.",
     });
   }
 });
