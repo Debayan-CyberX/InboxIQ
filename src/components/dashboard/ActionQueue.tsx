@@ -99,88 +99,88 @@ const ActionQueue = ({
       ) : (
         <div className="divide-y divide-border">
           {actions.map((action, index) => (
-          <motion.div
-            key={action.id}
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: index * 0.05, duration: 0.3 }}
-            whileHover={{ x: 4, transition: { duration: 0.2 } }}
-            className={cn(
-              "p-4 sm:p-5 border-l-4 transition-all duration-200 hover:bg-muted/40 rounded-r-lg group",
-              priorityStyles[action.priority]
-            )}
-          >
-            {/* Mobile-first layout */}
-            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
-              {/* Content */}
-              <div className="flex-1 min-w-0 space-y-2">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <h4 className="font-medium text-foreground truncate">
-                    {action.company}
-                  </h4>
+            <motion.div
+              key={action.id}
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: index * 0.05, duration: 0.3 }}
+              whileHover={{ x: 4, transition: { duration: 0.2 } }}
+              className={cn(
+                "p-4 sm:p-5 border-l-4 transition-all duration-200 hover:bg-muted/40 rounded-r-lg group",
+                priorityStyles[action.priority]
+              )}
+            >
+              {/* Mobile-first layout */}
+              <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
+                {/* Content */}
+                <div className="flex-1 min-w-0 space-y-2">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <h4 className="font-medium text-foreground truncate">
+                      {action.company}
+                    </h4>
 
-                  {action.hasAIDraft && (
-                    <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs font-medium bg-accent/10 text-accent shrink-0">
-                      <Sparkles className="w-3 h-3 shrink-0" />
-                      AI Draft
+                    {action.hasAIDraft && (
+                      <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs font-medium bg-accent/10 text-accent shrink-0">
+                        <Sparkles className="w-3 h-3 shrink-0" />
+                        AI Draft
+                      </span>
+                    )}
+                  </div>
+
+                  <p className="text-sm text-foreground/90 line-clamp-2 break-words">
+                    {action.subject}
+                  </p>
+
+                  <p className="text-xs text-muted-foreground flex items-start gap-1.5">
+                    <Clock className="w-3 h-3 shrink-0 mt-0.5" />
+                    <span className="line-clamp-2 break-words">
+                      {action.reason}
                     </span>
-                  )}
+                  </p>
                 </div>
 
-                <p className="text-sm text-foreground/90 line-clamp-2 break-words">
-                  {action.subject}
-                </p>
+                {/* Actions */}
+                <div className="flex items-center gap-2 sm:gap-1.5 shrink-0">
+                  <Button
+                    variant="accent"
+                    size="sm"
+                    onClick={() => onReviewSend?.(action)}
+                    className="gap-1.5 whitespace-nowrap"
+                  >
+                    <Send className="w-3.5 h-3.5 shrink-0" />
+                    <span className="hidden sm:inline">
+                      {action.type === "follow-up" || action.type === "followup" 
+                        ? "View Lead" 
+                        : "Review & Send"}
+                    </span>
+                    <span className="sm:hidden">
+                      {action.type === "follow-up" || action.type === "followup" ? "View" : "Review"}
+                    </span>
+                  </Button>
 
-                <p className="text-xs text-muted-foreground flex items-start gap-1.5">
-                  <Clock className="w-3 h-3 shrink-0 mt-0.5" />
-                  <span className="line-clamp-2 break-words">
-                    {action.reason}
-                  </span>
-                </p>
+                  <Button
+                    variant="ghost"
+                    size="icon-sm"
+                    onClick={() => onEdit?.(action)}
+                    className="shrink-0"
+                    aria-label="Edit"
+                  >
+                    <Edit3 className="w-4 h-4" />
+                  </Button>
+
+                  <Button
+                    variant="ghost"
+                    size="icon-sm"
+                    onClick={() => onSkip?.(action)}
+                    className="shrink-0"
+                    aria-label="Skip"
+                  >
+                    <SkipForward className="w-4 h-4" />
+                  </Button>
+                </div>
               </div>
-
-              {/* Actions */}
-              <div className="flex items-center gap-2 sm:gap-1.5 shrink-0">
-                <Button
-                  variant="accent"
-                  size="sm"
-                  onClick={() => onReviewSend?.(action)}
-                  className="gap-1.5 whitespace-nowrap"
-                >
-                  <Send className="w-3.5 h-3.5 shrink-0" />
-                  <span className="hidden sm:inline">
-                    {action.type === "follow-up" || action.type === "followup" 
-                      ? "View Lead" 
-                      : "Review & Send"}
-                  </span>
-                  <span className="sm:hidden">
-                    {action.type === "follow-up" || action.type === "followup" ? "View" : "Review"}
-                  </span>
-                </Button>
-
-                <Button
-                  variant="ghost"
-                  size="icon-sm"
-                  onClick={() => onEdit?.(action)}
-                  className="shrink-0"
-                  aria-label="Edit"
-                >
-                  <Edit3 className="w-4 h-4" />
-                </Button>
-
-                <Button
-                  variant="ghost"
-                  size="icon-sm"
-                  onClick={() => onSkip?.(action)}
-                  className="shrink-0"
-                  aria-label="Skip"
-                >
-                  <SkipForward className="w-4 h-4" />
-                </Button>
-              </div>
-            </div>
-          </div>
-        ))}
+            </motion.div>
+          ))}
         </div>
       )}
 

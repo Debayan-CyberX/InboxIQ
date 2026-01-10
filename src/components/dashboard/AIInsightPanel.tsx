@@ -1,5 +1,6 @@
 import { Sparkles, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { motion } from "framer-motion";
 
 interface AIInsightPanelProps {
   insight: string;
@@ -8,8 +9,6 @@ interface AIInsightPanelProps {
     text: string;
   }>;
 }
-
-import { motion } from "framer-motion";
 
 const AIInsightPanel = ({ insight, highlights }: AIInsightPanelProps) => {
   return (
