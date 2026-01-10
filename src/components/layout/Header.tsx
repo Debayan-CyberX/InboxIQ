@@ -1,7 +1,9 @@
 import { useState, useEffect } from "react";
-import { Bell, Search, Calendar, CheckCircle2, Mail } from "lucide-react";
+import { Search, Calendar, CheckCircle2, Mail } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import ConnectEmailDialog from "@/components/ConnectEmailDialog";
+import SearchDialog from "@/components/dashboard/SearchDialog";
+import NotificationsPanel from "@/components/dashboard/NotificationsPanel";
 import { emailConnectionsApi, type EmailConnection } from "@/lib/api";
 import { useUserId } from "@/hooks/useUserId";
 import { useSession } from "@/lib/auth-client";
@@ -33,6 +35,7 @@ const Header = () => {
   const { data: session } = useSession();
 
   const [isConnectDialogOpen, setIsConnectDialogOpen] = useState(false);
+  const [isSearchDialogOpen, setIsSearchDialogOpen] = useState(false);
   const [emailConnections, setEmailConnections] = useState<EmailConnection[]>([]);
   const [isLoadingConnections, setIsLoadingConnections] = useState(false);
 
@@ -61,6 +64,19 @@ const Header = () => {
 
     loadConnections();
   }, [userId]);
+
+  // Keyboard shortcut for search (Cmd/Ctrl + K)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === "k") {
+        e.preventDefault();
+        setIsSearchDialogOpen(true);
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
 
   const handleEmailConnected = () => {
     if (!userId) return;
@@ -99,19 +115,29 @@ const Header = () => {
         <div className="flex items-center gap-1.5 sm:gap-2 md:gap-3 flex-shrink-0 min-w-0">
           {/* Search */}
           <div className="relative hidden md:block flex-shrink-0">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
             <input
               type="text"
               placeholder="Search leads, emails..."
-              className="w-40 lg:w-56 xl:w-64 h-8 sm:h-9 pl-9 pr-4 rounded-lg bg-[rgba(255,255,255,0.06)] backdrop-blur-md border border-[rgba(255,255,255,0.12)] text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-[#7C3AED]/50 focus:bg-[rgba(255,255,255,0.08)] transition-all max-w-full"
+              className="w-40 lg:w-56 xl:w-64 h-8 sm:h-9 pl-9 pr-4 rounded-lg bg-[rgba(255,255,255,0.06)] backdrop-blur-md border border-[rgba(255,255,255,0.12)] text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-[#7C3AED]/50 focus:bg-[rgba(255,255,255,0.08)] transition-all max-w-full cursor-pointer"
+              onClick={() => setIsSearchDialogOpen(true)}
+              onFocus={() => setIsSearchDialogOpen(true)}
+              readOnly
             />
           </div>
 
-          {/* Notifications */}
-          <Button variant="ghost" size="icon-sm" className="relative h-8 w-8 sm:h-9 sm:w-9 flex-shrink-0">
-            <Bell className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-            <span className="absolute top-0.5 right-0.5 sm:top-1 sm:right-1 w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-status-hot" />
+          {/* Mobile Search Button */}
+          <Button
+            variant="ghost"
+            size="icon-sm"
+            className="md:hidden h-8 w-8 sm:h-9 sm:w-9 flex-shrink-0"
+            onClick={() => setIsSearchDialogOpen(true)}
+          >
+            <Search className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
           </Button>
+
+          {/* Notifications */}
+          {userId && <NotificationsPanel />}
 
           {/* Connect Email CTA */}
           {isEmailConnected ? (
@@ -147,6 +173,14 @@ const Header = () => {
         onOpenChange={setIsConnectDialogOpen}
         onConnected={handleEmailConnected}
       />
+
+      {userId && (
+        <SearchDialog
+          open={isSearchDialogOpen}
+          onOpenChange={setIsSearchDialogOpen}
+          userId={userId}
+        />
+      )}
     </>
   );
 };
