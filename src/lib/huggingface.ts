@@ -2,7 +2,7 @@ const HF_MODEL = "tiiuae/falcon-7b-instruct";
 
 export async function generateWithHuggingFace(prompt: string): Promise<string> {
   const response = await fetch(
-    `https://api-inference.huggingface.co/models/${HF_MODEL}`,
+    `https://router.huggingface.co/models/${HF_MODEL}`,
     {
       method: "POST",
       headers: {

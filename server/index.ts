@@ -820,12 +820,16 @@ app.post("/api/leads/:leadId/generate-followup", async (req, res) => {
 
 // New endpoint: Generate follow-up text without creating a draft (for regeneration)
 app.post("/api/leads/:leadId/generate-followup-text", async (req, res) => {
+  // ✅ Always allow preflight
   if (req.method === "OPTIONS") {
     return res.sendStatus(200);
   }
 
   try {
     const { leadId } = req.params;
+    console.log(`🤖 Generating follow-up text (no draft) for lead: ${leadId}`);
+
+    // ✅ GET SESSION (this was missing)
     const sessionData = await getSessionFromRequest(req);
 
     if (!sessionData || !sessionData.user || !sessionData.user.id) {
