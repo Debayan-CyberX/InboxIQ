@@ -180,12 +180,12 @@ const Landing = () => {
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.2 }}
-            className="text-3xl sm:text-4xl md:text-5xl lg:text-7xl xl:text-8xl font-bold leading-tight tracking-tight px-2"
+            className="text-3xl sm:text-4xl md:text-5xl lg:text-7xl xl:text-8xl font-bold leading-tight tracking-tight px-2 text-center"
           >
             <span className="block text-foreground mb-1 sm:mb-2">
               Never lose a lead
             </span>
-            <span className="block min-h-[1.2em] h-[1.2em] w-full">
+            <span className="block min-h-[1.2em] h-[1.2em] w-full flex justify-center">
               <TypewriterText 
                 texts={[
                   "to forgotten follow-ups",
@@ -1393,14 +1393,14 @@ const TypewriterText = ({ texts, className }: { texts: string[]; className?: str
         display: "inline-block",
         minWidth: "100%",
         width: "100%",
-        textAlign: "left"
+        textAlign: "center"
       }}
     >
       <span style={{ 
         display: "inline-block",
         minWidth: `${longestText.length}ch`,
         width: `${longestText.length}ch`,
-        textAlign: "left"
+        textAlign: "center"
       }}>
         {displayText}
         <motion.span
