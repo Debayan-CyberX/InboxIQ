@@ -70,37 +70,26 @@ export const emailsApi = {
     return data || [];
   },
 
-  // Create a new email
+  // Create a new email (uses backend endpoint to bypass RLS)
   async create(email: InsertEmail, betterAuthUserId: string): Promise<Email> {
-    if (!supabase) {
-      throw new Error("Supabase client not initialized");
+    const authServerUrl = import.meta.env.VITE_BETTER_AUTH_URL || "http://localhost:3001";
+
+    const response = await fetch(`${authServerUrl}/api/emails`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+      body: JSON.stringify(email),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({ error: "Unknown error" }));
+      throw new Error(errorData.message || errorData.error || `Failed to create email: ${response.statusText}`);
     }
 
-    // Get user UUID
-    const { getUserIdFromBetterAuth } = await import("./utils");
-    const userUuid = await getUserIdFromBetterAuth(betterAuthUserId);
-    
-    if (!userUuid) {
-      throw new Error("User not found in database");
-    }
-
-    const emailWithUuid = {
-      ...email,
-      user_id: userUuid,
-    };
-
-    const { data, error } = await supabase
-      .from("emails")
-      .insert(emailWithUuid)
-      .select()
-      .single();
-
-    if (error) {
-      console.error("Error creating email:", error);
-      throw new Error(`Failed to create email: ${error.message}`);
-    }
-
-    return data;
+    const result = await response.json();
+    return result.email;
   },
 
   // Update an email (uses backend endpoint to bypass RLS)

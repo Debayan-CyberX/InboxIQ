@@ -322,6 +322,106 @@ app.put("/api/emails/:emailId", async (req, res) => {
   }
 });
 
+// Create email endpoint (bypasses RLS)
+app.post("/api/emails", async (req, res) => {
+  if (req.method === "OPTIONS") {
+    return res.sendStatus(200);
+  }
+
+  try {
+    const emailData = req.body;
+
+    // Get session
+    const sessionData = await getSessionFromRequest(req);
+    if (!sessionData || !sessionData.user || !sessionData.user.id) {
+      return res.status(401).json({
+        error: "Unauthorized",
+        message: "You must be logged in",
+      });
+    }
+
+    const betterAuthUserId = sessionData.user.id;
+    const databaseUrl = process.env.DATABASE_URL;
+    
+    if (!databaseUrl) {
+      return res.status(500).json({
+        error: "Database not configured",
+        message: "DATABASE_URL environment variable is not set",
+      });
+    }
+
+    const pool = new Pool({
+      connectionString: databaseUrl,
+      ssl: databaseUrl.includes("supabase.co")
+        ? { rejectUnauthorized: false }
+        : false,
+    });
+
+    // Get user UUID
+    const userResult = await pool.query(
+      `SELECT public.get_user_uuid_from_better_auth_id($1) AS uuid`,
+      [betterAuthUserId]
+    );
+
+    if (!userResult.rows[0]?.uuid) {
+      await pool.end();
+      return res.status(404).json({
+        error: "User not found",
+        message: "User not found in database",
+      });
+    }
+
+    const userUuid = userResult.rows[0].uuid;
+
+    // Insert the email
+    const insertQuery = `
+      INSERT INTO public.emails (
+        user_id, thread_id, lead_id, direction, from_email, to_email,
+        cc_emails, bcc_emails, subject, body_text, body_html, status,
+        is_ai_draft, tone, ai_reason, external_email_id, sent_at,
+        received_at, scheduled_for, created_at, updated_at
+      )
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, NOW(), NOW())
+      RETURNING *
+    `;
+
+    const result = await pool.query(insertQuery, [
+      userUuid,
+      emailData.thread_id || null,
+      emailData.lead_id || null,
+      emailData.direction || "outbound",
+      emailData.from_email || null,
+      emailData.to_email || null,
+      emailData.cc_emails || null,
+      emailData.bcc_emails || null,
+      emailData.subject || "",
+      emailData.body_text || null,
+      emailData.body_html || null,
+      emailData.status || "draft",
+      emailData.is_ai_draft || false,
+      emailData.tone || null,
+      emailData.ai_reason || null,
+      emailData.external_email_id || null,
+      emailData.sent_at || null,
+      emailData.received_at || null,
+      emailData.scheduled_for || null,
+    ]);
+
+    await pool.end();
+
+    return res.json({
+      success: true,
+      email: result.rows[0],
+    });
+  } catch (error) {
+    console.error("❌ Email create error:", error);
+    return res.status(500).json({
+      error: "Email create failed",
+      message: error instanceof Error ? error.message : "Unknown error",
+    });
+  }
+});
+
 // Email sending endpoint
 app.post("/api/emails/send", async (req, res) => {
   try {
