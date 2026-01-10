@@ -1,5 +1,5 @@
 import { motion, useScroll, useTransform, useInView } from "framer-motion";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useMemo, useCallback, memo } from "react";
 import { Link } from "react-router-dom";
 
 import { 
@@ -8,36 +8,20 @@ import {
   Brain, 
   Mail, 
   TrendingUp, 
-  Shield, 
   ArrowRight,
   CheckCircle2,
   Clock,
   AlertCircle,
   Target,
-  BarChart3,
   Play,
-  ChevronRight,
-  Star,
-  Users,
-  Rocket,
-  Globe,
-  Lock,
   Check,
   X,
   Search,
-  MessageSquare,
-  Send,
-  Eye,
   Activity,
-  Layers,
-  Sparkle,
   Wand2,
-  Network,
-  TrendingDown,
   ArrowUpRight,
   MailCheck,
   Bot,
-  Cpu,
   ScanSearch
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -58,17 +42,6 @@ const Landing = () => {
 
   const heroY = useTransform(scrollYProgress, [0, 0.5], [0, -100]);
   const heroOpacity = useTransform(scrollYProgress, [0, 0.3], [1, 0]);
-  const parallaxY = useTransform(scrollYProgress, [0, 1], [0, 200]);
-
-  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
-
-  useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
-      setMousePosition({ x: e.clientX, y: e.clientY });
-    };
-    window.addEventListener("mousemove", handleMouseMove);
-    return () => window.removeEventListener("mousemove", handleMouseMove);
-  }, []);
 
   if (isPending) return null;
 
@@ -92,6 +65,7 @@ const Landing = () => {
             ],
           }}
           transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+          style={{ willChange: "background" }}
         />
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-purple-900/10 via-background to-background" />
         
@@ -959,7 +933,7 @@ const SectionWrapper = ({ children, className = "" }: { children: React.ReactNod
 );
 
 // Problem Card Component - Enhanced with eye-catching animations
-const ProblemCard = ({ icon: Icon, title, description, delay }: {
+const ProblemCard = memo(({ icon: Icon, title, description, delay }: {
   icon: any;
   title: string;
   description: string;
@@ -986,7 +960,7 @@ const ProblemCard = ({ icon: Icon, title, description, delay }: {
       onHoverStart={() => setIsHovered(true)}
       onHoverEnd={() => setIsHovered(false)}
       className="relative group cursor-pointer"
-      style={{ transformStyle: "preserve-3d", perspective: "1000px" }}
+      style={{ transformStyle: "preserve-3d", perspective: "1000px", willChange: isHovered ? "transform" : "auto" }}
     >
       {/* Animated glow effect */}
       <motion.div
@@ -1099,10 +1073,32 @@ const ProblemCard = ({ icon: Icon, title, description, delay }: {
       </motion.div>
     </motion.div>
   );
+});
+
+ProblemCard.displayName = "ProblemCard";
+
+// Get gradient colors helper - moved outside component for performance
+const getGradientColorValue = (gradient: string): string => {
+  if (gradient.includes("blue")) return "rgba(59, 130, 246, 0.6)";
+  if (gradient.includes("purple")) return "rgba(139, 92, 246, 0.6)";
+  if (gradient.includes("green")) return "rgba(34, 197, 94, 0.6)";
+  return "rgba(168, 85, 247, 0.6)";
+};
+
+// Throttle function for mouse events
+const throttle = <T extends (...args: any[]) => void>(func: T, limit: number): T => {
+  let inThrottle: boolean;
+  return ((...args: any[]) => {
+    if (!inThrottle) {
+      func(...args);
+      inThrottle = true;
+      setTimeout(() => (inThrottle = false), limit);
+    }
+  }) as T;
 };
 
 // Feature Card Component - 3D, Animated, Hifi, Futuristic, Expensive
-const FeatureCard = ({ icon: Icon, title, description, gradient, delay }: {
+const FeatureCard = memo(({ icon: Icon, title, description, gradient, delay }: {
   icon: any;
   title: string;
   description: string;
@@ -1114,16 +1110,14 @@ const FeatureCard = ({ icon: Icon, title, description, gradient, delay }: {
   const [isHovered, setIsHovered] = useState(false);
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
 
-  // Get gradient colors for dynamic effects
-  const getGradientColor = () => {
-    if (gradient.includes("blue")) return "rgba(59, 130, 246, 0.6)";
-    if (gradient.includes("purple")) return "rgba(139, 92, 246, 0.6)";
-    if (gradient.includes("green")) return "rgba(34, 197, 94, 0.6)";
-    return "rgba(168, 85, 247, 0.6)";
-  };
+  // Memoize gradient color
+  const gradientColor = useMemo(() => getGradientColorValue(gradient), [gradient]);
 
+  // Throttled mouse move handler
+  const handleMouseMoveRef = useRef<((e: MouseEvent) => void) | null>(null);
+  
   useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
+    const throttledHandler = throttle((e: MouseEvent) => {
       if (ref.current && isHovered) {
         const rect = ref.current.getBoundingClientRect();
         setMousePosition({
@@ -1131,14 +1125,28 @@ const FeatureCard = ({ icon: Icon, title, description, gradient, delay }: {
           y: ((e.clientY - rect.top) / rect.height - 0.5) * 20,
         });
       }
+    }, 16); // ~60fps
+    
+    handleMouseMoveRef.current = throttledHandler;
+    
+    return () => {
+      handleMouseMoveRef.current = null;
     };
+  }, [isHovered]);
+  
+  const handleMouseMove = useCallback((e: MouseEvent) => {
+    if (handleMouseMoveRef.current) {
+      handleMouseMoveRef.current(e);
+    }
+  }, []);
 
+  useEffect(() => {
     if (isHovered) {
-      window.addEventListener("mousemove", handleMouseMove);
+      window.addEventListener("mousemove", handleMouseMove, { passive: true });
     }
 
     return () => window.removeEventListener("mousemove", handleMouseMove);
-  }, [isHovered]);
+  }, [isHovered, handleMouseMove]);
 
   return (
     <motion.div
@@ -1152,10 +1160,11 @@ const FeatureCard = ({ icon: Icon, title, description, gradient, delay }: {
         setMousePosition({ x: 0, y: 0 });
       }}
       className="group relative"
-      style={{ 
-        transformStyle: "preserve-3d", 
-        perspective: "1000px",
-      }}
+          style={{ 
+            transformStyle: "preserve-3d", 
+            perspective: "1000px",
+            willChange: "transform",
+          }}
     >
       {/* Animated outer glow - pulsing */}
       <motion.div
@@ -1207,8 +1216,9 @@ const FeatureCard = ({ icon: Icon, title, description, gradient, delay }: {
           style={{ 
             transformStyle: "preserve-3d",
             boxShadow: isHovered 
-              ? `0 30px 60px -15px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.15), 0 0 80px -20px ${getGradientColor()}`
+              ? `0 30px 60px -15px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.15), 0 0 80px -20px ${gradientColor}`
               : `0 15px 40px -10px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.08)`,
+            willChange: isHovered ? "transform, box-shadow" : "auto",
           }}
       >
         {/* Animated gradient background orbs */}
@@ -1266,8 +1276,9 @@ const FeatureCard = ({ icon: Icon, title, description, gradient, delay }: {
           }}
           style={{
             height: "2px",
-            background: `linear-gradient(90deg, transparent, ${getGradientColor()}, transparent)`,
-            boxShadow: `0 0 20px ${getGradientColor()}`,
+            background: `linear-gradient(90deg, transparent, ${gradientColor}, transparent)`,
+            boxShadow: `0 0 20px ${gradientColor}`,
+            willChange: isHovered ? "transform, opacity" : "auto",
           }}
         />
 
@@ -1300,7 +1311,7 @@ const FeatureCard = ({ icon: Icon, title, description, gradient, delay }: {
             z: 0,
           }}
           transition={{ duration: 0.3 }}
-          style={{ transformStyle: "preserve-3d" }}
+          style={{ transformStyle: "preserve-3d", willChange: isHovered ? "transform" : "auto" }}
         >
           {/* Outer glow ring */}
           <motion.div
@@ -1405,8 +1416,9 @@ const FeatureCard = ({ icon: Icon, title, description, gradient, delay }: {
           transition={{ delay: delay + 0.1, duration: 0.6 }}
           whileHover={{ x: 5 }}
           style={{
-            filter: isHovered ? `drop-shadow(0 0 12px ${getGradientColor()})` : "none",
-            textShadow: isHovered ? `0 0 20px ${getGradientColor()}` : "none",
+            filter: isHovered ? `drop-shadow(0 0 12px ${gradientColor})` : "none",
+            textShadow: isHovered ? `0 0 20px ${gradientColor}` : "none",
+            willChange: isHovered ? "filter, transform" : "auto",
           }}
         >
           {title}
@@ -1435,8 +1447,9 @@ const FeatureCard = ({ icon: Icon, title, description, gradient, delay }: {
           transition={{ duration: 0.5 }}
           style={{
             boxShadow: isHovered 
-              ? `0 -6px 30px -6px ${getGradientColor()}`
+              ? `0 -6px 30px -6px ${gradientColor}`
               : "none",
+            willChange: isHovered ? "transform, opacity" : "auto",
           }}
         />
 
@@ -1458,10 +1471,12 @@ const FeatureCard = ({ icon: Icon, title, description, gradient, delay }: {
       </motion.div>
     </motion.div>
   );
-};
+});
+
+FeatureCard.displayName = "FeatureCard";
 
 // Step Card Component
-const StepCard = ({ step, title, description, icon: Icon, index }: {
+const StepCard = memo(({ step, title, description, icon: Icon, index }: {
   step: string;
   title: string;
   description: string;
@@ -1501,10 +1516,12 @@ const StepCard = ({ step, title, description, icon: Icon, index }: {
       </div>
     </motion.div>
   );
-};
+});
+
+StepCard.displayName = "StepCard";
 
 // Stat Card Component
-const StatCard = ({ value, suffix, icon: Icon, color, index }: {
+const StatCard = memo(({ value, suffix, icon: Icon, color, index }: {
   value: string;
   suffix: string;
   icon: any;
@@ -1515,18 +1532,23 @@ const StatCard = ({ value, suffix, icon: Icon, color, index }: {
   const isInView = useInView(ref, { once: true });
   const [count, setCount] = useState(0);
 
+  // Memoize target value calculation
+  const targetValue = useMemo(() => {
+    if (value === "0" || value === "24/7" || value === "95%") return null;
+    return parseInt(value.replace("x", ""));
+  }, [value]);
+
   useEffect(() => {
-    if (isInView && value !== "0" && value !== "24/7" && value !== "95%") {
-      const target = parseInt(value.replace("x", ""));
+    if (isInView && targetValue !== null) {
       const duration = 2000;
       const steps = 60;
-      const increment = target / steps;
+      const increment = targetValue / steps;
       let current = 0;
 
       const timer = setInterval(() => {
         current += increment;
-        if (current >= target) {
-          setCount(target);
+        if (current >= targetValue) {
+          setCount(targetValue);
           clearInterval(timer);
         } else {
           setCount(Math.floor(current));
@@ -1535,7 +1557,7 @@ const StatCard = ({ value, suffix, icon: Icon, color, index }: {
 
       return () => clearInterval(timer);
     }
-  }, [isInView, value]);
+  }, [isInView, targetValue]);
 
   return (
     <motion.div
@@ -1553,10 +1575,12 @@ const StatCard = ({ value, suffix, icon: Icon, color, index }: {
       <div className="text-sm text-muted-foreground">{suffix}</div>
     </motion.div>
   );
-};
+});
+
+StatCard.displayName = "StatCard";
 
 // Pricing Card Component
-const PricingCard = ({ name, price, period, description, features, cta, popular, index }: {
+const PricingCard = memo(({ name, price, period, description, features, cta, popular, index }: {
   name: string;
   price: string;
   period?: string;
@@ -1615,17 +1639,19 @@ const PricingCard = ({ name, price, period, description, features, cta, popular,
       </Button>
     </motion.div>
   );
-};
+});
+
+PricingCard.displayName = "PricingCard";
 
 // Typewriter Text Component - Fixed width to prevent layout shifts
-const TypewriterText = ({ texts, className }: { texts: string[]; className?: string }) => {
+const TypewriterText = memo(({ texts, className }: { texts: string[]; className?: string }) => {
   const [currentTextIndex, setCurrentTextIndex] = useState(0);
   const [displayText, setDisplayText] = useState("");
   const [isDeleting, setIsDeleting] = useState(false);
   const [typingSpeed, setTypingSpeed] = useState(100);
 
-  // Find the longest text to set fixed width
-  const longestText = texts.reduce((a, b) => a.length > b.length ? a : b);
+  // Memoize longest text calculation
+  const longestText = useMemo(() => texts.reduce((a, b) => a.length > b.length ? a : b), [texts]);
 
   useEffect(() => {
     const currentText = texts[currentTextIndex];
@@ -1684,6 +1710,8 @@ const TypewriterText = ({ texts, className }: { texts: string[]; className?: str
       </span>
     </span>
   );
-};
+});
+
+TypewriterText.displayName = "TypewriterText";
 
 export default Landing;
