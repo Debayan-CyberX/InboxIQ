@@ -46,7 +46,7 @@ const ActionQueue = ({
       initial={{ opacity: 0, x: 20, scale: 0.96 }}
       animate={{ opacity: 1, x: 0, scale: 1 }}
       transition={{ duration: 0.7, delay: 0.4, ease: [0.16, 1, 0.3, 1] }}
-      className="card-elevated animate-fade-in animation-delay-300 max-w-full overflow-visible relative border-2 border-accent/25"
+      className="card-elevated animate-fade-in animation-delay-300 max-w-full overflow-hidden relative border-2 border-accent/25"
       style={{ 
         background: "linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(147, 51, 234, 0.06) 100%)",
         backdropFilter: "blur(24px)",
@@ -198,7 +198,7 @@ const ActionQueue = ({
                 transition: { duration: 0.2, type: "spring", stiffness: 300 }
               }}
               className={cn(
-                "relative p-4 sm:p-5 border-l-4 transition-all duration-300 hover:bg-muted/60 rounded-r-2xl group border-r border-r-transparent hover:border-r-accent/30 overflow-visible",
+                "relative p-4 sm:p-5 border-l-4 transition-all duration-300 hover:bg-muted/60 rounded-r-2xl group border-r border-r-transparent hover:border-r-accent/30 overflow-hidden",
                 priorityStyles[action.priority]
               )}
               style={{
@@ -239,9 +239,9 @@ const ActionQueue = ({
               {/* Mobile-first layout */}
               <div className="relative flex flex-col sm:flex-row gap-3 sm:gap-4">
                 {/* Content */}
-                <div className="flex-1 min-w-0 space-y-2.5">
+                <div className="flex-1 min-w-0 space-y-2">
                   <div className="flex items-center gap-2.5 flex-wrap">
-                    <h4 className="font-bold text-foreground text-base sm:text-lg break-words min-w-0 flex-1">
+                    <h4 className="font-bold text-foreground text-base sm:text-lg truncate flex-1 min-w-0">
                       {action.company}
                     </h4>
 
@@ -256,13 +256,13 @@ const ActionQueue = ({
                     )}
                   </div>
 
-                  <p className="text-sm sm:text-base text-foreground/98 break-words font-semibold leading-relaxed min-h-[2.5rem]">
+                  <p className="text-sm sm:text-base text-foreground/95 line-clamp-2 font-semibold">
                     {action.subject}
                   </p>
 
-                  <p className="text-xs sm:text-sm text-muted-foreground/95 flex items-start gap-2 leading-relaxed">
-                    <Clock className="w-4 h-4 shrink-0 mt-0.5 text-accent/60 flex-shrink-0" />
-                    <span className="break-words font-medium flex-1 min-w-0">
+                  <p className="text-xs sm:text-sm text-muted-foreground/90 flex items-start gap-2">
+                    <Clock className="w-4 h-4 shrink-0 mt-0.5 text-accent/60" />
+                    <span className="line-clamp-2 flex-1 min-w-0">
                       {action.reason}
                     </span>
                   </p>
