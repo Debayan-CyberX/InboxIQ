@@ -8,6 +8,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Sparkles, Mail, Lock, User, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
+import { AuthLayout } from "@/components/auth/AuthLayout";
 
 const SignUp = () => {
   const [name, setName] = useState("");
@@ -188,6 +189,7 @@ const SignUp = () => {
         </CardFooter>
       </Card>
     </div>
+    </AuthLayout>
   );
 };
 

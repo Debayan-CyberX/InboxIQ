@@ -18,6 +18,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 
 import { Sparkles, Mail, Lock, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
+import { AuthLayout } from "@/components/auth/AuthLayout";
 
 export default function SignIn() {
   /* -------------------- AUTH STATE -------------------- */
@@ -207,5 +208,6 @@ export default function SignIn() {
         </form>
       </Card>
     </div>
+    </AuthLayout>
   );
 }
