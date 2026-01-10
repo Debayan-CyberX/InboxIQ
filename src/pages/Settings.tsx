@@ -498,7 +498,7 @@ const Settings = () => {
           onChange={(e) => onChange(e.target.value)}
           placeholder={placeholder}
           rows={rows}
-          className="w-full px-3 py-2 rounded-lg bg-secondary/50 border border-border text-sm focus:outline-none focus:ring-2 focus:ring-ring focus:bg-background transition-all resize-none"
+          className="w-full px-3 py-2 rounded-lg bg-secondary/50 border border-border text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-ring focus:bg-background transition-all resize-none"
         />
       </div>
     );
@@ -525,33 +525,33 @@ const Settings = () => {
 
   return (
     <DashboardLayout>
-      <div className="space-y-6 max-w-[1200px] mx-auto">
+      <div className="space-y-4 sm:space-y-6 max-w-[1200px] mx-auto">
         {/* Header */}
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4">
           <div>
-            <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
-              <SettingsIcon className="w-6 h-6 text-accent" />
+            <h1 className="text-xl sm:text-2xl font-bold text-foreground flex items-center gap-2">
+              <SettingsIcon className="w-5 h-5 sm:w-6 sm:h-6 text-accent" />
               Settings
             </h1>
-            <p className="text-sm text-muted-foreground mt-1">
+            <p className="text-xs sm:text-sm text-muted-foreground mt-0.5 sm:mt-1">
               Manage your account preferences and configuration
             </p>
           </div>
           <Button
             variant="accent"
             size="sm"
-            className="gap-2"
+            className="gap-1.5 sm:gap-2 text-xs sm:text-sm w-full sm:w-auto"
             onClick={handleSave}
             disabled={isSaving}
           >
-            <Save className="w-4 h-4" />
+            <Save className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             {isSaving ? "Saving..." : "Save Changes"}
           </Button>
         </div>
 
-        <div className="grid grid-cols-12 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6">
           {/* Sidebar - Tabs */}
-          <div className="col-span-3">
+          <div className="col-span-1 lg:col-span-3">
             <div className="card-elevated p-2 space-y-1">
               {tabs.map((tab) => {
                 const Icon = tab.icon;
@@ -560,13 +560,13 @@ const Settings = () => {
                     key={tab.id}
                     onClick={() => setActiveTab(tab.id)}
                     className={cn(
-                      "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all text-left",
+                      "w-full flex items-center gap-2 sm:gap-3 px-2 sm:px-3 py-2 sm:py-2.5 rounded-lg text-xs sm:text-sm font-medium transition-all text-left",
                       activeTab === tab.id
                         ? "bg-accent/10 text-accent"
                         : "text-foreground/70 hover:bg-muted/50 hover:text-foreground"
                     )}
                   >
-                    <Icon className="w-4 h-4" />
+                    <Icon className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                     <span>{tab.label}</span>
                   </button>
                 );
@@ -575,22 +575,22 @@ const Settings = () => {
           </div>
 
           {/* Main Content */}
-          <div className="col-span-9">
+          <div className="col-span-1 lg:col-span-9">
             <motion.div
               key={activeTab}
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.2 }}
-              className="card-elevated p-6"
+              className="card-elevated p-4 sm:p-5 md:p-6"
             >
               {/* Profile Tab */}
               {activeTab === "profile" && (
-                <div className="space-y-6">
+                <div className="space-y-4 sm:space-y-6">
                   <div>
-                    <h2 className="text-lg font-semibold text-foreground mb-1">Profile Information</h2>
-                    <p className="text-sm text-muted-foreground">Update your personal information</p>
+                    <h2 className="text-base sm:text-lg font-semibold text-foreground mb-0.5 sm:mb-1">Profile Information</h2>
+                    <p className="text-xs sm:text-sm text-muted-foreground">Update your personal information</p>
                   </div>
-                  <div className="space-y-4">
+                  <div className="space-y-3 sm:space-y-4">
                     <InputField
                       label="Full Name"
                       value={profile.name}
@@ -648,13 +648,13 @@ const Settings = () => {
 
               {/* Email Tab */}
               {activeTab === "email" && (
-                <div className="space-y-6">
+                <div className="space-y-4 sm:space-y-6">
                   <div>
-                    <h2 className="text-lg font-semibold text-foreground mb-1">Email Configuration</h2>
-                    <p className="text-sm text-muted-foreground">Configure your email preferences and settings</p>
+                    <h2 className="text-base sm:text-lg font-semibold text-foreground mb-0.5 sm:mb-1">Email Configuration</h2>
+                    <p className="text-xs sm:text-sm text-muted-foreground">Configure your email preferences and settings</p>
                   </div>
-                  <div className="space-y-6">
-                    <div className="space-y-4">
+                  <div className="space-y-4 sm:space-y-6">
+                    <div className="space-y-3 sm:space-y-4">
                       <ToggleSwitch
                         enabled={emailSettings.autoReply}
                         onChange={(v) => setEmailSettings({ ...emailSettings, autoReply: v })}
@@ -702,13 +702,13 @@ const Settings = () => {
 
               {/* AI Tab */}
               {activeTab === "ai" && (
-                <div className="space-y-6">
+                <div className="space-y-4 sm:space-y-6">
                   <div>
-                    <h2 className="text-lg font-semibold text-foreground mb-1">AI Assistant Settings</h2>
-                    <p className="text-sm text-muted-foreground">Configure AI-powered features and preferences</p>
+                    <h2 className="text-base sm:text-lg font-semibold text-foreground mb-0.5 sm:mb-1">AI Assistant Settings</h2>
+                    <p className="text-xs sm:text-sm text-muted-foreground">Configure AI-powered features and preferences</p>
                   </div>
-                  <div className="space-y-6">
-                    <div className="space-y-4">
+                  <div className="space-y-4 sm:space-y-6">
+                    <div className="space-y-3 sm:space-y-4">
                       <ToggleSwitch
                         enabled={aiSettings.enabled}
                         onChange={(v) => setAiSettings({ ...aiSettings, enabled: v })}
@@ -789,12 +789,12 @@ const Settings = () => {
 
               {/* Notifications Tab */}
               {activeTab === "notifications" && (
-                <div className="space-y-6">
+                <div className="space-y-4 sm:space-y-6">
                   <div>
-                    <h2 className="text-lg font-semibold text-foreground mb-1">Notification Preferences</h2>
-                    <p className="text-sm text-muted-foreground">Control how and when you receive notifications</p>
+                    <h2 className="text-base sm:text-lg font-semibold text-foreground mb-0.5 sm:mb-1">Notification Preferences</h2>
+                    <p className="text-xs sm:text-sm text-muted-foreground">Control how and when you receive notifications</p>
                   </div>
-                  <div className="space-y-4">
+                  <div className="space-y-3 sm:space-y-4">
                     <ToggleSwitch
                       enabled={notificationSettings.emailAlerts}
                       onChange={(v) => setNotificationSettings({ ...notificationSettings, emailAlerts: v })}
@@ -807,8 +807,8 @@ const Settings = () => {
                       label="Browser Notifications"
                       description="Receive browser push notifications"
                     />
-                    <div className="pt-4 border-t border-border space-y-4">
-                      <h3 className="text-sm font-semibold text-foreground">Alert Types</h3>
+                    <div className="pt-3 sm:pt-4 border-t border-border space-y-3 sm:space-y-4">
+                      <h3 className="text-xs sm:text-sm font-semibold text-foreground">Alert Types</h3>
                       <ToggleSwitch
                         enabled={notificationSettings.hotLeadAlerts}
                         onChange={(v) => setNotificationSettings({ ...notificationSettings, hotLeadAlerts: v })}
@@ -846,13 +846,13 @@ const Settings = () => {
 
               {/* Security Tab */}
               {activeTab === "security" && (
-                <div className="space-y-6">
+                <div className="space-y-4 sm:space-y-6">
                   <div>
-                    <h2 className="text-lg font-semibold text-foreground mb-1">Security Settings</h2>
-                    <p className="text-sm text-muted-foreground">Manage your account security and privacy</p>
+                    <h2 className="text-base sm:text-lg font-semibold text-foreground mb-0.5 sm:mb-1">Security Settings</h2>
+                    <p className="text-xs sm:text-sm text-muted-foreground">Manage your account security and privacy</p>
                   </div>
-                  <div className="space-y-6">
-                    <div className="space-y-4">
+                  <div className="space-y-4 sm:space-y-6">
+                    <div className="space-y-3 sm:space-y-4">
                       <ToggleSwitch
                         enabled={securitySettings.twoFactorEnabled}
                         onChange={(v) => setSecuritySettings({ ...securitySettings, twoFactorEnabled: v })}
@@ -998,12 +998,12 @@ const Settings = () => {
 
               {/* Appearance Tab */}
               {activeTab === "appearance" && (
-                <div className="space-y-6">
+                <div className="space-y-4 sm:space-y-6">
                   <div>
-                    <h2 className="text-lg font-semibold text-foreground mb-1">Appearance Settings</h2>
-                    <p className="text-sm text-muted-foreground">Customize the look and feel of your dashboard</p>
+                    <h2 className="text-base sm:text-lg font-semibold text-foreground mb-0.5 sm:mb-1">Appearance Settings</h2>
+                    <p className="text-xs sm:text-sm text-muted-foreground">Customize the look and feel of your dashboard</p>
                   </div>
-                  <div className="space-y-4">
+                  <div className="space-y-3 sm:space-y-4">
                     <SelectField
                       label="Theme"
                       value={appearanceSettings.theme}

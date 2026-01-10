@@ -217,9 +217,9 @@ const Index = () => {
 
   return (
     <DashboardLayout>
-      <div className="space-y-6 max-w-[1600px] mx-auto">
+      <div className="space-y-4 sm:space-y-6 max-w-[1600px] mx-auto">
         {/* Status Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
           <StatusCard
             title="Hot Leads"
             value={hotLeadsCount}
@@ -262,10 +262,10 @@ const Index = () => {
         <PerformanceSnapshot metrics={performanceMetricsWithIcons} />
 
         {/* Main content grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6">
 
           {/* Lead Pipeline - Takes 8 columns */}
-          <div className="col-span-8">
+          <div className="col-span-1 lg:col-span-8">
             <LeadPipeline 
               leads={transformedLeads}
               onLeadClick={handleLeadClick}
@@ -273,7 +273,7 @@ const Index = () => {
           </div>
 
           {/* Right column - Action Queue */}
-          <div className="col-span-4">
+          <div className="col-span-1 lg:col-span-4">
             <ActionQueue 
               actions={transformedActions}
               onReviewSend={handleActionReviewSend}

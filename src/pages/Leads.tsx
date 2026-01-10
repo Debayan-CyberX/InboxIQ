@@ -250,24 +250,24 @@ const Leads = () => {
 
   return (
     <DashboardLayout>
-      <div className="space-y-6 max-w-[1600px] mx-auto">
+      <div className="space-y-4 sm:space-y-6 max-w-[1600px] mx-auto">
         {/* Header */}
-        <div className="flex items-center justify-between mb-8">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4 mb-6 sm:mb-8">
           <div>
-            <h1 className="text-4xl font-bold tracking-tight mb-2">
+            <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight mb-1 sm:mb-2">
               <span className="text-gradient-primary text-glow-primary">Leads</span>
             </h1>
-            <p className="text-base text-muted-foreground/90 font-semibold">
-              <span className="text-gradient font-bold text-lg text-glow">{filteredAndSortedLeads.length}</span>{" "}
+            <p className="text-sm sm:text-base text-muted-foreground/90 font-semibold">
+              <span className="text-gradient font-bold text-base sm:text-lg text-glow">{filteredAndSortedLeads.length}</span>{" "}
               {filteredAndSortedLeads.length === 1 ? "lead" : "leads"}
               {statusFilter !== "all" && ` • ${statusFilter} leads`}
             </p>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto flex-wrap">
             <Button 
               variant="outline" 
-              size="default" 
-              className="gap-2"
+              size="sm" 
+              className="gap-1.5 sm:gap-2 text-xs sm:text-sm flex-1 sm:flex-initial"
               onClick={async () => {
                 if (!userId) return;
                 try {
@@ -288,155 +288,157 @@ const Leads = () => {
                 }
               }}
             >
-              <Sparkles className="w-4 h-4" />
-              Detect Leads
+              <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+              <span className="hidden sm:inline">Detect Leads</span>
+              <span className="sm:hidden">Detect</span>
             </Button>
-            <Button variant="outline" size="default" className="gap-2">
-              <Filter className="w-4 h-4" />
-              Filters
+            <Button variant="outline" size="sm" className="gap-1.5 sm:gap-2 text-xs sm:text-sm flex-1 sm:flex-initial">
+              <Filter className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+              <span className="hidden sm:inline">Filters</span>
             </Button>
-            <Button variant="default" size="default" className="gap-2">
-              <Plus className="w-4 h-4" />
-              Add Lead
+            <Button variant="default" size="sm" className="gap-1.5 sm:gap-2 text-xs sm:text-sm flex-1 sm:flex-initial">
+              <Plus className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+              <span className="hidden sm:inline">Add Lead</span>
+              <span className="sm:hidden">Add</span>
             </Button>
           </div>
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 mb-8">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4 mb-6 sm:mb-8">
           <motion.div 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4, delay: 0 }}
-            className="glass-strong p-6 rounded-2xl hover-lift cursor-pointer group relative overflow-hidden"
+            className="glass-strong p-4 sm:p-5 md:p-6 rounded-xl sm:rounded-2xl hover-lift cursor-pointer group relative overflow-hidden"
           >
             <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent pointer-events-none" />
             <div className="relative">
-              <div className="text-4xl font-bold text-gradient text-glow mb-2">{stats.total}</div>
-              <div className="text-sm text-muted-foreground/80 font-semibold uppercase tracking-wider">Total Leads</div>
+              <div className="text-2xl sm:text-3xl md:text-4xl font-bold text-gradient text-glow mb-1 sm:mb-2">{stats.total}</div>
+              <div className="text-xs sm:text-sm text-muted-foreground/80 font-semibold uppercase tracking-wider leading-tight">Total Leads</div>
             </div>
           </motion.div>
           <motion.div 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4, delay: 0.1 }}
-            className="glass-glow-hot p-6 rounded-2xl border-l-4 border-l-[#EF4444] hover-lift cursor-pointer group relative overflow-hidden"
+            className="glass-glow-hot p-4 sm:p-5 md:p-6 rounded-xl sm:rounded-2xl border-l-2 sm:border-l-4 border-l-[#EF4444] hover-lift cursor-pointer group relative overflow-hidden"
           >
             <div className="absolute inset-0 bg-gradient-to-br from-[rgba(239,68,68,0.1)] to-transparent pointer-events-none" />
             <div className="relative">
-              <div className="text-4xl font-bold text-gradient-hot text-glow-hot mb-2">{stats.hot}</div>
-              <div className="text-sm text-muted-foreground/80 font-semibold uppercase tracking-wider">Hot</div>
+              <div className="text-2xl sm:text-3xl md:text-4xl font-bold text-gradient-hot text-glow-hot mb-1 sm:mb-2">{stats.hot}</div>
+              <div className="text-xs sm:text-sm text-muted-foreground/80 font-semibold uppercase tracking-wider leading-tight">Hot</div>
             </div>
           </motion.div>
           <motion.div 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4, delay: 0.2 }}
-            className="glass-glow-warm p-6 rounded-2xl border-l-4 border-l-[#F59E0B] hover-lift cursor-pointer group relative overflow-hidden"
+            className="glass-glow-warm p-4 sm:p-5 md:p-6 rounded-xl sm:rounded-2xl border-l-2 sm:border-l-4 border-l-[#F59E0B] hover-lift cursor-pointer group relative overflow-hidden"
           >
             <div className="absolute inset-0 bg-gradient-to-br from-[rgba(245,158,11,0.1)] to-transparent pointer-events-none" />
             <div className="relative">
-              <div className="text-4xl font-bold text-gradient-warm text-glow-warm mb-2">{stats.warm}</div>
-              <div className="text-sm text-muted-foreground/80 font-semibold uppercase tracking-wider">Warm</div>
+              <div className="text-2xl sm:text-3xl md:text-4xl font-bold text-gradient-warm text-glow-warm mb-1 sm:mb-2">{stats.warm}</div>
+              <div className="text-xs sm:text-sm text-muted-foreground/80 font-semibold uppercase tracking-wider leading-tight">Warm</div>
             </div>
           </motion.div>
           <motion.div 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4, delay: 0.3 }}
-            className="glass-glow-cold p-6 rounded-2xl border-l-4 border-l-[#22D3EE] hover-lift cursor-pointer group relative overflow-hidden"
+            className="glass-glow-cold p-4 sm:p-5 md:p-6 rounded-xl sm:rounded-2xl border-l-2 sm:border-l-4 border-l-[#22D3EE] hover-lift cursor-pointer group relative overflow-hidden"
           >
             <div className="absolute inset-0 bg-gradient-to-br from-[rgba(34,211,238,0.1)] to-transparent pointer-events-none" />
             <div className="relative">
-              <div className="text-4xl font-bold text-gradient-cold text-glow-cold mb-2">{stats.cold}</div>
-              <div className="text-sm text-muted-foreground/80 font-semibold uppercase tracking-wider">Cold</div>
+              <div className="text-2xl sm:text-3xl md:text-4xl font-bold text-gradient-cold text-glow-cold mb-1 sm:mb-2">{stats.cold}</div>
+              <div className="text-xs sm:text-sm text-muted-foreground/80 font-semibold uppercase tracking-wider leading-tight">Cold</div>
             </div>
           </motion.div>
           <motion.div 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4, delay: 0.4 }}
-            className="glass-strong p-6 rounded-2xl hover-lift cursor-pointer group relative overflow-hidden"
+            className="glass-strong p-4 sm:p-5 md:p-6 rounded-xl sm:rounded-2xl hover-lift cursor-pointer group relative overflow-hidden"
           >
             <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent pointer-events-none" />
             <div className="relative">
-              <div className="text-4xl font-bold text-gradient text-glow mb-2">{stats.needsFollowUp}</div>
-              <div className="text-sm text-muted-foreground/80 font-semibold uppercase tracking-wider">Need Follow-up</div>
+              <div className="text-2xl sm:text-3xl md:text-4xl font-bold text-gradient text-glow mb-1 sm:mb-2">{stats.needsFollowUp}</div>
+              <div className="text-xs sm:text-sm text-muted-foreground/80 font-semibold uppercase tracking-wider leading-tight">Need Follow-up</div>
             </div>
           </motion.div>
           <motion.div 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4, delay: 0.5 }}
-            className="glass-glow p-6 rounded-2xl hover-lift cursor-pointer group relative overflow-hidden"
+            className="glass-glow p-4 sm:p-5 md:p-6 rounded-xl sm:rounded-2xl hover-lift cursor-pointer group relative overflow-hidden"
           >
             <div className="absolute inset-0 bg-gradient-to-br from-[rgba(124,58,237,0.1)] to-transparent pointer-events-none" />
             <div className="relative">
-              <div className="text-4xl font-bold text-gradient-primary text-glow-primary mb-2">{stats.hasDrafts}</div>
-              <div className="text-sm text-muted-foreground/80 font-semibold uppercase tracking-wider">AI Drafts</div>
+              <div className="text-2xl sm:text-3xl md:text-4xl font-bold text-gradient-primary text-glow-primary mb-1 sm:mb-2">{stats.hasDrafts}</div>
+              <div className="text-xs sm:text-sm text-muted-foreground/80 font-semibold uppercase tracking-wider leading-tight">AI Drafts</div>
             </div>
           </motion.div>
         </div>
 
         {/* Search and Filters */}
-        <div className="glass-strong p-6 rounded-2xl mb-6">
-          <div className="flex items-center gap-4">
+        <div className="glass-strong p-3 sm:p-4 md:p-6 rounded-xl sm:rounded-2xl mb-4 sm:mb-6">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4">
             {/* Search */}
-            <div className="relative flex-1">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground/60" />
+            <div className="relative flex-1 w-full">
+              <Search className="absolute left-3 sm:left-4 top-1/2 -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 text-muted-foreground/60" />
               <input
                 type="text"
-                placeholder="Search leads by name, company, or email..."
+                placeholder="Search leads..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full h-12 pl-12 pr-4 rounded-xl bg-[rgba(255,255,255,0.06)] backdrop-blur-md border border-[rgba(255,255,255,0.12)] text-base placeholder:text-muted-foreground/60 focus:outline-none focus:ring-2 focus:ring-[#7C3AED]/50 focus:bg-[rgba(255,255,255,0.08)] focus:border-[rgba(124,58,237,0.3)] transition-all duration-200 font-medium"
+                className="w-full h-10 sm:h-12 pl-9 sm:pl-12 pr-3 sm:pr-4 rounded-lg sm:rounded-xl bg-[rgba(255,255,255,0.06)] backdrop-blur-md border border-[rgba(255,255,255,0.12)] text-sm sm:text-base placeholder:text-muted-foreground/60 focus:outline-none focus:ring-2 focus:ring-[#7C3AED]/50 focus:bg-[rgba(255,255,255,0.08)] focus:border-[rgba(124,58,237,0.3)] transition-all duration-200 font-medium"
               />
             </div>
 
             {/* Status Filter */}
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
               <Button
                 variant={statusFilter === "all" ? "default" : "outline"}
-                size="default"
+                size="sm"
                 onClick={() => setStatusFilter("all")}
-                className="font-semibold"
+                className="font-semibold text-xs sm:text-sm px-2 sm:px-3"
               >
                 All
               </Button>
               <Button
                 variant={statusFilter === "hot" ? "default" : "outline"}
-                size="default"
+                size="sm"
                 onClick={() => setStatusFilter("hot")}
                 className={cn(
-                  "font-semibold",
+                  "font-semibold text-xs sm:text-sm px-2 sm:px-3",
                   statusFilter === "hot" ? "bg-[rgba(239,68,68,0.15)] text-[#EF4444] border-[#EF4444] hover:bg-[rgba(239,68,68,0.2)]" : ""
                 )}
               >
-                <Flame className="w-4 h-4 mr-1.5" />
+                <Flame className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1 sm:mr-1.5" />
                 Hot
               </Button>
               <Button
                 variant={statusFilter === "warm" ? "default" : "outline"}
-                size="default"
+                size="sm"
                 onClick={() => setStatusFilter("warm")}
                 className={cn(
-                  "font-semibold",
+                  "font-semibold text-xs sm:text-sm px-2 sm:px-3",
                   statusFilter === "warm" ? "bg-[rgba(245,158,11,0.15)] text-[#F59E0B] border-[#F59E0B] hover:bg-[rgba(245,158,11,0.2)]" : ""
                 )}
               >
-                <ThermometerSun className="w-4 h-4 mr-1.5" />
+                <ThermometerSun className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1 sm:mr-1.5" />
                 Warm
               </Button>
               <Button
                 variant={statusFilter === "cold" ? "default" : "outline"}
-                size="default"
+                size="sm"
                 onClick={() => setStatusFilter("cold")}
                 className={cn(
-                  "font-semibold",
+                  "font-semibold text-xs sm:text-sm px-2 sm:px-3",
                   statusFilter === "cold" ? "bg-[rgba(34,211,238,0.15)] text-[#22D3EE] border-[#22D3EE] hover:bg-[rgba(34,211,238,0.2)]" : ""
                 )}
               >
-                <Snowflake className="w-4 h-4 mr-1.5" />
+                <Snowflake className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1 sm:mr-1.5" />
                 Cold
               </Button>
             </div>
@@ -446,7 +448,7 @@ const Leads = () => {
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value as SortOption)}
-                className="h-12 px-4 rounded-xl bg-[rgba(255,255,255,0.06)] backdrop-blur-md border border-[rgba(255,255,255,0.12)] text-base focus:outline-none focus:ring-2 focus:ring-[#7C3AED]/50 focus:bg-[rgba(255,255,255,0.08)] transition-all duration-200 font-medium"
+                className="h-10 sm:h-12 px-3 sm:px-4 rounded-lg sm:rounded-xl bg-[rgba(255,255,255,0.06)] backdrop-blur-md border border-[rgba(255,255,255,0.12)] text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-[#7C3AED]/50 focus:bg-[rgba(255,255,255,0.08)] transition-all duration-200 font-medium flex-1 sm:flex-initial"
               >
                 <option value="recent">Recent</option>
                 <option value="name">Name</option>
@@ -458,26 +460,26 @@ const Leads = () => {
                 variant="outline"
                 size="icon"
                 onClick={() => setSortOrder(sortOrder === "asc" ? "desc" : "asc")}
-                className="h-12 w-12"
+                className="h-10 w-10 sm:h-12 sm:w-12"
               >
-                {sortOrder === "asc" ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
+                {sortOrder === "asc" ? <ChevronUp className="w-4 h-4 sm:w-5 sm:h-5" /> : <ChevronDown className="w-4 h-4 sm:w-5 sm:h-5" />}
               </Button>
             </div>
           </div>
         </div>
 
         {/* Leads Table/List */}
-        <div className="glass-strong rounded-2xl overflow-hidden">
+        <div className="glass-strong rounded-xl sm:rounded-2xl overflow-hidden">
           {/* Table Header */}
-          <div className="p-6 border-b border-[rgba(255,255,255,0.12)] bg-[rgba(255,255,255,0.05)] backdrop-blur-sm">
-            <div className="flex items-center gap-5">
+          <div className="p-3 sm:p-4 md:p-6 border-b border-[rgba(255,255,255,0.12)] bg-[rgba(255,255,255,0.05)] backdrop-blur-sm hidden sm:block">
+            <div className="flex items-center gap-4 sm:gap-5">
               <input
                 type="checkbox"
                 checked={selectedLeads.size === filteredAndSortedLeads.length && filteredAndSortedLeads.length > 0}
                 onChange={handleSelectAll}
-                className="w-5 h-5 rounded border-[rgba(255,255,255,0.2)] accent-[#7C3AED] cursor-pointer"
+                className="w-4 h-4 sm:w-5 sm:h-5 rounded border-[rgba(255,255,255,0.2)] accent-[#7C3AED] cursor-pointer"
               />
-              <div className="flex-1 grid grid-cols-12 gap-4 text-xs font-bold text-muted-foreground/90 uppercase tracking-widest">
+              <div className="flex-1 grid grid-cols-12 gap-2 sm:gap-4 text-xs font-bold text-muted-foreground/90 uppercase tracking-widest">
                 <div className="col-span-4">Contact</div>
                 <div className="col-span-3">Company</div>
                 <div className="col-span-2">Status</div>
@@ -522,23 +524,53 @@ const Leads = () => {
                       window.location.href = `/inbox?lead=${lead.id}`;
                     }}
                     className={cn(
-                      "p-6 hover:bg-[rgba(255,255,255,0.05)] transition-all duration-200 group cursor-pointer relative border-b border-[rgba(255,255,255,0.08)] last:border-0",
+                      "p-3 sm:p-4 md:p-6 hover:bg-[rgba(255,255,255,0.05)] transition-all duration-200 group cursor-pointer relative border-b border-[rgba(255,255,255,0.08)] last:border-0",
                       selectedLeads.has(lead.id) && "bg-[rgba(124,58,237,0.1)]"
                     )}
                   >
                     {/* Subtle gradient overlay on hover */}
                     <div className="absolute inset-0 bg-gradient-to-r from-[rgba(124,58,237,0.05)] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none" />
-                    <div className="relative flex items-center gap-5">
+                    <div className="relative flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 md:gap-5">
+                      {/* Mobile: Header with checkbox, avatar, name, status */}
+                      <div className="flex items-center gap-3 sm:hidden">
+                        <input
+                          type="checkbox"
+                          checked={selectedLeads.has(lead.id)}
+                          onChange={() => handleSelectLead(lead.id)}
+                          onClick={(e) => e.stopPropagation()}
+                          className="w-4 h-4 rounded border-[rgba(255,255,255,0.2)] accent-[#7C3AED] cursor-pointer shrink-0"
+                        />
+                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#7C3AED] to-[#22D3EE] flex items-center justify-center text-white font-bold text-sm shrink-0 shadow-lg shadow-[#7C3AED]/30">
+                          {lead.contact_name.split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase()}
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <div className="font-bold text-sm text-foreground truncate mb-0.5">{lead.contact_name}</div>
+                          <div className="text-xs text-muted-foreground/80 truncate">{lead.company}</div>
+                        </div>
+                        <div className={cn(
+                          "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-bold border backdrop-blur-sm",
+                          lead.status === "hot" ? "bg-[rgba(239,68,68,0.15)] text-[#EF4444] border-[#EF4444]" :
+                          lead.status === "warm" ? "bg-[rgba(245,158,11,0.15)] text-[#F59E0B] border-[#F59E0B]" :
+                          lead.status === "cold" ? "bg-[rgba(168,85,247,0.15)] text-[#A855F7] border-[#A855F7]" :
+                          "bg-[rgba(255,255,255,0.08)] text-muted-foreground border-[rgba(255,255,255,0.12)]"
+                        )}>
+                          <StatusIcon className="w-3 h-3" />
+                          <span className="capitalize">{lead.status}</span>
+                        </div>
+                      </div>
+
+                      {/* Desktop: Full layout */}
                       <input
                         type="checkbox"
                         checked={selectedLeads.has(lead.id)}
                         onChange={() => handleSelectLead(lead.id)}
                         onClick={(e) => e.stopPropagation()}
-                        className="w-5 h-5 rounded border-[rgba(255,255,255,0.2)] accent-[#7C3AED] cursor-pointer shrink-0"
+                        className="w-4 h-4 sm:w-5 sm:h-5 rounded border-[rgba(255,255,255,0.2)] accent-[#7C3AED] cursor-pointer shrink-0 hidden sm:block"
                       />
                       
-                      {/* Contact Info */}
-                      <div className="flex-1 grid grid-cols-12 gap-5 items-center">
+                      {/* Desktop: Grid Layout */}
+                      <div className="hidden sm:grid sm:grid-cols-12 gap-4 md:gap-5 items-center flex-1">
+                        {/* Contact Info */}
                         <div className="col-span-4 flex items-center gap-4 min-w-0">
                           <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#7C3AED] to-[#22D3EE] flex items-center justify-center text-white font-bold text-base shrink-0 shadow-lg shadow-[#7C3AED]/30">
                             {lead.contact_name.split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase()}
@@ -593,7 +625,6 @@ const Leads = () => {
                           {isUrgent && (
                             <div className="text-xs font-bold text-gradient-hot text-glow-hot mt-1 uppercase tracking-wide">Needs attention</div>
                           )}
-                          {/* Show follow-up due date if available */}
                           {lead.metadata?.follow_up_due_at && (
                             <div className="text-xs text-muted-foreground/60 mt-1 font-medium">
                               Follow-up: {new Date(lead.metadata.follow_up_due_at).toLocaleDateString()}
@@ -638,11 +669,11 @@ const Leads = () => {
                               }
                             }}
                             disabled={generatingLeadId === lead.id}
-                            className="p-2.5 rounded-xl hover:bg-[rgba(124,58,237,0.15)] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed hover:scale-110 shadow-lg shadow-[rgba(124,58,237,0.15)] hover:shadow-[rgba(124,58,237,0.25)]"
+                            className="p-1.5 sm:p-2 md:p-2.5 rounded-lg sm:rounded-xl hover:bg-[rgba(124,58,237,0.15)] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed hover:scale-110 shadow-lg shadow-[rgba(124,58,237,0.15)] hover:shadow-[rgba(124,58,237,0.25)]"
                             title={(lead.days_since_contact || 0) < 3 ? "User replied recently (within 3 days)" : generatingLeadId === lead.id ? "Generating..." : "Generate Follow-up"}
                           >
                             <Sparkles className={cn(
-                              "w-5 h-5", 
+                              "w-4 h-4 sm:w-5 sm:h-5", 
                               generatingLeadId === lead.id 
                                 ? "animate-spin text-[#7C3AED] drop-shadow-[0_0_10px_rgba(124,58,237,0.5)]" 
                                 : "text-[#7C3AED] drop-shadow-[0_0_8px_rgba(124,58,237,0.4)]"
@@ -650,17 +681,17 @@ const Leads = () => {
                           </button>
                           {lead.has_ai_draft && (
                             <button
-                              className="p-2.5 rounded-xl hover:bg-[rgba(124,58,237,0.15)] transition-all duration-200 hover:scale-110 shadow-lg shadow-[rgba(124,58,237,0.15)] hover:shadow-[rgba(124,58,237,0.25)]"
+                              className="p-1.5 sm:p-2 md:p-2.5 rounded-lg sm:rounded-xl hover:bg-[rgba(124,58,237,0.15)] transition-all duration-200 hover:scale-110 shadow-lg shadow-[rgba(124,58,237,0.15)] hover:shadow-[rgba(124,58,237,0.25)]"
                               title="AI Draft Ready"
                             >
-                              <Sparkles className="w-5 h-5 text-[#7C3AED] drop-shadow-[0_0_8px_rgba(124,58,237,0.4)]" />
+                              <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 text-[#7C3AED] drop-shadow-[0_0_8px_rgba(124,58,237,0.4)]" />
                             </button>
                           )}
                           <button
-                            className="p-2 rounded-xl hover:bg-[rgba(255,255,255,0.08)] transition-all duration-200 hover:scale-110 text-muted-foreground/60 hover:text-foreground"
+                            className="p-1.5 sm:p-2 rounded-lg sm:rounded-xl hover:bg-[rgba(255,255,255,0.08)] transition-all duration-200 hover:scale-110 text-muted-foreground/60 hover:text-foreground hidden sm:block"
                             title="Send Email"
                           >
-                            <MailIcon className="w-5 h-5" />
+                            <MailIcon className="w-4 h-4 sm:w-5 sm:h-5" />
                           </button>
                           <button
                             onClick={(e) => {
@@ -669,22 +700,36 @@ const Leads = () => {
                                 handleDelete(lead.id);
                               }
                             }}
-                            className="p-2 rounded-xl hover:bg-[rgba(239,68,68,0.1)] transition-all duration-200 hover:scale-110 text-muted-foreground/60 hover:text-[#EF4444]"
+                            className="p-1.5 sm:p-2 rounded-lg sm:rounded-xl hover:bg-[rgba(239,68,68,0.1)] transition-all duration-200 hover:scale-110 text-muted-foreground/60 hover:text-[#EF4444]"
                             title="Delete lead"
                           >
-                            <Trash2 className="w-5 h-5" />
+                            <Trash2 className="w-4 h-4 sm:w-5 sm:h-5" />
                           </button>
                         </div>
+                      </div>
+
+                      {/* Mobile: Additional info row */}
+                      <div className="sm:hidden flex flex-col gap-2 pl-13">
+                        {lead.last_message && (
+                          <div className="text-xs text-muted-foreground/70 line-clamp-1 truncate italic">
+                            "{lead.last_message}"
+                          </div>
+                        )}
+                        {lead.metadata?.follow_up_due_at && (
+                          <div className="text-[10px] text-muted-foreground/60 font-medium">
+                            Follow-up: {new Date(lead.metadata.follow_up_due_at).toLocaleDateString()}
+                          </div>
+                        )}
                       </div>
                     </div>
 
                     {/* AI Suggestion */}
                     {lead.ai_suggestion && (
-                      <div className="mt-4 ml-20 flex items-center gap-3 p-4 rounded-xl bg-gradient-to-r from-[rgba(124,58,237,0.15)] to-[rgba(34,211,238,0.1)] border border-[rgba(124,58,237,0.3)] backdrop-blur-sm shadow-lg shadow-[rgba(124,58,237,0.2)]">
-                        <Sparkles className="w-5 h-5 text-[#7C3AED] shrink-0 drop-shadow-[0_0_8px_rgba(124,58,237,0.6)]" />
-                        <p className="text-sm text-gradient-primary font-bold flex-1 leading-relaxed">{lead.ai_suggestion}</p>
+                      <div className="mt-3 sm:mt-4 sm:ml-20 flex items-center gap-2 sm:gap-3 p-3 sm:p-4 rounded-lg sm:rounded-xl bg-gradient-to-r from-[rgba(124,58,237,0.15)] to-[rgba(34,211,238,0.1)] border border-[rgba(124,58,237,0.3)] backdrop-blur-sm shadow-lg shadow-[rgba(124,58,237,0.2)]">
+                        <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 text-[#7C3AED] shrink-0 drop-shadow-[0_0_8px_rgba(124,58,237,0.6)]" />
+                        <p className="text-xs sm:text-sm text-gradient-primary font-bold flex-1 leading-relaxed">{lead.ai_suggestion}</p>
                         {lead.has_ai_draft && (
-                          <Button variant="default" size="sm" className="ml-auto h-8 text-xs font-bold shadow-lg shadow-[#7C3AED]/30 hover:shadow-[#7C3AED]/50">
+                          <Button variant="default" size="sm" className="ml-auto h-7 sm:h-8 text-[10px] sm:text-xs font-bold shadow-lg shadow-[#7C3AED]/30 hover:shadow-[#7C3AED]/50">
                             View Draft
                           </Button>
                         )}
@@ -698,26 +743,27 @@ const Leads = () => {
 
           {/* Bulk Actions */}
           {selectedLeads.size > 0 && (
-            <div className="p-5 border-t border-[rgba(255,255,255,0.12)] bg-[rgba(255,255,255,0.05)] backdrop-blur-sm flex items-center justify-between">
-              <div className="text-base font-semibold text-foreground">
+            <div className="p-3 sm:p-4 md:p-5 border-t border-[rgba(255,255,255,0.12)] bg-[rgba(255,255,255,0.05)] backdrop-blur-sm flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 sm:gap-4">
+              <div className="text-sm sm:text-base font-semibold text-foreground">
                 {selectedLeads.size} {selectedLeads.size === 1 ? "lead" : "leads"} selected
               </div>
-              <div className="flex items-center gap-3">
-                <Button variant="outline" size="default" className="gap-2 font-semibold">
-                  <MailIcon className="w-4 h-4" />
-                  Email Selected
+              <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
+                <Button variant="outline" size="sm" className="gap-1.5 sm:gap-2 font-semibold text-xs sm:text-sm flex-1 sm:flex-initial">
+                  <MailIcon className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                  <span className="hidden sm:inline">Email Selected</span>
+                  <span className="sm:hidden">Email</span>
                 </Button>
-                <Button variant="outline" size="default" className="gap-2 font-semibold">
-                  <Archive className="w-4 h-4" />
+                <Button variant="outline" size="sm" className="gap-1.5 sm:gap-2 font-semibold text-xs sm:text-sm flex-1 sm:flex-initial">
+                  <Archive className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                   Archive
                 </Button>
                 <Button 
                   variant="outline" 
-                  size="default" 
-                  className="gap-2 text-[#EF4444] border-[#EF4444]/30 hover:bg-[rgba(239,68,68,0.1)] hover:border-[#EF4444] font-semibold"
+                  size="sm" 
+                  className="gap-1.5 sm:gap-2 text-[#EF4444] border-[#EF4444]/30 hover:bg-[rgba(239,68,68,0.1)] hover:border-[#EF4444] font-semibold text-xs sm:text-sm flex-1 sm:flex-initial"
                   onClick={handleBulkDelete}
                 >
-                  <Trash2 className="w-4 h-4" />
+                  <Trash2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                   Delete
                 </Button>
               </div>

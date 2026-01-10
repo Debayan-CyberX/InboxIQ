@@ -96,11 +96,11 @@ const LandingLoader = ({ onComplete, minDuration = 2000 }: LandingLoaderProps) =
               <motion.div
                 key={ringIndex}
                 className="absolute inset-0 flex items-center justify-center"
-                style={{
-                  width: "300px",
-                  height: "300px",
-                  margin: "-150px",
-                }}
+              style={{
+                width: "min(300px, 80vw)",
+                height: "min(300px, 80vw)",
+                margin: "min(-150px, -40vw)",
+              }}
                 initial={{ scale: 0.3, opacity: 0 }}
                 animate={{
                   scale: [0.3, 1.2, 1.2],
@@ -153,8 +153,8 @@ const LandingLoader = ({ onComplete, minDuration = 2000 }: LandingLoaderProps) =
               }}
               className="relative"
               style={{
-                width: "60px",
-                height: "60px",
+                width: "min(60px, 16vw)",
+                height: "min(60px, 16vw)",
               }}
             >
               {/* Outer intelligence glow */}

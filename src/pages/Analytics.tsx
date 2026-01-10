@@ -138,7 +138,7 @@ const Analytics = () => {
 
     return (
       <motion.div
-        className="glass-strong p-6 cursor-pointer hover:border-[rgba(147,51,234,0.4)] transition-all relative overflow-hidden group"
+        className="glass-strong p-4 sm:p-5 md:p-6 cursor-pointer hover:border-[rgba(147,51,234,0.4)] transition-all relative overflow-hidden group rounded-xl sm:rounded-2xl"
         onClick={() => setExpandedMetric(isExpanded ? null : id || null)}
         whileHover={{ scale: 1.02, y: -2 }}
         whileTap={{ scale: 0.98 }}
@@ -147,30 +147,30 @@ const Analytics = () => {
       >
         <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
         <div className="relative">
-          <div className="flex items-start justify-between mb-4">
+          <div className="flex items-start justify-between mb-3 sm:mb-4">
           <motion.div
-            className="p-3 rounded-xl bg-gradient-to-br from-[rgba(147,51,234,0.15)] to-[rgba(236,72,153,0.1)] border border-[rgba(147,51,234,0.2)] shadow-lg"
+            className="p-2 sm:p-3 rounded-lg sm:rounded-xl bg-gradient-to-br from-[rgba(147,51,234,0.15)] to-[rgba(236,72,153,0.1)] border border-[rgba(147,51,234,0.2)] shadow-lg"
             whileHover={{ rotate: 360, scale: 1.1 }}
             transition={{ duration: 0.5 }}
           >
-            <Icon className="w-5 h-5 text-accent drop-shadow-[0_0_8px_rgba(147,51,234,0.4)]" />
+            <Icon className="w-4 h-4 sm:w-5 sm:h-5 text-accent drop-shadow-[0_0_8px_rgba(147,51,234,0.4)]" />
           </motion.div>
           {change !== 0 && (
             <div className={cn(
-              "flex items-center gap-1 text-xs font-medium",
+              "flex items-center gap-1 text-[10px] sm:text-xs font-medium",
               isPositive && "text-status-success",
               isNegative && "text-status-risk",
               !isPositive && !isNegative && "text-muted-foreground"
             )}>
-              {isPositive ? <ArrowUpRight className="w-3 h-3" /> : isNegative ? <ArrowDownRight className="w-3 h-3" /> : null}
+              {isPositive ? <ArrowUpRight className="w-2.5 h-2.5 sm:w-3 sm:h-3" /> : isNegative ? <ArrowDownRight className="w-2.5 h-2.5 sm:w-3 sm:h-3" /> : null}
               {formatPercent(change)}
             </div>
           )}
         </div>
-        <div className="space-y-1">
-          <p className="text-sm font-semibold text-muted-foreground/80 uppercase tracking-wider">{title}</p>
+        <div className="space-y-0.5 sm:space-y-1">
+          <p className="text-[10px] sm:text-xs md:text-sm font-semibold text-muted-foreground/80 uppercase tracking-wider">{title}</p>
           <motion.p
-            className="text-4xl font-bold text-gradient text-glow tracking-tight"
+            className="text-2xl sm:text-3xl md:text-4xl font-bold text-gradient text-glow tracking-tight"
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
             transition={{ delay: 0.1, type: "spring" }}
@@ -425,20 +425,20 @@ const Analytics = () => {
 
   return (
     <DashboardLayout>
-      <div className="space-y-6 max-w-[1600px] mx-auto">
+      <div className="space-y-4 sm:space-y-6 max-w-[1600px] mx-auto">
         {/* Header */}
-        <div className="flex items-center justify-between mb-8">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4 mb-6 sm:mb-8">
           <div>
-            <h1 className="text-4xl font-bold tracking-tight mb-2 flex items-center gap-3">
-              <BarChart3 className="w-8 h-8 text-accent drop-shadow-[0_0_10px_rgba(34,211,238,0.4)]" />
+            <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight mb-1 sm:mb-2 flex items-center gap-2 sm:gap-3">
+              <BarChart3 className="w-6 h-6 sm:w-8 sm:h-8 text-accent drop-shadow-[0_0_10px_rgba(34,211,238,0.4)]" />
               <span className="text-gradient-primary text-glow-primary">Analytics</span>
             </h1>
-            <p className="text-base text-muted-foreground/90 font-medium">
+            <p className="text-sm sm:text-base text-muted-foreground/90 font-medium">
               Track your email performance and lead management metrics
             </p>
           </div>
-          <div className="flex items-center gap-2">
-            <div className="flex items-center gap-1 border border-border rounded-lg p-1">
+          <div className="flex items-center gap-2 w-full sm:w-auto flex-wrap">
+            <div className="flex items-center gap-1 border border-border rounded-lg p-1 flex-1 sm:flex-initial">
               {(["7d", "30d", "90d", "all"] as TimeRange[]).map((range) => (
                 <motion.div key={range} whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
                   <Button
@@ -448,21 +448,28 @@ const Analytics = () => {
                       setTimeRange(range);
                       toast.success(`Viewing ${range === "all" ? "all time" : range} data`);
                     }}
-                    className="h-7 px-3 text-xs"
+                    className="h-7 px-2 sm:px-3 text-[10px] sm:text-xs flex-1 sm:flex-initial"
                   >
-                    {range === "all" ? "All Time" : range.toUpperCase()}
+                    {range === "all" ? (
+                      <>
+                        <span className="hidden sm:inline">All Time</span>
+                        <span className="sm:hidden">All</span>
+                      </>
+                    ) : (
+                      range.toUpperCase()
+                    )}
                   </Button>
                 </motion.div>
               ))}
             </div>
-            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} className="flex-1 sm:flex-initial">
               <Button
                 variant="outline"
                 size="sm"
-                className="gap-2"
+                className="gap-1.5 sm:gap-2 text-xs sm:text-sm w-full sm:w-auto"
                 onClick={() => toast.success("Exporting analytics data...")}
               >
-                <Filter className="w-4 h-4" />
+                <Filter className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                 Export
               </Button>
             </motion.div>
@@ -470,7 +477,7 @@ const Analytics = () => {
         </div>
 
         {/* Overview Metrics */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
           <MetricCard
             id="total-leads"
             title="Total Leads"
@@ -527,29 +534,29 @@ const Analytics = () => {
         </div>
 
         {/* Charts Row */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
           {/* Email Performance Chart */}
           <motion.div
-            className="glass-strong p-6 rounded-2xl relative overflow-hidden"
+            className="glass-strong p-4 sm:p-5 md:p-6 rounded-xl sm:rounded-2xl relative overflow-hidden"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
           >
             <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent pointer-events-none" />
             <div className="relative">
-            <div className="flex items-center justify-between mb-6">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4 mb-4 sm:mb-6">
               <div>
-                <h3 className="text-xl font-bold text-foreground tracking-tight mb-1">Email Performance</h3>
-                <p className="text-sm text-muted-foreground/80 font-medium">Last 7 days</p>
+                <h3 className="text-lg sm:text-xl font-bold text-foreground tracking-tight mb-0.5 sm:mb-1">Email Performance</h3>
+                <p className="text-xs sm:text-sm text-muted-foreground/80 font-medium">Last 7 days</p>
               </div>
-              <div className="flex items-center gap-1 border border-border rounded-lg p-1">
+              <div className="flex items-center gap-1 border border-border rounded-lg p-1 w-full sm:w-auto">
                 {(["all", "sent", "replied", "opened"] as ChartType[]).map((type) => (
                   <Button
                     key={type}
                     variant={selectedChartType === type ? "default" : "ghost"}
                     size="sm"
                     onClick={() => setSelectedChartType(type)}
-                    className="h-7 px-2 text-xs capitalize"
+                    className="h-7 px-2 text-[10px] sm:text-xs capitalize flex-1 sm:flex-initial"
                   >
                     {type}
                   </Button>
@@ -640,13 +647,13 @@ const Analytics = () => {
           </motion.div>
 
           {/* Lead Distribution */}
-          <div className="glass-strong p-6 rounded-2xl relative overflow-hidden">
+          <div className="glass-strong p-4 sm:p-5 md:p-6 rounded-xl sm:rounded-2xl relative overflow-hidden">
             <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent pointer-events-none" />
             <div className="relative">
-            <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center justify-between mb-4 sm:mb-6">
               <div>
-                <h3 className="text-xl font-bold text-foreground tracking-tight mb-1">Lead Distribution</h3>
-                <p className="text-sm text-muted-foreground/80 font-medium">By status</p>
+                <h3 className="text-lg sm:text-xl font-bold text-foreground tracking-tight mb-0.5 sm:mb-1">Lead Distribution</h3>
+                <p className="text-xs sm:text-sm text-muted-foreground/80 font-medium">By status</p>
               </div>
             </div>
             <div className="space-y-4">
@@ -688,15 +695,15 @@ const Analytics = () => {
         </div>
 
         {/* Trends Row */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
           {/* Reply Rate Trend */}
-          <div className="glass-strong p-6 rounded-2xl relative overflow-hidden">
+          <div className="glass-strong p-4 sm:p-5 md:p-6 rounded-xl sm:rounded-2xl relative overflow-hidden">
             <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent pointer-events-none" />
             <div className="relative">
-            <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center justify-between mb-4 sm:mb-6">
               <div>
-                <h3 className="text-xl font-bold text-foreground tracking-tight mb-1">Reply Rate Trend</h3>
-                <p className="text-sm text-muted-foreground/80 font-medium">Last 4 weeks</p>
+                <h3 className="text-lg sm:text-xl font-bold text-foreground tracking-tight mb-0.5 sm:mb-1">Reply Rate Trend</h3>
+                <p className="text-xs sm:text-sm text-muted-foreground/80 font-medium">Last 4 weeks</p>
               </div>
             </div>
             <SimpleBarChart
@@ -706,23 +713,23 @@ const Analytics = () => {
               onBarHover={setHoveredBar}
               hoveredIndex={hoveredBar}
             />
-            <div className="mt-4 pt-4 border-t border-border">
+            <div className="mt-3 sm:mt-4 pt-3 sm:pt-4 border-t border-border">
               <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground/80 font-semibold">Current Rate</span>
-                <span className="text-3xl font-bold text-gradient text-glow">{overviewMetrics.replyRate.current}%</span>
+                <span className="text-xs sm:text-sm text-muted-foreground/80 font-semibold">Current Rate</span>
+                <span className="text-xl sm:text-2xl md:text-3xl font-bold text-gradient text-glow">{overviewMetrics.replyRate.current}%</span>
               </div>
             </div>
             </div>
           </div>
 
           {/* Response Time Trend */}
-          <div className="glass-strong p-6 rounded-2xl relative overflow-hidden">
+          <div className="glass-strong p-4 sm:p-5 md:p-6 rounded-xl sm:rounded-2xl relative overflow-hidden">
             <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent pointer-events-none" />
             <div className="relative">
-            <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center justify-between mb-4 sm:mb-6">
               <div>
-                <h3 className="text-xl font-bold text-foreground tracking-tight mb-1">Response Time Trend</h3>
-                <p className="text-sm text-muted-foreground/80 font-medium">Last 4 weeks (hours)</p>
+                <h3 className="text-lg sm:text-xl font-bold text-foreground tracking-tight mb-0.5 sm:mb-1">Response Time Trend</h3>
+                <p className="text-xs sm:text-sm text-muted-foreground/80 font-medium">Last 4 weeks (hours)</p>
               </div>
             </div>
             <SimpleBarChart
@@ -732,10 +739,10 @@ const Analytics = () => {
               onBarHover={setHoveredBar}
               hoveredIndex={hoveredBar}
             />
-            <div className="mt-4 pt-4 border-t border-border">
+            <div className="mt-3 sm:mt-4 pt-3 sm:pt-4 border-t border-border">
               <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground/80 font-semibold">Average Time</span>
-                <span className="text-3xl font-bold text-gradient text-glow">{overviewMetrics.avgResponseTime.current}h</span>
+                <span className="text-xs sm:text-sm text-muted-foreground/80 font-semibold">Average Time</span>
+                <span className="text-xl sm:text-2xl md:text-3xl font-bold text-gradient text-glow">{overviewMetrics.avgResponseTime.current}h</span>
               </div>
             </div>
             </div>
@@ -743,57 +750,57 @@ const Analytics = () => {
         </div>
 
         {/* Bottom Row */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
           {/* AI Usage Stats */}
-          <div className="glass-strong p-6 rounded-2xl relative overflow-hidden">
+          <div className="glass-strong p-4 sm:p-5 md:p-6 rounded-xl sm:rounded-2xl relative overflow-hidden">
             <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent pointer-events-none" />
             <div className="relative">
-            <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center justify-between mb-4 sm:mb-6">
               <div>
-                <h3 className="text-xl font-bold text-foreground tracking-tight mb-1 flex items-center gap-2">
-                  <Sparkles className="w-5 h-5 text-accent drop-shadow-[0_0_8px_rgba(124,58,237,0.4)]" />
+                <h3 className="text-lg sm:text-xl font-bold text-foreground tracking-tight mb-0.5 sm:mb-1 flex items-center gap-1.5 sm:gap-2">
+                  <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 text-accent drop-shadow-[0_0_8px_rgba(124,58,237,0.4)]" />
                   AI Usage Statistics
                 </h3>
-                <p className="text-sm text-muted-foreground/80 font-medium">Performance metrics</p>
+                <p className="text-xs sm:text-sm text-muted-foreground/80 font-medium">Performance metrics</p>
               </div>
             </div>
-            <div className="space-y-4">
-              <div className="flex items-center justify-between p-4 rounded-xl bg-gradient-to-r from-[rgba(255,255,255,0.05)] to-[rgba(255,255,255,0.02)] border border-[rgba(255,255,255,0.08)] backdrop-blur-sm">
-                <span className="text-sm text-foreground/90 font-semibold">Drafts Generated</span>
-                <span className="text-xl font-bold text-gradient text-glow">{overviewMetrics.aiDraftsUsed.current}</span>
+            <div className="space-y-3 sm:space-y-4">
+              <div className="flex items-center justify-between p-3 sm:p-4 rounded-lg sm:rounded-xl bg-gradient-to-r from-[rgba(255,255,255,0.05)] to-[rgba(255,255,255,0.02)] border border-[rgba(255,255,255,0.08)] backdrop-blur-sm">
+                <span className="text-xs sm:text-sm text-foreground/90 font-semibold">Drafts Generated</span>
+                <span className="text-lg sm:text-xl font-bold text-gradient text-glow">{overviewMetrics.aiDraftsUsed.current}</span>
               </div>
-              <div className="flex items-center justify-between p-4 rounded-xl bg-gradient-to-r from-[rgba(255,255,255,0.05)] to-[rgba(255,255,255,0.02)] border border-[rgba(255,255,255,0.08)] backdrop-blur-sm">
-                <span className="text-sm text-foreground/90 font-semibold">Drafts Sent</span>
-                <span className="text-xl font-bold text-gradient text-glow">{emailStats.sent || 0}</span>
+              <div className="flex items-center justify-between p-3 sm:p-4 rounded-lg sm:rounded-xl bg-gradient-to-r from-[rgba(255,255,255,0.05)] to-[rgba(255,255,255,0.02)] border border-[rgba(255,255,255,0.08)] backdrop-blur-sm">
+                <span className="text-xs sm:text-sm text-foreground/90 font-semibold">Drafts Sent</span>
+                <span className="text-lg sm:text-xl font-bold text-gradient text-glow">{emailStats.sent || 0}</span>
               </div>
-              <div className="flex items-center justify-between p-4 rounded-xl bg-gradient-to-r from-[rgba(255,255,255,0.05)] to-[rgba(255,255,255,0.02)] border border-[rgba(255,255,255,0.08)] backdrop-blur-sm">
-                <span className="text-sm text-foreground/90 font-semibold">Adoption Rate</span>
-                <span className="text-xl font-bold text-gradient text-glow">
+              <div className="flex items-center justify-between p-3 sm:p-4 rounded-lg sm:rounded-xl bg-gradient-to-r from-[rgba(255,255,255,0.05)] to-[rgba(255,255,255,0.02)] border border-[rgba(255,255,255,0.08)] backdrop-blur-sm">
+                <span className="text-xs sm:text-sm text-foreground/90 font-semibold">Adoption Rate</span>
+                <span className="text-lg sm:text-xl font-bold text-gradient text-glow">
                   {overviewMetrics.aiDraftsUsed.current > 0 && emailStats.sent > 0
                     ? Math.round((emailStats.sent / overviewMetrics.aiDraftsUsed.current) * 100)
                     : 0}%
                 </span>
               </div>
-              <div className="flex items-center justify-between p-4 rounded-xl bg-gradient-to-r from-[rgba(255,255,255,0.05)] to-[rgba(255,255,255,0.02)] border border-[rgba(255,255,255,0.08)] backdrop-blur-sm">
-                <span className="text-sm text-foreground/90 font-semibold">Avg Confidence</span>
-                <span className="text-xl font-bold text-gradient-accent text-glow-accent">85%</span>
+              <div className="flex items-center justify-between p-3 sm:p-4 rounded-lg sm:rounded-xl bg-gradient-to-r from-[rgba(255,255,255,0.05)] to-[rgba(255,255,255,0.02)] border border-[rgba(255,255,255,0.08)] backdrop-blur-sm">
+                <span className="text-xs sm:text-sm text-foreground/90 font-semibold">Avg Confidence</span>
+                <span className="text-lg sm:text-xl font-bold text-gradient-accent text-glow-accent">85%</span>
               </div>
-              <div className="flex items-center justify-between p-4 rounded-xl bg-gradient-to-r from-[rgba(124,58,237,0.12)] to-[rgba(34,211,238,0.08)] border border-[rgba(124,58,237,0.25)] backdrop-blur-sm shadow-lg shadow-[rgba(124,58,237,0.12)]">
-                <span className="text-sm text-foreground font-bold">Time Saved</span>
-                <span className="text-xl font-bold text-gradient-primary text-glow-primary">{overviewMetrics.timeSaved.current}h</span>
+              <div className="flex items-center justify-between p-3 sm:p-4 rounded-lg sm:rounded-xl bg-gradient-to-r from-[rgba(124,58,237,0.12)] to-[rgba(34,211,238,0.08)] border border-[rgba(124,58,237,0.25)] backdrop-blur-sm shadow-lg shadow-[rgba(124,58,237,0.12)]">
+                <span className="text-xs sm:text-sm text-foreground font-bold">Time Saved</span>
+                <span className="text-lg sm:text-xl font-bold text-gradient-primary text-glow-primary">{overviewMetrics.timeSaved.current}h</span>
               </div>
             </div>
             </div>
           </div>
 
           {/* Conversion Funnel */}
-          <div className="glass-strong p-6 rounded-2xl relative overflow-hidden">
+          <div className="glass-strong p-4 sm:p-5 md:p-6 rounded-xl sm:rounded-2xl relative overflow-hidden">
             <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent pointer-events-none" />
             <div className="relative">
-            <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center justify-between mb-4 sm:mb-6">
               <div>
-                <h3 className="text-xl font-bold text-foreground tracking-tight mb-1">Conversion Funnel</h3>
-                <p className="text-sm text-muted-foreground/80 font-medium">Lead to close</p>
+                <h3 className="text-lg sm:text-xl font-bold text-foreground tracking-tight mb-0.5 sm:mb-1">Conversion Funnel</h3>
+                <p className="text-xs sm:text-sm text-muted-foreground/80 font-medium">Lead to close</p>
               </div>
             </div>
             <div className="space-y-4">
@@ -828,12 +835,12 @@ const Analytics = () => {
                 color="accent"
               />
             </div>
-            <div className="mt-6 pt-6 border-t border-border">
+            <div className="mt-4 sm:mt-6 pt-4 sm:pt-6 border-t border-border">
               <div className="text-center">
-                <div className="text-4xl font-bold text-gradient-primary text-glow-primary mb-1">
+                <div className="text-2xl sm:text-3xl md:text-4xl font-bold text-gradient-primary text-glow-primary mb-0.5 sm:mb-1">
                   {leadStats.total > 0 ? ((0 / leadStats.total) * 100).toFixed(1) : "0.0"}%
                 </div>
-                <div className="text-sm text-muted-foreground/80 font-semibold uppercase tracking-wider">Conversion Rate</div>
+                <div className="text-xs sm:text-sm text-muted-foreground/80 font-semibold uppercase tracking-wider">Conversion Rate</div>
               </div>
             </div>
             </div>
@@ -841,13 +848,13 @@ const Analytics = () => {
         </div>
 
         {/* Top Performing Leads */}
-        <div className="glass-strong p-6 rounded-2xl relative overflow-hidden">
+        <div className="glass-strong p-4 sm:p-5 md:p-6 rounded-xl sm:rounded-2xl relative overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent pointer-events-none" />
           <div className="relative">
-            <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center justify-between mb-4 sm:mb-6">
               <div>
-                <h3 className="text-xl font-bold text-foreground tracking-tight mb-1">Top Performing Leads</h3>
-                <p className="text-sm text-muted-foreground/80 font-medium">By engagement and value</p>
+                <h3 className="text-lg sm:text-xl font-bold text-foreground tracking-tight mb-0.5 sm:mb-1">Top Performing Leads</h3>
+                <p className="text-xs sm:text-sm text-muted-foreground/80 font-medium">By engagement and value</p>
               </div>
             </div>
           <div className="space-y-3">

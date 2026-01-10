@@ -115,15 +115,15 @@ const Landing = () => {
         transition={{ duration: 0.6 }}
         className="fixed top-0 left-0 right-0 z-50 glass border-b border-border/50 backdrop-blur-xl"
       >
-        <div className="container mx-auto px-6 py-4 flex items-center justify-between">
+        <div className="container mx-auto px-4 sm:px-6 py-3 sm:py-4 flex items-center justify-between">
           <motion.div
             whileHover={{ scale: 1.05 }}
-            className="flex items-center gap-2.5"
+            className="flex items-center gap-2 sm:gap-2.5"
           >
-            <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-purple-500 via-violet-500 to-purple-600 flex items-center justify-center shadow-lg shadow-purple-500/20">
-              <Brain className="w-5 h-5 text-white" />
+            <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg bg-gradient-to-br from-purple-500 via-violet-500 to-purple-600 flex items-center justify-center shadow-lg shadow-purple-500/20">
+              <Brain className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
             </div>
-            <span className="text-xl font-bold bg-gradient-to-r from-purple-400 to-violet-400 bg-clip-text text-transparent">
+            <span className="text-lg sm:text-xl font-bold bg-gradient-to-r from-purple-400 to-violet-400 bg-clip-text text-transparent">
               InboxIQ
             </span>
           </motion.div>
@@ -131,24 +131,25 @@ const Landing = () => {
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.2 }}
-            className="flex items-center gap-4"
+            className="flex items-center gap-2 sm:gap-4"
           >
             {session ? (
               <Link to="/dashboard">
-                <Button variant="ghost" className="hover:bg-purple-500/10">
+                <Button variant="ghost" size="sm" className="text-xs sm:text-sm hover:bg-purple-500/10">
                   Dashboard
                 </Button>
               </Link>
             ) : (
               <>
                 <Link to="/sign-in">
-                  <Button variant="ghost" className="hover:bg-purple-500/10">
+                  <Button variant="ghost" size="sm" className="text-xs sm:text-sm hover:bg-purple-500/10 hidden sm:inline-flex">
                     Sign In
                   </Button>
                 </Link>
                 <Link to="/sign-up">
-                  <Button className="bg-gradient-to-r from-purple-500 to-violet-500 hover:from-purple-600 hover:to-violet-600 shadow-lg shadow-purple-500/25">
-                    Start Free
+                  <Button size="sm" className="text-xs sm:text-sm bg-gradient-to-r from-purple-500 to-violet-500 hover:from-purple-600 hover:to-violet-600 shadow-lg shadow-purple-500/25 px-3 sm:px-4">
+                    <span className="hidden sm:inline">Start Free</span>
+                    <span className="sm:hidden">Start</span>
                   </Button>
                 </Link>
               </>
@@ -158,20 +159,20 @@ const Landing = () => {
       </motion.nav>
 
       {/* Hero Section */}
-      <section ref={heroRef} className="relative min-h-screen flex items-center justify-center pt-20 px-6 overflow-hidden">
+      <section ref={heroRef} className="relative min-h-screen flex items-center justify-center pt-16 sm:pt-20 px-4 sm:px-6 overflow-hidden">
         <motion.div
           style={{ y: heroY, opacity: heroOpacity }}
-          className="text-center max-w-6xl mx-auto space-y-8 relative z-10"
+          className="text-center max-w-6xl mx-auto space-y-6 sm:space-y-8 relative z-10"
         >
           {/* Badge */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
-            className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full glass border border-purple-500/20 mb-4"
+            className="inline-flex items-center gap-2 px-3 sm:px-4 py-1 sm:py-1.5 rounded-full glass border border-purple-500/20 mb-2 sm:mb-4"
           >
-            <Sparkles className="w-3.5 h-3.5 text-purple-400" />
-            <span className="text-xs font-medium text-purple-300">AI-Powered Lead Management</span>
+            <Sparkles className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-purple-400" />
+            <span className="text-[10px] sm:text-xs font-medium text-purple-300">AI-Powered Lead Management</span>
           </motion.div>
 
           {/* Headline with Typewriter Effect */}
@@ -179,9 +180,9 @@ const Landing = () => {
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.2 }}
-            className="text-5xl md:text-7xl lg:text-8xl font-bold leading-tight tracking-tight"
+            className="text-3xl sm:text-4xl md:text-5xl lg:text-7xl xl:text-8xl font-bold leading-tight tracking-tight px-2"
           >
-            <span className="block text-foreground mb-2">
+            <span className="block text-foreground mb-1 sm:mb-2">
               Never lose a lead
             </span>
             <span className="block min-h-[1.2em] h-[1.2em] w-full">
@@ -202,7 +203,7 @@ const Landing = () => {
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.4 }}
-            className="text-xl md:text-2xl text-muted-foreground max-w-3xl mx-auto leading-relaxed"
+            className="text-base sm:text-lg md:text-xl lg:text-2xl text-muted-foreground max-w-3xl mx-auto leading-relaxed px-2"
           >
             InboxIQ automatically detects sales leads from email, tracks follow-ups, and drafts replies so no lead ever goes cold.
           </motion.p>
@@ -212,35 +213,35 @@ const Landing = () => {
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.6 }}
-            className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-6"
+            className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 pt-4 sm:pt-6 w-full px-4"
           >
             {session ? (
-              <Link to="/dashboard">
+              <Link to="/dashboard" className="w-full sm:w-auto">
                 <Button 
                   size="lg" 
-                  className="group text-lg px-8 py-6 bg-gradient-to-r from-purple-500 to-violet-500 hover:from-purple-600 hover:to-violet-600 shadow-lg shadow-purple-500/25"
+                  className="group w-full sm:w-auto text-base sm:text-lg px-6 sm:px-8 py-5 sm:py-6 bg-gradient-to-r from-purple-500 to-violet-500 hover:from-purple-600 hover:to-violet-600 shadow-lg shadow-purple-500/25"
                 >
                   Go to Dashboard
-                  <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                  <ArrowRight className="ml-2 w-4 h-4 sm:w-5 sm:h-5 group-hover:translate-x-1 transition-transform" />
                 </Button>
               </Link>
             ) : (
               <>
-                <Link to="/sign-up">
+                <Link to="/sign-up" className="w-full sm:w-auto">
                   <Button 
                     size="lg" 
-                    className="group text-lg px-8 py-6 bg-gradient-to-r from-purple-500 to-violet-500 hover:from-purple-600 hover:to-violet-600 shadow-lg shadow-purple-500/25"
+                    className="group w-full sm:w-auto text-base sm:text-lg px-6 sm:px-8 py-5 sm:py-6 bg-gradient-to-r from-purple-500 to-violet-500 hover:from-purple-600 hover:to-violet-600 shadow-lg shadow-purple-500/25"
                   >
                     Start Free
-                    <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                    <ArrowRight className="ml-2 w-4 h-4 sm:w-5 sm:h-5 group-hover:translate-x-1 transition-transform" />
                   </Button>
                 </Link>
                 <Button 
                   size="lg" 
                   variant="outline" 
-                  className="text-lg px-8 py-6 border-purple-500/20 hover:border-purple-500/40 hover:bg-purple-500/5 group"
+                  className="w-full sm:w-auto text-base sm:text-lg px-6 sm:px-8 py-5 sm:py-6 border-purple-500/20 hover:border-purple-500/40 hover:bg-purple-500/5 group"
                 >
-                  <Play className="mr-2 w-5 h-5 group-hover:scale-110 transition-transform" />
+                  <Play className="mr-2 w-4 h-4 sm:w-5 sm:h-5 group-hover:scale-110 transition-transform" />
                   See How It Works
                 </Button>
               </>
@@ -252,7 +253,7 @@ const Landing = () => {
             initial={{ opacity: 0, y: 50, rotateX: -10 }}
             animate={{ opacity: 1, y: 0, rotateX: 0 }}
             transition={{ duration: 1, delay: 0.8, type: "spring", stiffness: 100 }}
-            className="mt-20 relative"
+            className="mt-12 sm:mt-16 md:mt-20 relative px-2 sm:px-4"
             style={{ perspective: "1000px" }}
           >
             <motion.div
@@ -264,7 +265,7 @@ const Landing = () => {
                 z: 50
               }}
               transition={{ duration: 0.3 }}
-              className="glass rounded-2xl border border-purple-500/20 p-8 shadow-2xl shadow-purple-500/20 relative overflow-hidden group"
+              className="glass rounded-xl sm:rounded-2xl border border-purple-500/20 p-4 sm:p-6 md:p-8 shadow-2xl shadow-purple-500/20 relative overflow-hidden group"
               style={{ transformStyle: "preserve-3d" }}
             >
               {/* Glow effect */}
@@ -281,42 +282,42 @@ const Landing = () => {
               />
               
               {/* Interactive Dashboard Content */}
-              <div className="relative z-10 space-y-4">
+              <div className="relative z-10 space-y-3 sm:space-y-4">
                 {/* Header with logo, search, and notifications */}
-                <div className="flex items-center justify-between mb-6">
-                  <div className="flex items-center gap-3">
+                <div className="flex items-center justify-between mb-4 sm:mb-6">
+                  <div className="flex items-center gap-2 sm:gap-3">
                     <motion.div 
-                      className="w-8 h-8 rounded-lg bg-gradient-to-br from-purple-500 to-violet-500 flex items-center justify-center shadow-lg shadow-purple-500/30"
+                      className="w-6 h-6 sm:w-8 sm:h-8 rounded-lg bg-gradient-to-br from-purple-500 to-violet-500 flex items-center justify-center shadow-lg shadow-purple-500/30"
                       whileHover={{ rotate: 360 }}
                       transition={{ duration: 0.5 }}
                     >
-                      <Brain className="w-4 h-4 text-white" />
+                      <Brain className="w-3 h-3 sm:w-4 sm:h-4 text-white" />
                     </motion.div>
-                    <div className="text-sm font-semibold text-foreground">InboxIQ Dashboard</div>
+                    <div className="text-xs sm:text-sm font-semibold text-foreground">InboxIQ Dashboard</div>
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1.5 sm:gap-2">
                     <motion.div 
-                      className="h-8 w-8 rounded-lg bg-purple-500/10 border border-purple-500/20 flex items-center justify-center cursor-pointer"
+                      className="h-7 w-7 sm:h-8 sm:w-8 rounded-lg bg-purple-500/10 border border-purple-500/20 flex items-center justify-center cursor-pointer"
                       whileHover={{ scale: 1.1, backgroundColor: "rgba(139, 92, 246, 0.2)" }}
                     >
-                      <Search className="w-4 h-4 text-purple-400" />
+                      <Search className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-purple-400" />
                     </motion.div>
                     <motion.div 
-                      className="h-8 w-8 rounded-full bg-gradient-to-br from-purple-500 to-violet-500 flex items-center justify-center overflow-hidden relative cursor-pointer"
+                      className="h-7 w-7 sm:h-8 sm:w-8 rounded-full bg-gradient-to-br from-purple-500 to-violet-500 flex items-center justify-center overflow-hidden relative cursor-pointer"
                       whileHover={{ scale: 1.15, rotate: 5 }}
                       transition={{ duration: 0.2 }}
                     >
                       <div className="w-full h-full bg-gradient-to-br from-purple-400 to-violet-400" />
-                      <div className="absolute top-0 right-0 w-2 h-2 bg-green-400 rounded-full border-2 border-purple-500" />
+                      <div className="absolute top-0 right-0 w-1.5 h-1.5 sm:w-2 sm:h-2 bg-green-400 rounded-full border-2 border-purple-500" />
                     </motion.div>
                     <motion.div 
-                      className="h-8 w-8 rounded-full bg-gradient-to-br from-violet-500 to-purple-500 flex items-center justify-center overflow-hidden cursor-pointer relative"
+                      className="h-7 w-7 sm:h-8 sm:w-8 rounded-full bg-gradient-to-br from-violet-500 to-purple-500 flex items-center justify-center overflow-hidden cursor-pointer relative"
                       whileHover={{ scale: 1.15, rotate: -5 }}
                       transition={{ duration: 0.2 }}
                     >
                       <div className="w-full h-full bg-gradient-to-br from-violet-400 to-purple-400" />
                       <motion.div
-                        className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full border-2 border-purple-500"
+                        className="absolute -top-1 -right-1 w-2.5 h-2.5 sm:w-3 sm:h-3 bg-red-500 rounded-full border-2 border-purple-500"
                         animate={{ scale: [1, 1.2, 1] }}
                         transition={{ duration: 2, repeat: Infinity }}
                       />
@@ -325,7 +326,7 @@ const Landing = () => {
                 </div>
                 
                 {/* Interactive Stats Cards */}
-                <div className="grid grid-cols-3 gap-4">
+                <div className="grid grid-cols-3 gap-2 sm:gap-3 md:gap-4">
                   {[
                     { 
                       icon: MailCheck, 
@@ -361,23 +362,23 @@ const Landing = () => {
                         rotateY: 5,
                         transition: { duration: 0.2 }
                       }}
-                      className="h-28 rounded-xl bg-gradient-to-br from-purple-500/10 to-violet-500/10 border border-purple-500/20 cursor-pointer relative overflow-hidden group backdrop-blur-sm"
+                      className="h-20 sm:h-24 md:h-28 rounded-lg sm:rounded-xl bg-gradient-to-br from-purple-500/10 to-violet-500/10 border border-purple-500/20 cursor-pointer relative overflow-hidden group backdrop-blur-sm"
                       style={{ transformStyle: "preserve-3d" }}
                     >
                       <motion.div
                         className={`absolute inset-0 bg-gradient-to-br ${stat.color} opacity-0 group-hover:opacity-25 transition-opacity duration-300`}
                       />
-                      <div className="relative z-10 p-4 h-full flex flex-col justify-between">
+                      <div className="relative z-10 p-2 sm:p-3 md:p-4 h-full flex flex-col justify-between">
                         <div className="flex items-center justify-between">
                           <motion.div 
-                            className={`w-10 h-10 rounded-lg bg-gradient-to-br ${stat.color} flex items-center justify-center shadow-lg`}
+                            className={`w-7 h-7 sm:w-8 sm:h-8 md:w-10 md:h-10 rounded-lg bg-gradient-to-br ${stat.color} flex items-center justify-center shadow-lg`}
                             whileHover={{ rotate: [0, -10, 10, 0] }}
                             transition={{ duration: 0.3 }}
                           >
-                            <stat.icon className="w-5 h-5 text-white" />
+                            <stat.icon className="w-3.5 h-3.5 sm:w-4 sm:h-4 md:w-5 md:h-5 text-white" />
                           </motion.div>
                           <motion.span
-                            className="text-xs font-medium text-green-400"
+                            className="text-[9px] sm:text-xs font-medium text-green-400"
                             animate={{ opacity: [0.7, 1, 0.7] }}
                             transition={{ duration: 2, repeat: Infinity }}
                           >
@@ -386,14 +387,14 @@ const Landing = () => {
                         </div>
                         <div>
                           <motion.div 
-                            className="text-2xl font-bold text-foreground"
+                            className="text-lg sm:text-xl md:text-2xl font-bold text-foreground"
                             initial={{ scale: 0 }}
                             animate={{ scale: 1 }}
                             transition={{ delay: 1.2 + i * 0.1, type: "spring" }}
                           >
                             {stat.value}
                           </motion.div>
-                          <div className="text-xs text-muted-foreground mt-1">{stat.label}</div>
+                          <div className="text-[9px] sm:text-xs text-muted-foreground mt-0.5 sm:mt-1">{stat.label}</div>
                         </div>
                       </div>
                     </motion.div>
@@ -402,7 +403,7 @@ const Landing = () => {
                 
                 {/* Main Interactive Chart Area with Email Threads */}
                 <motion.div 
-                  className="h-64 rounded-xl bg-gradient-to-br from-purple-500/10 to-violet-500/10 border border-purple-500/20 relative overflow-hidden group"
+                  className="h-72 sm:h-80 md:h-64 rounded-lg sm:rounded-xl bg-gradient-to-br from-purple-500/10 to-violet-500/10 border border-purple-500/20 relative overflow-hidden group"
                   whileHover={{ 
                     scale: 1.02,
                     borderColor: "rgba(139, 92, 246, 0.4)",
@@ -411,47 +412,47 @@ const Landing = () => {
                   style={{ transformStyle: "preserve-3d" }}
                 >
                   {/* Section Header */}
-                  <div className="absolute top-0 left-0 right-0 p-4 pb-2 border-b border-purple-500/10 bg-gradient-to-b from-purple-500/5 to-transparent">
+                  <div className="absolute top-0 left-0 right-0 p-3 sm:p-4 pb-2 border-b border-purple-500/10 bg-gradient-to-b from-purple-500/5 to-transparent">
                     <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <Mail className="w-4 h-4 text-purple-400" />
-                        <span className="text-sm font-semibold text-foreground">Active Lead Conversations</span>
+                      <div className="flex items-center gap-1.5 sm:gap-2">
+                        <Mail className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-purple-400" />
+                        <span className="text-xs sm:text-sm font-semibold text-foreground">Active Lead Conversations</span>
                       </div>
-                      <span className="text-xs text-muted-foreground">3 of 24</span>
+                      <span className="text-[10px] sm:text-xs text-muted-foreground">3 of 24</span>
                     </div>
                   </div>
                   
                   {/* Email Threads Preview with Real Content */}
-                  <div className="absolute inset-0 pt-16 p-4 flex flex-col gap-3">
+                  <div className="absolute inset-0 pt-12 sm:pt-14 md:pt-16 p-2 sm:p-3 md:p-4 flex flex-col gap-2 sm:gap-3">
                     {/* Thread 1 - Hot Lead */}
                     <motion.div 
-                      className="flex items-start gap-3 p-3 rounded-lg bg-purple-500/5 border border-purple-500/10 hover:bg-purple-500/10 transition-colors cursor-pointer group"
+                      className="flex items-start gap-2 sm:gap-3 p-2 sm:p-3 rounded-lg bg-purple-500/5 border border-purple-500/10 hover:bg-purple-500/10 transition-colors cursor-pointer group"
                       initial={{ x: -20, opacity: 0 }}
                       animate={{ x: 0, opacity: 1 }}
                       transition={{ delay: 1.4, duration: 0.5 }}
                       whileHover={{ x: 5 }}
                     >
-                      <div className="w-9 h-9 rounded-full bg-gradient-to-br from-blue-500 to-cyan-500 flex-shrink-0 flex items-center justify-center shadow-md">
-                        <span className="text-xs font-bold text-white">JD</span>
+                      <div className="w-7 h-7 sm:w-8 sm:h-8 md:w-9 md:h-9 rounded-full bg-gradient-to-br from-blue-500 to-cyan-500 flex-shrink-0 flex items-center justify-center shadow-md">
+                        <span className="text-[10px] sm:text-xs font-bold text-white">JD</span>
                       </div>
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-center justify-between mb-1.5">
-                          <div className="flex items-center gap-2">
-                            <span className="text-xs font-semibold text-foreground">John Davis</span>
-                            <span className="text-xs text-muted-foreground">• TechCorp Inc.</span>
+                        <div className="flex items-center justify-between mb-1 sm:mb-1.5">
+                          <div className="flex items-center gap-1 sm:gap-2 min-w-0">
+                            <span className="text-[10px] sm:text-xs font-semibold text-foreground truncate">John Davis</span>
+                            <span className="text-[9px] sm:text-xs text-muted-foreground hidden sm:inline">• TechCorp Inc.</span>
                           </div>
                           <motion.div 
-                            className="w-2 h-2 rounded-full bg-green-400 shadow-sm shadow-green-400/50"
+                            className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-green-400 shadow-sm shadow-green-400/50 flex-shrink-0"
                             animate={{ scale: [1, 1.3, 1] }}
                             transition={{ duration: 2, repeat: Infinity }}
                           />
                         </div>
-                        <div className="text-xs font-medium text-foreground mb-1">Partnership Opportunity - Q1 2024</div>
-                        <div className="text-xs text-muted-foreground line-clamp-1">Interested in discussing enterprise pricing for your team...</div>
-                        <div className="flex items-center gap-2 mt-1.5">
-                          <span className="text-xs text-purple-400">Follow-up due in 2 hours</span>
+                        <div className="text-[10px] sm:text-xs font-medium text-foreground mb-0.5 sm:mb-1 line-clamp-1">Partnership Opportunity - Q1 2024</div>
+                        <div className="text-[9px] sm:text-xs text-muted-foreground line-clamp-1 hidden sm:block">Interested in discussing enterprise pricing for your team...</div>
+                        <div className="flex items-center gap-1.5 sm:gap-2 mt-1 sm:mt-1.5 flex-wrap">
+                          <span className="text-[9px] sm:text-xs text-purple-400">Follow-up due in 2h</span>
                           <motion.span
-                            className="text-xs px-1.5 py-0.5 rounded bg-red-500/20 text-red-400"
+                            className="text-[9px] sm:text-xs px-1 sm:px-1.5 py-0.5 rounded bg-red-500/20 text-red-400"
                             animate={{ opacity: [0.7, 1, 0.7] }}
                             transition={{ duration: 1.5, repeat: Infinity }}
                           >
@@ -463,63 +464,63 @@ const Landing = () => {
                     
                     {/* Thread 2 - AI Draft Ready */}
                     <motion.div 
-                      className="flex items-start gap-3 p-3 rounded-lg bg-purple-500/5 border border-purple-500/10 hover:bg-purple-500/10 transition-colors cursor-pointer group"
+                      className="flex items-start gap-2 sm:gap-3 p-2 sm:p-3 rounded-lg bg-purple-500/5 border border-purple-500/10 hover:bg-purple-500/10 transition-colors cursor-pointer group"
                       initial={{ x: -20, opacity: 0 }}
                       animate={{ x: 0, opacity: 1 }}
                       transition={{ delay: 1.6, duration: 0.5 }}
                       whileHover={{ x: 5 }}
                     >
-                      <div className="w-9 h-9 rounded-full bg-gradient-to-br from-green-500 to-emerald-500 flex-shrink-0 flex items-center justify-center shadow-md">
-                        <span className="text-xs font-bold text-white">SM</span>
+                      <div className="w-7 h-7 sm:w-8 sm:h-8 md:w-9 md:h-9 rounded-full bg-gradient-to-br from-green-500 to-emerald-500 flex-shrink-0 flex items-center justify-center shadow-md">
+                        <span className="text-[10px] sm:text-xs font-bold text-white">SM</span>
                       </div>
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-center justify-between mb-1.5">
-                          <div className="flex items-center gap-2">
-                            <span className="text-xs font-semibold text-foreground">Sarah Martinez</span>
-                            <span className="text-xs text-muted-foreground">• Growth Labs</span>
+                        <div className="flex items-center justify-between mb-1 sm:mb-1.5">
+                          <div className="flex items-center gap-1 sm:gap-2 min-w-0">
+                            <span className="text-[10px] sm:text-xs font-semibold text-foreground truncate">Sarah Martinez</span>
+                            <span className="text-[9px] sm:text-xs text-muted-foreground hidden sm:inline">• Growth Labs</span>
                           </div>
-                          <div className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-purple-500/20">
-                            <Bot className="w-3 h-3 text-purple-400" />
-                            <span className="text-xs text-purple-400 font-medium">AI Draft</span>
+                          <div className="flex items-center gap-1 px-1 sm:px-1.5 py-0.5 rounded bg-purple-500/20 flex-shrink-0">
+                            <Bot className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-purple-400" />
+                            <span className="text-[9px] sm:text-xs text-purple-400 font-medium hidden sm:inline">AI Draft</span>
                           </div>
                         </div>
-                        <div className="text-xs font-medium text-foreground mb-1">Re: Product Demo Request</div>
-                        <div className="text-xs text-muted-foreground line-clamp-1">AI-generated reply ready for your review and approval...</div>
-                        <div className="flex items-center gap-2 mt-1.5">
-                          <span className="text-xs text-green-400">Draft ready</span>
-                          <span className="text-xs text-muted-foreground">• 95% confidence</span>
+                        <div className="text-[10px] sm:text-xs font-medium text-foreground mb-0.5 sm:mb-1 line-clamp-1">Re: Product Demo Request</div>
+                        <div className="text-[9px] sm:text-xs text-muted-foreground line-clamp-1 hidden sm:block">AI-generated reply ready for your review and approval...</div>
+                        <div className="flex items-center gap-1.5 sm:gap-2 mt-1 sm:mt-1.5 flex-wrap">
+                          <span className="text-[9px] sm:text-xs text-green-400">Draft ready</span>
+                          <span className="text-[9px] sm:text-xs text-muted-foreground hidden sm:inline">• 95% confidence</span>
                         </div>
                       </div>
                     </motion.div>
                     
                     {/* Thread 3 - Needs Attention */}
                     <motion.div 
-                      className="flex items-start gap-3 p-3 rounded-lg bg-purple-500/5 border border-purple-500/10 hover:bg-purple-500/10 transition-colors cursor-pointer group"
+                      className="flex items-start gap-2 sm:gap-3 p-2 sm:p-3 rounded-lg bg-purple-500/5 border border-purple-500/10 hover:bg-purple-500/10 transition-colors cursor-pointer group"
                       initial={{ x: -20, opacity: 0 }}
                       animate={{ x: 0, opacity: 1 }}
                       transition={{ delay: 1.8, duration: 0.5 }}
                       whileHover={{ x: 5 }}
                     >
-                      <div className="w-9 h-9 rounded-full bg-gradient-to-br from-violet-500 to-purple-500 flex-shrink-0 flex items-center justify-center shadow-md">
-                        <span className="text-xs font-bold text-white">AL</span>
+                      <div className="w-7 h-7 sm:w-8 sm:h-8 md:w-9 md:h-9 rounded-full bg-gradient-to-br from-violet-500 to-purple-500 flex-shrink-0 flex items-center justify-center shadow-md">
+                        <span className="text-[10px] sm:text-xs font-bold text-white">AL</span>
                       </div>
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-center justify-between mb-1.5">
-                          <div className="flex items-center gap-2">
-                            <span className="text-xs font-semibold text-foreground">Alex Lee</span>
-                            <span className="text-xs text-muted-foreground">• StartupHub</span>
+                        <div className="flex items-center justify-between mb-1 sm:mb-1.5">
+                          <div className="flex items-center gap-1 sm:gap-2 min-w-0">
+                            <span className="text-[10px] sm:text-xs font-semibold text-foreground truncate">Alex Lee</span>
+                            <span className="text-[9px] sm:text-xs text-muted-foreground hidden sm:inline">• StartupHub</span>
                           </div>
                           <motion.div 
-                            className="w-2 h-2 rounded-full bg-yellow-400 shadow-sm shadow-yellow-400/50"
+                            className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-yellow-400 shadow-sm shadow-yellow-400/50 flex-shrink-0"
                             animate={{ scale: [1, 1.3, 1] }}
                             transition={{ duration: 2, repeat: Infinity, delay: 0.5 }}
                           />
                         </div>
-                        <div className="text-xs font-medium text-foreground mb-1">Pricing Inquiry - Enterprise Plan</div>
-                        <div className="text-xs text-muted-foreground line-clamp-1">No response in 3 days - lead may go cold soon...</div>
-                        <div className="flex items-center gap-2 mt-1.5">
-                          <span className="text-xs text-yellow-400">Action needed</span>
-                          <span className="text-xs text-muted-foreground">• 3 days since last contact</span>
+                        <div className="text-[10px] sm:text-xs font-medium text-foreground mb-0.5 sm:mb-1 line-clamp-1">Pricing Inquiry - Enterprise Plan</div>
+                        <div className="text-[9px] sm:text-xs text-muted-foreground line-clamp-1 hidden sm:block">No response in 3 days - lead may go cold soon...</div>
+                        <div className="flex items-center gap-1.5 sm:gap-2 mt-1 sm:mt-1.5 flex-wrap">
+                          <span className="text-[9px] sm:text-xs text-yellow-400">Action needed</span>
+                          <span className="text-[9px] sm:text-xs text-muted-foreground hidden sm:inline">• 3 days since last contact</span>
                         </div>
                       </div>
                     </motion.div>
@@ -617,17 +618,17 @@ const Landing = () => {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.8 }}
-          className="text-center max-w-4xl mx-auto mb-20"
+          className="text-center max-w-4xl mx-auto mb-12 sm:mb-16 md:mb-20"
         >
           <motion.div
             initial={{ scale: 0.9, opacity: 0 }}
             whileInView={{ scale: 1, opacity: 1 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
-            className="inline-block mb-4"
+            className="inline-block mb-3 sm:mb-4"
           >
-            <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-red-500/10 border border-red-500/30 text-red-400 text-sm font-medium">
-              <AlertCircle className="w-4 h-4" />
+            <span className="inline-flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full bg-red-500/10 border border-red-500/30 text-red-400 text-xs sm:text-sm font-medium">
+              <AlertCircle className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
               Common Problems
             </span>
           </motion.div>
@@ -636,7 +637,7 @@ const Landing = () => {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.8, delay: 0.2 }}
-            className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 leading-tight"
+            className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold mb-4 sm:mb-6 leading-tight px-2"
           >
             Lost leads cost you{" "}
             <motion.span
@@ -655,7 +656,7 @@ const Landing = () => {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.8, delay: 0.4 }}
-            className="text-xl md:text-2xl text-muted-foreground"
+            className="text-base sm:text-lg md:text-xl lg:text-2xl text-muted-foreground px-2"
           >
             When follow-ups slip through the cracks, opportunities disappear forever.
           </motion.p>
@@ -701,7 +702,7 @@ const Landing = () => {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6, delay: 0.1 }}
-            className="text-4xl md:text-5xl font-semibold mb-6 tracking-tight"
+            className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-semibold mb-4 sm:mb-6 tracking-tight px-2"
           >
             Automatically track, remind, and{" "}
             <span className="text-gradient font-medium">draft replies</span>
@@ -711,7 +712,7 @@ const Landing = () => {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6, delay: 0.2 }}
-            className="text-lg md:text-xl text-muted-foreground font-light"
+            className="text-base sm:text-lg md:text-xl text-muted-foreground font-light px-2"
           >
             InboxIQ watches your inbox, detects leads, and ensures you never miss a follow-up.
           </motion.p>
@@ -760,17 +761,17 @@ const Landing = () => {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.8 }}
-          className="text-center max-w-4xl mx-auto mb-20"
+          className="text-center max-w-4xl mx-auto mb-12 sm:mb-16 md:mb-20"
         >
-          <h2 className="text-4xl md:text-5xl font-bold mb-6">
+          <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold mb-4 sm:mb-6 px-2">
             How <span className="text-gradient">InboxIQ</span> Works
           </h2>
-          <p className="text-xl text-muted-foreground">
+          <p className="text-base sm:text-lg md:text-xl text-muted-foreground px-2">
             Get started in minutes. No complex setup required.
           </p>
         </motion.div>
 
-        <div className="max-w-4xl mx-auto space-y-12">
+        <div className="max-w-4xl mx-auto space-y-8 sm:space-y-10 md:space-y-12">
           {[
             {
               step: "01",
@@ -803,9 +804,9 @@ const Landing = () => {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.8 }}
-          className="text-center max-w-4xl mx-auto mb-16"
+          className="text-center max-w-4xl mx-auto mb-12 sm:mb-14 md:mb-16"
         >
-          <h2 className="text-4xl md:text-5xl font-bold mb-6">
+          <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold mb-4 sm:mb-6 px-2">
             Never lose a lead. <span className="text-gradient">Reply at the right time.</span>
           </h2>
         </motion.div>
@@ -831,10 +832,10 @@ const Landing = () => {
           transition={{ duration: 0.8 }}
           className="text-center max-w-4xl mx-auto mb-16"
         >
-          <h2 className="text-4xl md:text-5xl font-bold mb-6">
+          <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold mb-4 sm:mb-6 px-2">
             Simple, transparent <span className="text-gradient">pricing</span>
           </h2>
-          <p className="text-xl text-muted-foreground">
+          <p className="text-base sm:text-lg md:text-xl text-muted-foreground px-2">
             Start free. Upgrade when you're ready.
           </p>
         </motion.div>
@@ -873,23 +874,23 @@ const Landing = () => {
       </SectionWrapper>
 
       {/* Final CTA */}
-      <SectionWrapper className="py-32">
+      <SectionWrapper className="py-16 sm:py-20 md:py-24 lg:py-32">
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           whileInView={{ opacity: 1, scale: 1 }}
           viewport={{ once: true }}
           transition={{ duration: 0.8 }}
-          className="max-w-4xl mx-auto text-center"
+          className="max-w-4xl mx-auto text-center px-2"
         >
           <motion.div
-            className="glass rounded-3xl p-12 md:p-16 border border-purple-500/30 relative overflow-hidden"
+            className="glass rounded-2xl sm:rounded-3xl p-6 sm:p-8 md:p-12 lg:p-16 border border-purple-500/30 relative overflow-hidden"
           >
             <div className="absolute inset-0 bg-gradient-to-br from-purple-500/10 via-violet-500/10 to-purple-500/10" />
             <div className="relative z-10">
-              <h2 className="text-4xl md:text-5xl font-bold mb-6">
+              <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold mb-4 sm:mb-6 px-2">
                 Ready to never lose a lead?
               </h2>
-              <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
+              <p className="text-base sm:text-lg md:text-xl text-muted-foreground mb-6 sm:mb-8 max-w-2xl mx-auto px-4">
                 Join teams using InboxIQ to automatically track follow-ups and close more deals.
               </p>
               {session ? (
@@ -950,7 +951,7 @@ const Landing = () => {
 
 // Reusable Section Wrapper
 const SectionWrapper = ({ children, className = "" }: { children: React.ReactNode; className?: string }) => (
-  <section className={`py-20 md:py-32 px-6 relative ${className}`}>
+  <section className={`py-12 sm:py-16 md:py-20 lg:py-32 px-4 sm:px-6 relative ${className}`}>
     <div className="container mx-auto">
       {children}
     </div>

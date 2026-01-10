@@ -461,112 +461,113 @@ const Drafts = () => {
 
   return (
     <DashboardLayout>
-      <div className="space-y-6 max-w-[1600px] mx-auto">
+      <div className="space-y-4 sm:space-y-6 max-w-[1600px] mx-auto">
         {/* Header */}
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4">
           <div>
-            <h1 className="text-4xl font-bold tracking-tight mb-2 flex items-center gap-3">
-              <Sparkles className="w-8 h-8 text-accent drop-shadow-[0_0_10px_rgba(34,211,238,0.4)]" />
+            <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight mb-1 sm:mb-2 flex items-center gap-2 sm:gap-3">
+              <Sparkles className="w-6 h-6 sm:w-8 sm:h-8 text-accent drop-shadow-[0_0_10px_rgba(34,211,238,0.4)]" />
               <span className="text-gradient-primary text-glow-primary">AI Drafts</span>
             </h1>
-            <p className="text-base text-muted-foreground/90 font-medium">
-              <span className="text-gradient font-bold text-lg">{filteredAndSortedDrafts.length}</span>{" "}
+            <p className="text-sm sm:text-base text-muted-foreground/90 font-medium">
+              <span className="text-gradient font-bold text-base sm:text-lg">{filteredAndSortedDrafts.length}</span>{" "}
               {filteredAndSortedDrafts.length === 1 ? "draft" : "drafts"} ready for review
             </p>
           </div>
-          <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" className="gap-2">
-              <Filter className="w-4 h-4" />
-              Filters
+          <div className="flex items-center gap-2 w-full sm:w-auto">
+            <Button variant="outline" size="sm" className="gap-2 text-xs sm:text-sm flex-1 sm:flex-initial">
+              <Filter className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+              <span className="hidden sm:inline">Filters</span>
             </Button>
           </div>
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-5 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
           <motion.div 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4, delay: 0 }}
-            className="glass-strong p-6 rounded-2xl hover-lift cursor-pointer group relative overflow-hidden"
+            className="glass-strong p-4 sm:p-5 md:p-6 rounded-xl sm:rounded-2xl hover-lift cursor-pointer group relative overflow-hidden"
           >
             <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent pointer-events-none" />
             <div className="relative">
-              <div className="text-4xl font-bold text-gradient text-glow mb-2">{stats.total}</div>
-              <div className="text-xs text-muted-foreground/80 font-semibold uppercase tracking-wider">Total Drafts</div>
+              <div className="text-2xl sm:text-3xl md:text-4xl font-bold text-gradient text-glow mb-1 sm:mb-2">{stats.total}</div>
+              <div className="text-[10px] sm:text-xs text-muted-foreground/80 font-semibold uppercase tracking-wider leading-tight">Total Drafts</div>
             </div>
           </motion.div>
           <motion.div 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4, delay: 0.1 }}
-            className="glass-glow-hot p-6 rounded-2xl border-l-4 border-l-status-hot hover-lift cursor-pointer group relative overflow-hidden"
+            className="glass-glow-hot p-4 sm:p-5 md:p-6 rounded-xl sm:rounded-2xl border-l-2 sm:border-l-4 border-l-status-hot hover-lift cursor-pointer group relative overflow-hidden"
           >
             <div className="absolute inset-0 bg-gradient-to-br from-[rgba(239,68,68,0.1)] to-transparent pointer-events-none" />
             <div className="relative">
-              <div className="text-4xl font-bold text-gradient-hot text-glow-hot mb-2">{stats.high}</div>
-              <div className="text-xs text-muted-foreground/80 font-semibold uppercase tracking-wider">High Priority</div>
+              <div className="text-2xl sm:text-3xl md:text-4xl font-bold text-gradient-hot text-glow-hot mb-1 sm:mb-2">{stats.high}</div>
+              <div className="text-[10px] sm:text-xs text-muted-foreground/80 font-semibold uppercase tracking-wider leading-tight">High Priority</div>
             </div>
           </motion.div>
           <motion.div 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4, delay: 0.2 }}
-            className="glass-glow-warm p-6 rounded-2xl border-l-4 border-l-status-warm hover-lift cursor-pointer group relative overflow-hidden"
+            className="glass-glow-warm p-4 sm:p-5 md:p-6 rounded-xl sm:rounded-2xl border-l-2 sm:border-l-4 border-l-status-warm hover-lift cursor-pointer group relative overflow-hidden"
           >
             <div className="absolute inset-0 bg-gradient-to-br from-[rgba(245,158,11,0.1)] to-transparent pointer-events-none" />
             <div className="relative">
-              <div className="text-4xl font-bold text-gradient-warm text-glow-warm mb-2">{stats.medium}</div>
-              <div className="text-xs text-muted-foreground/80 font-semibold uppercase tracking-wider">Medium</div>
+              <div className="text-2xl sm:text-3xl md:text-4xl font-bold text-gradient-warm text-glow-warm mb-1 sm:mb-2">{stats.medium}</div>
+              <div className="text-[10px] sm:text-xs text-muted-foreground/80 font-semibold uppercase tracking-wider leading-tight">Medium</div>
             </div>
           </motion.div>
           <motion.div 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4, delay: 0.3 }}
-            className="glass-strong p-6 rounded-2xl hover-lift cursor-pointer group relative overflow-hidden"
+            className="glass-strong p-4 sm:p-5 md:p-6 rounded-xl sm:rounded-2xl hover-lift cursor-pointer group relative overflow-hidden"
           >
             <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent pointer-events-none" />
             <div className="relative">
-              <div className="text-4xl font-bold text-gradient text-glow mb-2">{stats.low}</div>
-              <div className="text-xs text-muted-foreground/80 font-semibold uppercase tracking-wider">Low Priority</div>
+              <div className="text-2xl sm:text-3xl md:text-4xl font-bold text-gradient text-glow mb-1 sm:mb-2">{stats.low}</div>
+              <div className="text-[10px] sm:text-xs text-muted-foreground/80 font-semibold uppercase tracking-wider leading-tight">Low Priority</div>
             </div>
           </motion.div>
           <motion.div 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4, delay: 0.4 }}
-            className="glass-glow p-6 rounded-2xl hover-lift cursor-pointer group relative overflow-hidden"
+            className="glass-glow p-4 sm:p-5 md:p-6 rounded-xl sm:rounded-2xl hover-lift cursor-pointer group relative overflow-hidden"
           >
             <div className="absolute inset-0 bg-gradient-to-br from-[rgba(124,58,237,0.1)] to-transparent pointer-events-none" />
             <div className="relative">
-              <div className="text-4xl font-bold text-gradient-primary text-glow-primary mb-2">{stats.avgConfidence}%</div>
-              <div className="text-xs text-muted-foreground/80 font-semibold uppercase tracking-wider">Avg Confidence</div>
+              <div className="text-2xl sm:text-3xl md:text-4xl font-bold text-gradient-primary text-glow-primary mb-1 sm:mb-2">{stats.avgConfidence}%</div>
+              <div className="text-[10px] sm:text-xs text-muted-foreground/80 font-semibold uppercase tracking-wider leading-tight">Avg Confidence</div>
             </div>
           </motion.div>
         </div>
 
         {/* Search and Filters */}
-        <div className="card-elevated p-4">
-          <div className="flex items-center gap-4">
+        <div className="card-elevated p-3 sm:p-4">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4">
             {/* Search */}
-            <div className="relative flex-1">
-              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground/60" />
+            <div className="relative flex-1 w-full">
+              <Search className="absolute left-3 sm:left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 text-muted-foreground/60" />
               <input
                 type="text"
-                placeholder="Search drafts by subject, recipient, or company..."
+                placeholder="Search drafts..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full h-11 pl-10 pr-4 rounded-xl bg-[rgba(255,255,255,0.06)] backdrop-blur-md border border-[rgba(255,255,255,0.12)] text-base placeholder:text-muted-foreground/60 focus:outline-none focus:ring-2 focus:ring-[#7C3AED]/50 focus:bg-[rgba(255,255,255,0.08)] focus:border-[rgba(124,58,237,0.3)] transition-all duration-200 font-medium shadow-lg shadow-black/20"
+                className="w-full h-10 sm:h-11 pl-9 sm:pl-10 pr-3 sm:pr-4 rounded-lg sm:rounded-xl bg-[rgba(255,255,255,0.06)] backdrop-blur-md border border-[rgba(255,255,255,0.12)] text-sm sm:text-base placeholder:text-muted-foreground/60 focus:outline-none focus:ring-2 focus:ring-[#7C3AED]/50 focus:bg-[rgba(255,255,255,0.08)] focus:border-[rgba(124,58,237,0.3)] transition-all duration-200 font-medium shadow-lg shadow-black/20"
               />
             </div>
 
             {/* Priority Filter */}
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
               <Button
                 variant={statusFilter === "all" ? "default" : "outline"}
                 size="sm"
                 onClick={() => setStatusFilter("all")}
+                className="text-xs sm:text-sm px-2 sm:px-3"
               >
                 All
               </Button>
@@ -574,7 +575,7 @@ const Drafts = () => {
                 variant={statusFilter === "high" ? "default" : "outline"}
                 size="sm"
                 onClick={() => setStatusFilter("high")}
-                className={statusFilter === "high" ? "bg-status-hot-bg text-status-hot border-status-hot" : ""}
+                className={cn("text-xs sm:text-sm px-2 sm:px-3", statusFilter === "high" ? "bg-status-hot-bg text-status-hot border-status-hot" : "")}
               >
                 High
               </Button>
@@ -582,7 +583,7 @@ const Drafts = () => {
                 variant={statusFilter === "medium" ? "default" : "outline"}
                 size="sm"
                 onClick={() => setStatusFilter("medium")}
-                className={statusFilter === "medium" ? "bg-status-warm-bg text-status-warm border-status-warm" : ""}
+                className={cn("text-xs sm:text-sm px-2 sm:px-3", statusFilter === "medium" ? "bg-status-warm-bg text-status-warm border-status-warm" : "")}
               >
                 Medium
               </Button>
@@ -590,6 +591,7 @@ const Drafts = () => {
                 variant={statusFilter === "low" ? "default" : "outline"}
                 size="sm"
                 onClick={() => setStatusFilter("low")}
+                className="text-xs sm:text-sm px-2 sm:px-3"
               >
                 Low
               </Button>
@@ -600,7 +602,7 @@ const Drafts = () => {
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value as SortOption)}
-                className="h-9 px-3 rounded-lg bg-secondary/50 border border-border text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                className="h-10 sm:h-11 px-3 rounded-lg bg-secondary/50 border border-border text-sm focus:outline-none focus:ring-2 focus:ring-ring flex-1 sm:flex-initial"
               >
                 <option value="recent">Recent</option>
                 <option value="confidence">Confidence</option>
@@ -612,7 +614,7 @@ const Drafts = () => {
         </div>
 
         {/* Drafts Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4">
           {filteredAndSortedDrafts.length === 0 ? (
             <motion.div 
               initial={{ opacity: 0, scale: 0.95 }}
@@ -645,27 +647,27 @@ const Drafts = () => {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.3 }}
                   whileHover={{ y: -4, transition: { duration: 0.2 } }}
-                  className="glass-strong p-6 hover:border-[rgba(124,58,237,0.4)] transition-all cursor-pointer group relative overflow-hidden border border-[rgba(255,255,255,0.12)]"
+                  className="glass-strong p-4 sm:p-5 md:p-6 hover:border-[rgba(124,58,237,0.4)] transition-all cursor-pointer group relative overflow-hidden border border-[rgba(255,255,255,0.12)] rounded-xl sm:rounded-2xl"
                   onClick={() => handleDraftClick(draft)}
                 >
-                  <div className="space-y-4">
+                  <div className="space-y-3 sm:space-y-4">
                     {/* Header */}
-                    <div className="flex items-start justify-between gap-3">
+                    <div className="flex items-start justify-between gap-2 sm:gap-3">
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-2">
-                          <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#7C3AED] via-[#A78BFA] to-[#22D3EE] flex items-center justify-center text-white font-bold text-base shrink-0 shadow-lg shadow-[#7C3AED]/40 ring-2 ring-[rgba(124,58,237,0.3)]">
+                        <div className="flex items-center gap-2 mb-1.5 sm:mb-2">
+                          <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-gradient-to-br from-[#7C3AED] via-[#A78BFA] to-[#22D3EE] flex items-center justify-center text-white font-bold text-sm sm:text-base shrink-0 shadow-lg shadow-[#7C3AED]/40 ring-2 ring-[rgba(124,58,237,0.3)]">
                             {draft.toName.split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase()}
                           </div>
                           <div className="flex-1 min-w-0">
-                            <h3 className="font-bold text-base text-foreground truncate mb-1 tracking-tight">{draft.toName}</h3>
-                            <p className="text-sm text-muted-foreground/80 truncate font-medium">{draft.company}</p>
+                            <h3 className="font-bold text-sm sm:text-base text-foreground truncate mb-0.5 sm:mb-1 tracking-tight">{draft.toName}</h3>
+                            <p className="text-xs sm:text-sm text-muted-foreground/80 truncate font-medium">{draft.company}</p>
                           </div>
                         </div>
-                        <p className="text-base font-bold text-foreground line-clamp-1 mb-1 tracking-tight">
+                        <p className="text-sm sm:text-base font-bold text-foreground line-clamp-1 mb-1 tracking-tight">
                           {draft.subject}
                         </p>
                       </div>
-                      <div className="flex items-center gap-1.5 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <div className="flex items-center gap-1 sm:gap-1.5 shrink-0 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
@@ -703,91 +705,94 @@ const Drafts = () => {
                     </div>
 
                     {/* Draft Preview */}
-                    <div className="p-4 rounded-xl bg-gradient-to-br from-[rgba(124,58,237,0.08)] to-[rgba(34,211,238,0.05)] border border-[rgba(124,58,237,0.15)] backdrop-blur-sm">
-                      <p className="text-sm text-foreground/90 line-clamp-3 font-medium leading-relaxed">
+                    <div className="p-3 sm:p-4 rounded-lg sm:rounded-xl bg-gradient-to-br from-[rgba(124,58,237,0.08)] to-[rgba(34,211,238,0.05)] border border-[rgba(124,58,237,0.15)] backdrop-blur-sm">
+                      <p className="text-xs sm:text-sm text-foreground/90 line-clamp-2 sm:line-clamp-3 font-medium leading-relaxed">
                         {draft.draft.split('\n').slice(0, 3).join(' ')}
                       </p>
                     </div>
 
                     {/* Metadata */}
                     <div className="flex items-center justify-between flex-wrap gap-2">
-                      <div className="flex items-center gap-2 flex-wrap">
+                      <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
                         <span className={cn(
-                          "inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium border",
+                          "inline-flex items-center gap-1 px-1.5 sm:px-2 py-0.5 rounded text-[10px] sm:text-xs font-medium border",
                           priorityColor
                         )}>
-                          <AlertCircle className="w-3 h-3" />
+                          <AlertCircle className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
                           {draft.priority}
                         </span>
                         <span className={cn(
-                          "inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium border",
+                          "inline-flex items-center gap-1 px-1.5 sm:px-2 py-0.5 rounded text-[10px] sm:text-xs font-medium border",
                           toneColor
                         )}>
                           {draft.tone}
                         </span>
-                        {draft.tags?.map((tag, i) => (
+                        {draft.tags?.slice(0, 2).map((tag, i) => (
                           <span
                             key={i}
-                            className="text-xs px-2 py-0.5 rounded bg-muted text-muted-foreground"
+                            className="text-[10px] sm:text-xs px-1.5 sm:px-2 py-0.5 rounded bg-muted text-muted-foreground"
                           >
                             {tag}
                           </span>
                         ))}
                       </div>
-                      <div className="flex items-center gap-4 text-sm font-semibold">
-                        <div className="flex items-center gap-1.5 text-gradient-accent">
-                          <TrendingUp className="w-4 h-4 drop-shadow-[0_0_8px_rgba(34,211,238,0.5)]" />
+                      <div className="flex items-center gap-2 sm:gap-4 text-xs sm:text-sm font-semibold">
+                        <div className="flex items-center gap-1 sm:gap-1.5 text-gradient-accent">
+                          <TrendingUp className="w-3.5 h-3.5 sm:w-4 sm:h-4 drop-shadow-[0_0_8px_rgba(34,211,238,0.5)]" />
                           <span className="text-gradient-accent text-glow-accent">{draft.confidence}%</span>
                         </div>
-                        <div className="flex items-center gap-1.5 text-muted-foreground/90">
-                          <Clock className="w-4 h-4" />
-                          <span>{draft.createdAt}</span>
+                        <div className="flex items-center gap-1 sm:gap-1.5 text-muted-foreground/90">
+                          <Clock className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                          <span className="hidden sm:inline">{draft.createdAt}</span>
                         </div>
                       </div>
                     </div>
 
                     {/* AI Reason */}
-                    <div className="p-3 rounded-xl bg-gradient-to-r from-[rgba(124,58,237,0.12)] to-[rgba(34,211,238,0.08)] border border-[rgba(124,58,237,0.25)] backdrop-blur-sm">
-                      <div className="flex items-start gap-2">
-                        <Sparkles className="w-4 h-4 text-accent shrink-0 mt-0.5 drop-shadow-[0_0_8px_rgba(34,211,238,0.4)]" />
-                        <p className="text-xs text-accent font-semibold leading-relaxed">{draft.reason}</p>
+                    <div className="p-2.5 sm:p-3 rounded-lg sm:rounded-xl bg-gradient-to-r from-[rgba(124,58,237,0.12)] to-[rgba(34,211,238,0.08)] border border-[rgba(124,58,237,0.25)] backdrop-blur-sm">
+                      <div className="flex items-start gap-1.5 sm:gap-2">
+                        <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-accent shrink-0 mt-0.5 drop-shadow-[0_0_8px_rgba(34,211,238,0.4)]" />
+                        <p className="text-[10px] sm:text-xs text-accent font-semibold leading-relaxed line-clamp-2">{draft.reason}</p>
                       </div>
                     </div>
 
                     {/* Actions */}
-                    <div className="flex items-center gap-2 pt-2 border-t border-border">
+                    <div className="flex items-center gap-1.5 sm:gap-2 pt-2 border-t border-border">
                       <Button
                         variant="accent"
                         size="sm"
-                        className="flex-1 gap-2 font-semibold shadow-lg shadow-[#7C3AED]/20 hover:shadow-[#7C3AED]/35 transition-all"
+                        className="flex-1 gap-1.5 sm:gap-2 font-semibold shadow-lg shadow-[#7C3AED]/20 hover:shadow-[#7C3AED]/35 transition-all text-xs sm:text-sm px-2 sm:px-3"
                         onClick={(e) => {
                           e.stopPropagation();
                           handleDraftClick(draft);
                         }}
                       >
-                        <Send className="w-4 h-4" />
-                        Review & Send
+                        <Send className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                        <span className="hidden sm:inline">Review & Send</span>
+                        <span className="sm:hidden">Review</span>
                       </Button>
                       <Button
                         variant="outline"
                         size="sm"
+                        className="px-2 sm:px-3"
                         onClick={(e) => {
                           e.stopPropagation();
                           handleDraftClick(draft);
                         }}
                       >
-                        <Edit3 className="w-4 h-4" />
+                        <Edit3 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                       </Button>
                       <Button
                         variant="outline"
                         size="sm"
+                        className="px-2 sm:px-3"
                         onClick={(e) => {
                           e.stopPropagation();
                           navigator.clipboard.writeText(draft.draft);
                           toast.success("Draft copied to clipboard");
                         }}
                       >
-                        <Copy className="w-4 h-4" />
+                        <Copy className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                       </Button>
                     </div>
                   </div>
