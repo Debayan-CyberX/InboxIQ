@@ -37,7 +37,8 @@ const Landing = () => {
   const heroRef = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({
     target: containerRef,
-    offset: ["start start", "end end"]
+    offset: ["start start", "end end"],
+    layoutEffect: false, // Use regular effect for better performance
   });
 
   const heroY = useTransform(scrollYProgress, [0, 0.5], [0, -100]);
@@ -65,7 +66,18 @@ const Landing = () => {
 
 
   return (
-    <div ref={containerRef} className="min-h-screen bg-background overflow-hidden">
+    <div 
+      ref={containerRef} 
+      className="min-h-screen bg-background overflow-hidden"
+      data-scroll-container
+      style={{ 
+        willChange: 'scroll-position',
+        transform: 'translateZ(0)',
+        WebkitTransform: 'translateZ(0)',
+        backfaceVisibility: 'hidden',
+        WebkitBackfaceVisibility: 'hidden',
+      }}
+    >
       {/* Animated gradient background */}
       <div className="fixed inset-0 -z-10 overflow-hidden">
         <motion.div 
@@ -149,7 +161,15 @@ const Landing = () => {
       {/* Hero Section */}
       <section ref={heroRef} className="relative min-h-screen flex items-center justify-center pt-16 sm:pt-20 px-4 sm:px-6 overflow-hidden">
         <motion.div
-          style={{ y: heroY, opacity: heroOpacity }}
+          style={{ 
+            y: heroY, 
+            opacity: heroOpacity,
+            willChange: 'transform, opacity',
+            transform: 'translateZ(0)',
+            WebkitTransform: 'translateZ(0)',
+            backfaceVisibility: 'hidden',
+            WebkitBackfaceVisibility: 'hidden',
+          }}
           className="text-center max-w-6xl mx-auto space-y-6 sm:space-y-8 relative z-10"
         >
           {/* Badge */}
@@ -939,7 +959,16 @@ const Landing = () => {
 
 // Reusable Section Wrapper
 const SectionWrapper = ({ children, className = "" }: { children: React.ReactNode; className?: string }) => (
-  <section className={`py-12 sm:py-16 md:py-20 lg:py-32 px-4 sm:px-6 relative ${className}`}>
+  <section 
+    className={`py-12 sm:py-16 md:py-20 lg:py-32 px-4 sm:px-6 relative ${className}`}
+    style={{
+      willChange: 'transform',
+      transform: 'translateZ(0)',
+      WebkitTransform: 'translateZ(0)',
+      backfaceVisibility: 'hidden',
+      WebkitBackfaceVisibility: 'hidden',
+    }}
+  >
     <div className="container mx-auto">
       {children}
     </div>

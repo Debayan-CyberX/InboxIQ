@@ -15,12 +15,30 @@
   html {
     overflow-x: hidden;
     max-width: 100vw;
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
   }
   
   body {
     overflow-x: hidden;
     max-width: 100vw;
     position: relative;
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  /* Smooth scrolling performance optimizations */
+  * {
+    scroll-behavior: smooth;
+  }
+  
+  /* Optimize scroll performance for animated elements */
+  [data-scroll-container] {
+    will-change: scroll-position;
+    transform: translateZ(0);
+    -webkit-transform: translateZ(0);
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
   }
 
   :root {
@@ -641,6 +659,8 @@
     width: 100%;
     overflow-x: hidden;
     max-width: 100vw;
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
   }
 
   body {
@@ -649,6 +669,20 @@
     max-width: 100vw;
     margin: 0;
     padding: 0;
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  /* Optimize scroll performance globally */
+  * {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  
+  /* Hardware acceleration for smooth scrolling */
+  main, section, div[class*="container"] {
+    transform: translateZ(0);
+    -webkit-transform: translateZ(0);
   }
 
   /* Fix for dashboard pages */
