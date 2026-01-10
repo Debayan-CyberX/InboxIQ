@@ -41,7 +41,21 @@ const Landing = () => {
   });
 
   const heroY = useTransform(scrollYProgress, [0, 0.5], [0, -100]);
+  // Ensure hero is always visible on initial load, only fade on scroll
   const heroOpacity = useTransform(scrollYProgress, [0, 0.3], [1, 0]);
+  
+  // Force scroll to top on mount to ensure proper initial state
+  useEffect(() => {
+    // Small delay to ensure DOM is ready
+    const timer = setTimeout(() => {
+      window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+      // Force a reflow to ensure transforms are applied
+      if (containerRef.current) {
+        containerRef.current.scrollTop = 0;
+      }
+    }, 0);
+    return () => clearTimeout(timer);
+  }, []);
 
   if (isPending) return null;
 
@@ -140,7 +154,7 @@ const Landing = () => {
         >
           {/* Badge */}
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 1, y: 0 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
             className="inline-flex items-center gap-2 px-3 sm:px-4 py-1 sm:py-1.5 rounded-full glass border border-purple-500/20 mb-2 sm:mb-4"
@@ -151,7 +165,7 @@ const Landing = () => {
 
           {/* Headline with Typewriter Effect */}
           <motion.h1
-            initial={{ opacity: 0, y: 30 }}
+            initial={{ opacity: 1, y: 0 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.2 }}
             className="text-3xl sm:text-4xl md:text-5xl lg:text-7xl xl:text-8xl font-bold leading-tight tracking-tight px-2 text-center"
@@ -174,7 +188,7 @@ const Landing = () => {
 
           {/* Subheadline */}
           <motion.p
-            initial={{ opacity: 0, y: 30 }}
+            initial={{ opacity: 1, y: 0 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.4 }}
             className="text-base sm:text-lg md:text-xl lg:text-2xl text-muted-foreground max-w-3xl mx-auto leading-relaxed px-2"
@@ -184,7 +198,7 @@ const Landing = () => {
 
           {/* CTAs */}
           <motion.div
-            initial={{ opacity: 0, y: 30 }}
+            initial={{ opacity: 1, y: 0 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.6 }}
             className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 pt-4 sm:pt-6 w-full px-4"
@@ -224,7 +238,7 @@ const Landing = () => {
 
           {/* Dashboard Mockup - 3D Card with Pop-out Effect */}
           <motion.div
-            initial={{ opacity: 0, y: 50, rotateX: -10 }}
+            initial={{ opacity: 1, y: 0, rotateX: 0 }}
             animate={{ opacity: 1, y: 0, rotateX: 0 }}
             transition={{ duration: 1, delay: 0.8, type: "spring", stiffness: 100 }}
             className="mt-12 sm:mt-16 md:mt-20 relative px-2 sm:px-4"
