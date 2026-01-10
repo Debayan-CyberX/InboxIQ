@@ -1101,7 +1101,7 @@ const ProblemCard = ({ icon: Icon, title, description, delay }: {
   );
 };
 
-// Feature Card Component - Sleek & Minimalistic
+// Feature Card Component - 3D, Animated, Hifi, Futuristic, Expensive
 const FeatureCard = ({ icon: Icon, title, description, gradient, delay }: {
   icon: any;
   title: string;
@@ -1109,78 +1109,351 @@ const FeatureCard = ({ icon: Icon, title, description, gradient, delay }: {
   gradient: string;
   delay: number;
 }) => {
-  const ref = useRef(null);
+  const ref = useRef<HTMLDivElement>(null);
   const isInView = useInView(ref, { once: true });
   const [isHovered, setIsHovered] = useState(false);
+  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+
+  // Get gradient colors for dynamic effects
+  const getGradientColor = () => {
+    if (gradient.includes("blue")) return "rgba(59, 130, 246, 0.6)";
+    if (gradient.includes("purple")) return "rgba(139, 92, 246, 0.6)";
+    if (gradient.includes("green")) return "rgba(34, 197, 94, 0.6)";
+    return "rgba(168, 85, 247, 0.6)";
+  };
+
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      if (ref.current && isHovered) {
+        const rect = ref.current.getBoundingClientRect();
+        setMousePosition({
+          x: ((e.clientX - rect.left) / rect.width - 0.5) * 20,
+          y: ((e.clientY - rect.top) / rect.height - 0.5) * 20,
+        });
+      }
+    };
+
+    if (isHovered) {
+      window.addEventListener("mousemove", handleMouseMove);
+    }
+
+    return () => window.removeEventListener("mousemove", handleMouseMove);
+  }, [isHovered]);
 
   return (
     <motion.div
       ref={ref}
-      initial={{ opacity: 0, y: 30 }}
-      animate={isInView ? { opacity: 1, y: 0 } : {}}
-      transition={{ duration: 0.5, delay, ease: [0.22, 1, 0.36, 1] }}
+      initial={{ opacity: 0, y: 50, rotateX: -15, scale: 0.9 }}
+      animate={isInView ? { opacity: 1, y: 0, rotateX: 0, scale: 1 } : {}}
+      transition={{ duration: 0.8, delay, type: "spring", stiffness: 150, damping: 15 }}
       onHoverStart={() => setIsHovered(true)}
-      onHoverEnd={() => setIsHovered(false)}
+      onHoverEnd={() => {
+        setIsHovered(false);
+        setMousePosition({ x: 0, y: 0 });
+      }}
       className="group relative"
+      style={{ 
+        transformStyle: "preserve-3d", 
+        perspective: "1000px",
+      }}
     >
-      {/* Subtle glow on hover */}
+      {/* Animated outer glow - pulsing */}
       <motion.div
-        className={`absolute -inset-px rounded-2xl bg-gradient-to-br ${gradient} opacity-0 group-hover:opacity-20 blur-sm transition-opacity duration-500`}
-        animate={isHovered ? { opacity: 0.2 } : { opacity: 0 }}
+        className={`absolute -inset-1 rounded-3xl bg-gradient-to-br ${gradient} opacity-0 blur-2xl`}
+        animate={isHovered ? {
+          opacity: [0, 0.4, 0.3, 0.4],
+          scale: [1, 1.1, 1.05, 1.1],
+        } : {
+          opacity: [0, 0.15, 0],
+          scale: [1, 1.05, 1],
+        }}
+        transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
       />
-      
-      {/* Main card - clean and minimal */}
+
+      {/* Animated border glow */}
       <motion.div
-        whileHover={{ y: -8 }}
+        className={`absolute -inset-0.5 rounded-3xl bg-gradient-to-br ${gradient} opacity-0`}
+        animate={isHovered ? {
+          opacity: [0, 0.6, 0.4, 0.6],
+        } : {
+          opacity: [0, 0.2, 0],
+        }}
+        transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+        style={{
+          maskImage: "linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)",
+          maskComposite: "exclude",
+          WebkitMaskComposite: "xor",
+          padding: "1px",
+        }}
+      />
+
+      {/* Main card with 3D transforms */}
+      <motion.div
+        animate={isHovered ? {
+          y: -16,
+          rotateY: mousePosition.x,
+          rotateX: -mousePosition.y * 0.5,
+          scale: 1.05,
+          z: 50,
+        } : {
+          y: 0,
+          rotateY: 0,
+          rotateX: 0,
+          scale: 1,
+          z: 0,
+        }}
         transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
-        className="relative rounded-2xl p-8 bg-card/40 backdrop-blur-sm border border-border/50 hover:border-border transition-all duration-300"
+        className="relative rounded-3xl p-8 sm:p-10 bg-[rgba(13,15,20,0.95)] backdrop-blur-2xl border border-[rgba(255,255,255,0.12)] overflow-hidden"
+          style={{ 
+            transformStyle: "preserve-3d",
+            boxShadow: isHovered 
+              ? `0 30px 60px -15px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.15), 0 0 80px -20px ${getGradientColor()}`
+              : `0 15px 40px -10px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.08)`,
+          }}
       >
-        {/* Minimal gradient overlay on hover */}
+        {/* Animated gradient background orbs */}
         <motion.div
-          className={`absolute inset-0 rounded-2xl bg-gradient-to-br ${gradient} opacity-0 group-hover:opacity-[0.03] transition-opacity duration-500`}
+          className={`absolute inset-0 bg-gradient-to-br ${gradient} opacity-0`}
+          animate={isHovered ? {
+            opacity: [0, 0.15, 0.1, 0.15],
+          } : {
+            opacity: [0, 0.05, 0],
+          }}
+          transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
         />
         
-        {/* Icon - sleek and minimal */}
+        {/* Multiple animated orbs for depth */}
+        {[...Array(3)].map((_, i) => (
+          <motion.div
+            key={i}
+            className={`absolute rounded-full blur-3xl bg-gradient-to-br ${gradient} opacity-0`}
+            style={{
+              width: `${150 + i * 50}px`,
+              height: `${150 + i * 50}px`,
+              left: `${20 + i * 25}%`,
+              top: `${30 + i * 20}%`,
+            }}
+            animate={isHovered ? {
+              opacity: [0, 0.2, 0.1, 0.2],
+              scale: [1, 1.3, 1.1, 1.3],
+              x: [0, 20, -20, 0],
+              y: [0, -20, 20, 0],
+            } : {
+              opacity: [0, 0.08, 0],
+              scale: [1, 1.2, 1],
+            }}
+            transition={{ 
+              duration: 5 + i, 
+              repeat: Infinity, 
+              ease: "easeInOut",
+              delay: i * 0.5,
+            }}
+          />
+        ))}
+
+        {/* Animated scanning line effect */}
         <motion.div
-          className="relative mb-6"
-          whileHover={{ scale: 1.05 }}
-          transition={{ duration: 0.2, ease: "easeOut" }}
+          className="absolute inset-0 opacity-0"
+          animate={isHovered ? {
+            opacity: [0, 0.4, 0],
+            y: ["-100%", "200%"],
+          } : {}}
+          transition={{ 
+            duration: 2, 
+            repeat: Infinity, 
+            repeatDelay: 3,
+            ease: "easeInOut",
+          }}
+          style={{
+            height: "2px",
+            background: `linear-gradient(90deg, transparent, ${getGradientColor()}, transparent)`,
+            boxShadow: `0 0 20px ${getGradientColor()}`,
+          }}
+        />
+
+        {/* Holographic shimmer effect */}
+        <motion.div
+          className="absolute inset-0 opacity-0"
+          style={{
+            background: `linear-gradient(110deg, transparent 40%, rgba(255, 255, 255, 0.1) 50%, transparent 60%)`,
+            backgroundSize: "200% 100%",
+          }}
+          animate={isHovered ? {
+            opacity: [0, 0.3, 0],
+            backgroundPosition: ["-200% 0%", "200% 0%"],
+          } : {}}
+          transition={{ duration: 1.5, repeat: Infinity, repeatDelay: 2 }}
+        />
+
+        {/* Icon container with 3D depth and multiple gradient layers */}
+        <motion.div
+          className="relative mb-6 sm:mb-8"
+          animate={isHovered ? {
+            scale: 1.1,
+            rotateY: mousePosition.x * 0.5,
+            rotateX: -mousePosition.y * 0.3,
+            z: 30,
+          } : {
+            scale: 1,
+            rotateY: 0,
+            rotateX: 0,
+            z: 0,
+          }}
+          transition={{ duration: 0.3 }}
+          style={{ transformStyle: "preserve-3d" }}
         >
-          <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${gradient} flex items-center justify-center relative`}>
+          {/* Outer glow ring */}
+          <motion.div
+            className={`absolute -inset-2 rounded-2xl bg-gradient-to-br ${gradient} opacity-0 blur-xl`}
+            animate={isHovered ? {
+              opacity: [0, 0.5, 0.3, 0.5],
+              scale: [1, 1.3, 1.1, 1.3],
+            } : {
+              opacity: [0, 0.2, 0],
+              scale: [1, 1.15, 1],
+            }}
+            transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+          />
+
+          {/* Pulsing border ring */}
+          <motion.div
+            className={`absolute -inset-1 rounded-2xl border-2 bg-gradient-to-br ${gradient} opacity-0`}
+            animate={isHovered ? {
+              opacity: [0, 0.6, 0.4, 0.6],
+              scale: [1, 1.15, 1.05, 1.15],
+            } : {
+              opacity: [0, 0.3, 0],
+              scale: [1, 1.1, 1],
+            }}
+            transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
+            style={{
+              background: `linear-gradient(135deg, ${gradient.includes('blue') ? 'rgba(59, 130, 246, 0.3)' : gradient.includes('purple') ? 'rgba(139, 92, 246, 0.3)' : gradient.includes('green') ? 'rgba(34, 197, 94, 0.3)' : 'rgba(168, 85, 247, 0.3)'}, transparent)`,
+            }}
+          />
+
+          {/* Main icon container with dual rotating gradients */}
+          <div className={`relative w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-gradient-to-br ${gradient} flex items-center justify-center shadow-2xl overflow-hidden`}>
+            {/* Rotating gradient layer 1 */}
             <motion.div
+              className={`absolute inset-0 bg-gradient-to-br ${gradient} opacity-50`}
               animate={isHovered ? {
-                scale: [1, 1.1, 1],
-              } : {}}
-              transition={{ duration: 0.4 }}
+                rotate: [0, 360],
+              } : {
+                rotate: [0, 180],
+              }}
+              transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
+            />
+            
+            {/* Rotating gradient layer 2 (reverse) */}
+            <motion.div
+              className={`absolute inset-0 bg-gradient-to-tl ${gradient} opacity-30`}
+              animate={isHovered ? {
+                rotate: [0, -360],
+              } : {
+                rotate: [0, -180],
+              }}
+              transition={{ duration: 12, repeat: Infinity, ease: "linear" }}
+            />
+
+            {/* Icon with depth */}
+            <motion.div
+              className="relative z-10"
+              animate={isHovered ? {
+                scale: [1, 1.15, 1.1, 1.15],
+                rotate: [0, 5, -5, 0],
+              } : {
+                scale: 1,
+                rotate: 0,
+              }}
+              transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
             >
-              <Icon className="w-6 h-6 text-white" />
+              <Icon className="w-7 h-7 sm:w-8 sm:h-8 text-white drop-shadow-2xl" />
             </motion.div>
+
+            {/* Sparkle particles on hover */}
+            {isHovered && [...Array(6)].map((_, i) => (
+              <motion.div
+                key={i}
+                className="absolute w-1 h-1 rounded-full bg-white"
+                initial={{
+                  x: "50%",
+                  y: "50%",
+                  opacity: 0,
+                }}
+                animate={{
+                  x: `${50 + (Math.cos(i * 60 * Math.PI / 180) * 30)}%`,
+                  y: `${50 + (Math.sin(i * 60 * Math.PI / 180) * 30)}%`,
+                  opacity: [0, 1, 0],
+                  scale: [0, 1.5, 0],
+                }}
+                transition={{
+                  duration: 1.5,
+                  repeat: Infinity,
+                  delay: i * 0.1,
+                  ease: "easeOut",
+                }}
+              />
+            ))}
           </div>
         </motion.div>
 
-        {/* Title - clean typography */}
+        {/* Title with gradient text and glow */}
         <motion.h3
-          className="text-xl font-semibold mb-3 text-foreground relative z-10"
-          initial={{ opacity: 0 }}
-          animate={isInView ? { opacity: 1 } : {}}
-          transition={{ delay: delay + 0.1, duration: 0.4 }}
+          className={`text-xl sm:text-2xl font-bold mb-3 sm:mb-4 bg-gradient-to-r ${gradient} bg-clip-text text-transparent relative z-10`}
+          initial={{ opacity: 0, x: -20 }}
+          animate={isInView ? { opacity: 1, x: 0 } : {}}
+          transition={{ delay: delay + 0.1, duration: 0.6 }}
+          whileHover={{ x: 5 }}
+          style={{
+            filter: isHovered ? `drop-shadow(0 0 12px ${getGradientColor()})` : "none",
+            textShadow: isHovered ? `0 0 20px ${getGradientColor()}` : "none",
+          }}
         >
           {title}
         </motion.h3>
         
-        {/* Description - minimal and readable */}
+        {/* Description with fade and slide */}
         <motion.p
-          className="text-sm text-muted-foreground leading-relaxed relative z-10"
-          initial={{ opacity: 0 }}
-          animate={isInView ? { opacity: 1 } : {}}
-          transition={{ delay: delay + 0.2, duration: 0.4 }}
+          className="text-sm sm:text-base text-muted-foreground/90 leading-relaxed relative z-10"
+          initial={{ opacity: 0, y: 10 }}
+          animate={isInView ? { opacity: 1, y: 0 } : {}}
+          transition={{ delay: delay + 0.2, duration: 0.6 }}
         >
           {description}
         </motion.p>
 
-        {/* Subtle bottom accent line on hover */}
+        {/* Animated bottom accent line with gradient sweep */}
         <motion.div
-          className={`absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r ${gradient} opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-b-2xl`}
+          className={`absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r ${gradient} rounded-b-3xl`}
+          animate={isHovered ? {
+            opacity: [0, 1, 0.9, 1],
+            scaleX: [0, 1, 0.98, 1],
+          } : {
+            opacity: 0,
+            scaleX: 0,
+          }}
+          transition={{ duration: 0.5 }}
+          style={{
+            boxShadow: isHovered 
+              ? `0 -6px 30px -6px ${getGradientColor()}`
+              : "none",
+          }}
+        />
+
+        {/* Corner accent with animated glow */}
+        <motion.div
+          className={`absolute top-0 right-0 w-24 h-24 bg-gradient-to-br ${gradient} opacity-0 rounded-bl-full`}
+          animate={isHovered ? {
+            opacity: [0, 0.15, 0.1, 0.15],
+            scale: [1, 1.2, 1.1, 1.2],
+          } : {
+            opacity: 0,
+            scale: 1,
+          }}
+          transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+          style={{
+            filter: "blur(20px)",
+          }}
         />
       </motion.div>
     </motion.div>
