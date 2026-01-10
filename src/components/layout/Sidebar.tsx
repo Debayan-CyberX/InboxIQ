@@ -30,7 +30,7 @@ const Sidebar = () => {
     try {
       await signOut();
       toast.success("Signed out successfully");
-      navigate("/sign-in");
+      navigate("/", { replace: true });
     } catch (error) {
       toast.error("Failed to sign out");
       console.error("Sign out error:", error);
