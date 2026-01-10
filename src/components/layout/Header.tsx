@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Search, Calendar, CheckCircle2, Mail } from "lucide-react";
+import { Search, Calendar, CheckCircle2, Mail, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import ConnectEmailDialog from "@/components/ConnectEmailDialog";
 import SearchDialog from "@/components/dashboard/SearchDialog";
@@ -38,6 +38,7 @@ const Header = () => {
   const [isSearchDialogOpen, setIsSearchDialogOpen] = useState(false);
   const [emailConnections, setEmailConnections] = useState<EmailConnection[]>([]);
   const [isLoadingConnections, setIsLoadingConnections] = useState(false);
+  const [isSyncing, setIsSyncing] = useState(false);
 
   const today = getFormattedDate();
 
@@ -92,6 +93,38 @@ const Header = () => {
       });
   };
 
+  const handleSyncEmails = async () => {
+    if (!userId || !isEmailConnected || emailConnections.length === 0) return;
+
+    try {
+      setIsSyncing(true);
+      const connectionId = emailConnections[0].id;
+      const result = await emailConnectionsApi.sync(connectionId);
+      
+      toast.success("Email sync completed", {
+        description: result.threadsSynced 
+          ? `Synced ${result.threadsSynced} email threads`
+          : result.message || "Your emails have been synced.",
+      });
+
+      // Reload connections to show updated last_sync_at
+      const connections = await emailConnectionsApi.getAll(userId);
+      setEmailConnections(connections.filter((c) => c.is_active));
+      
+      // Trigger inbox data refetch by dispatching a custom event
+      window.dispatchEvent(new CustomEvent("emailSyncCompleted", { 
+        detail: { threadsSynced: result.threadsSynced } 
+      }));
+    } catch (err) {
+      console.error("Error syncing emails:", err);
+      toast.error("Failed to sync emails", {
+        description: err instanceof Error ? err.message : "Unknown error",
+      });
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
   const isEmailConnected = emailConnections.length > 0;
   const connectedEmail = emailConnections[0]?.email || null;
 
@@ -138,6 +171,20 @@ const Header = () => {
 
           {/* Notifications */}
           {userId && <NotificationsPanel />}
+
+          {/* Sync Button - Only show if email is connected */}
+          {isEmailConnected && (
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              className="h-8 w-8 sm:h-9 sm:w-9 flex-shrink-0"
+              onClick={handleSyncEmails}
+              disabled={isSyncing}
+              title="Sync emails"
+            >
+              <RefreshCw className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${isSyncing ? "animate-spin" : ""}`} />
+            </Button>
+          )}
 
           {/* Connect Email CTA */}
           {isEmailConnected ? (
