@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
 import { Flame, Bell, FileEdit, AlertTriangle, TrendingUp, Clock, Zap } from "lucide-react";
 import DashboardLayout from "@/components/layout/DashboardLayout";
 import StatusCard from "@/components/dashboard/StatusCard";
@@ -263,7 +264,84 @@ const Index = () => {
 
   return (
     <DashboardLayout>
-      <div className="space-y-6 sm:space-y-8 w-full min-w-0 max-w-full overflow-x-hidden pb-8">
+      {/* Futuristic animated background */}
+      <div className="fixed inset-0 -z-10 overflow-hidden pointer-events-none">
+        {/* Deep gradient base */}
+        <div className="absolute inset-0 bg-gradient-to-br from-[#0F0A1A] via-[#1a0f2e] via-[#0F0A1A] to-[#0F0A1A]" />
+        
+        {/* Animated gradient orbs */}
+        <motion.div
+          className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-purple-500/25 rounded-full blur-3xl"
+          animate={{
+            scale: [1, 1.3, 1],
+            opacity: [0.3, 0.5, 0.3],
+            x: [0, 50, 0],
+            y: [0, 30, 0]
+          }}
+          transition={{
+            duration: 8,
+            repeat: Infinity,
+            ease: "easeInOut"
+          }}
+        />
+        <motion.div
+          className="absolute bottom-0 right-1/4 w-[400px] h-[400px] bg-violet-500/20 rounded-full blur-3xl"
+          animate={{
+            scale: [1, 1.4, 1],
+            opacity: [0.2, 0.4, 0.2],
+            x: [0, -40, 0],
+            y: [0, -20, 0]
+          }}
+          transition={{
+            duration: 10,
+            repeat: Infinity,
+            ease: "easeInOut",
+            delay: 1
+          }}
+        />
+        <motion.div
+          className="absolute top-1/2 right-0 w-[300px] h-[300px] bg-accent/15 rounded-full blur-3xl"
+          animate={{
+            scale: [1, 1.2, 1],
+            opacity: [0.2, 0.35, 0.2]
+          }}
+          transition={{
+            duration: 6,
+            repeat: Infinity,
+            ease: "easeInOut",
+            delay: 0.5
+          }}
+        />
+        
+        {/* Futuristic grid pattern */}
+        <div 
+          className="absolute inset-0 opacity-[0.04]"
+          style={{
+            backgroundImage: `
+              linear-gradient(rgba(147, 51, 234, 0.15) 1px, transparent 1px),
+              linear-gradient(90deg, rgba(147, 51, 234, 0.15) 1px, transparent 1px)
+            `,
+            backgroundSize: '60px 60px',
+            backgroundPosition: '0 0, 0 0'
+          }}
+        />
+        
+        {/* Animated scan lines */}
+        <motion.div
+          className="absolute inset-0 bg-gradient-to-b from-transparent via-purple-500/8 to-transparent"
+          animate={{
+            opacity: [0, 0.3, 0],
+            y: ['-100%', '100%']
+          }}
+          transition={{
+            duration: 5,
+            repeat: Infinity,
+            ease: "linear"
+          }}
+        />
+      </div>
+
+      <div className="relative space-y-6 sm:space-y-8 w-full min-w-0 max-w-full overflow-x-hidden pb-8">
         {/* Status Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 sm:gap-6 w-full min-w-0">
           <StatusCard
@@ -307,14 +385,25 @@ const Index = () => {
         {/* Performance Metrics - Full Width */}
         <PerformanceSnapshot metrics={performanceMetricsWithIcons} />
 
-        {/* Section Divider */}
-        <div className="relative py-3">
+        {/* Futuristic Section Divider */}
+        <div className="relative py-4">
           <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-border/60"></div>
+            <div className="w-full h-px bg-gradient-to-r from-transparent via-accent/40 to-transparent"></div>
           </div>
-          <div className="absolute left-1/2 -translate-x-1/2 px-4 bg-background">
-            <div className="w-2 h-2 rounded-full bg-accent/30 border border-accent/50"></div>
-          </div>
+          <motion.div
+            className="absolute left-1/2 -translate-x-1/2 px-6 bg-background"
+            animate={{
+              scale: [1, 1.2, 1],
+              opacity: [0.6, 1, 0.6]
+            }}
+            transition={{
+              duration: 2,
+              repeat: Infinity,
+              ease: "easeInOut"
+            }}
+          >
+            <div className="w-3 h-3 rounded-full bg-gradient-to-br from-accent to-purple-500 border-2 border-accent/50 shadow-lg shadow-accent/30"></div>
+          </motion.div>
         </div>
 
         {/* Main content grid */}

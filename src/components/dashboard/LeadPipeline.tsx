@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { motion } from "framer-motion";
 import { Flame, ThermometerSun, Snowflake } from "lucide-react";
 import LeadCard from "./LeadCard";
 import { cn } from "@/lib/utils";
@@ -50,13 +51,37 @@ const LeadPipeline = ({ leads, onLeadClick }: LeadPipelineProps) => {
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
 
   return (
-    <div className="card-elevated animate-fade-in animation-delay-200 w-full max-w-full overflow-hidden min-w-0">
+    <motion.div
+      initial={{ opacity: 0, x: -20, scale: 0.96 }}
+      animate={{ opacity: 1, x: 0, scale: 1 }}
+      transition={{ duration: 0.7, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
+      className="card-elevated animate-fade-in animation-delay-200 w-full max-w-full overflow-hidden min-w-0 relative border-2 border-blue-500/20"
+      style={{ 
+        background: "linear-gradient(135deg, rgba(59, 130, 246, 0.08) 0%, rgba(255, 255, 255, 0.06) 100%)",
+        backdropFilter: "blur(24px)",
+        boxShadow: "0 8px 32px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(59, 130, 246, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.15)"
+      }}
+    >
+      {/* Animated background */}
+      <motion.div
+        className="absolute top-0 right-0 w-80 h-80 bg-blue-500/8 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none"
+        animate={{
+          scale: [1, 1.2, 1],
+          opacity: [0.3, 0.5, 0.3]
+        }}
+        transition={{
+          duration: 5,
+          repeat: Infinity,
+          ease: "easeInOut"
+        }}
+      />
+      
       {/* Header */}
-      <div className="p-5 border-b border-border">
-        <h2 className="text-base font-semibold text-foreground">
+      <div className="relative p-5 sm:p-6 border-b border-blue-500/30 bg-gradient-to-r from-blue-500/5 via-transparent to-transparent">
+        <h2 className="text-lg sm:text-xl font-bold text-foreground bg-gradient-to-r from-foreground to-foreground/80 bg-clip-text">
           Lead Pipeline
         </h2>
-        <p className="text-sm text-muted-foreground mt-0.5">
+        <p className="text-sm text-muted-foreground/90 mt-1.5 font-medium">
           {leads.length} active leads across all stages
         </p>
       </div>
@@ -75,32 +100,49 @@ const LeadPipeline = ({ leads, onLeadClick }: LeadPipelineProps) => {
               : columnLeads.slice(0, MAX_VISIBLE);
 
             return (
-              <div
+              <motion.div
                 key={column.status}
-                className="min-h-[360px] flex flex-col overflow-hidden min-w-0 w-full"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3 + (column.status === "hot" ? 0 : column.status === "warm" ? 0.1 : 0.2), duration: 0.5 }}
+                className="min-h-[360px] flex flex-col overflow-hidden min-w-0 w-full relative group"
               >
+                {/* Column glow effect */}
+                <div className={cn(
+                  "absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none",
+                  column.status === "hot" && "bg-gradient-to-b from-[#EF4444]/5 to-transparent",
+                  column.status === "warm" && "bg-gradient-to-b from-[#F59E0B]/5 to-transparent",
+                  "bg-gradient-to-b from-accent/5 to-transparent"
+                )} />
+                
                 {/* Column header */}
-                <div className="p-4 border-b border-border bg-muted/30 shrink-0">
-                  <div className="flex items-center gap-2">
-                    <div
-                      className={cn(
-                        "p-1.5 rounded-md shrink-0",
-                        column.bgColor
-                      )}
-                    >
-                      <column.icon
-                        className={cn("w-4 h-4", column.iconColor)}
-                      />
-                    </div>
+                <div className="relative p-4 sm:p-5 border-b sm:border-b-0 sm:border-r border-border/50 flex items-center gap-2.5 shrink-0 bg-gradient-to-r from-transparent via-muted/20 to-transparent">
+                  <motion.div
+                    whileHover={{ scale: 1.2, rotate: 10 }}
+                    className={cn(
+                      "p-2 rounded-xl shrink-0 border backdrop-blur-sm shadow-sm",
+                      column.status === "hot" && "bg-[#EF4444]/15 border-[#EF4444]/20",
+                      column.status === "warm" && "bg-[#F59E0B]/15 border-[#F59E0B]/20",
+                      "bg-accent/15 border-accent/20"
+                    )}
+                  >
+                    <column.icon
+                      className={cn("w-4 h-4 sm:w-5 sm:h-5", column.iconColor)}
+                    />
+                  </motion.div>
 
-                    <span className="text-sm font-medium text-foreground truncate">
-                      {column.title}
-                    </span>
+                  <span className="text-sm sm:text-base font-bold text-foreground truncate">
+                    {column.title}
+                  </span>
 
-                    <span className="ml-auto text-xs font-medium text-muted-foreground bg-muted px-2 py-0.5 rounded-full shrink-0">
-                      {columnLeads.length}
-                    </span>
-                  </div>
+                  <motion.span
+                    initial={{ scale: 0.8 }}
+                    animate={{ scale: 1 }}
+                    transition={{ delay: 0.5, type: "spring" }}
+                    className="ml-auto text-xs font-bold text-muted-foreground bg-muted/60 border border-border/50 px-2.5 py-1 rounded-full shrink-0 backdrop-blur-sm"
+                  >
+                    {columnLeads.length}
+                  </motion.span>
                 </div>
 
                 {/* Column content */}
@@ -137,12 +179,12 @@ const LeadPipeline = ({ leads, onLeadClick }: LeadPipelineProps) => {
                     </div>
                   )}
                 </div>
-              </div>
+              </motion.div>
             );
           })}
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 };
 
