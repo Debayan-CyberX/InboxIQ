@@ -153,7 +153,8 @@ const ActionQueue = ({
             </div>
           </div>
         ))}
-      </div>
+        </div>
+      )}
 
       {/* Footer */}
       {actions.length > 3 && (
