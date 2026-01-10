@@ -262,7 +262,7 @@ const Index = () => {
         <PerformanceSnapshot metrics={performanceMetricsWithIcons} />
 
         {/* Main content grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6 min-w-0">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6 min-w-0 w-full">
 
           {/* Lead Pipeline - Takes 8 columns */}
           <div className="col-span-1 lg:col-span-8">

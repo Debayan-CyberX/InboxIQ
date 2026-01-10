@@ -41,11 +41,11 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
   }, []);
 
   return (
-    <div className="min-h-screen bg-[#0D0F14] flex relative overflow-x-hidden">
-      {/* Desktop Sidebar (fixed, no scroll) */}
-      <div className="hidden lg:block lg:w-64 lg:flex-shrink-0 lg:relative">
+    <div className="min-h-screen bg-[#0D0F14] flex relative overflow-x-hidden w-full max-w-full">
+      {/* Desktop Sidebar (sticky, no scroll) */}
+      <aside className="hidden lg:block lg:w-64 lg:flex-shrink-0 lg:h-screen lg:sticky lg:top-0 lg:z-30">
         <Sidebar />
-      </div>
+      </aside>
 
       {/* Mobile Sidebar Drawer */}
       {mobileOpen && (
@@ -64,7 +64,7 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
       )}
 
       {/* Main Content Area */}
-      <div className="flex-1 flex flex-col lg:ml-64 min-w-0 overflow-x-hidden">
+      <div className="flex-1 flex flex-col min-w-0 overflow-x-hidden w-0 dashboard-main-content">
         {/* Mobile Header (sticky) */}
         <div className="lg:hidden sticky top-0 z-20 flex items-center justify-between h-14 px-4 border-b border-[rgba(255,255,255,0.12)] glass-strong">
           <button

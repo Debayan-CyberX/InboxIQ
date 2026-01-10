@@ -55,7 +55,7 @@ const Sidebar = () => {
 
   return (
     <aside
-      className="sidebar-fixed flex flex-col glass-strong border-r border-[rgba(255,255,255,0.08)]"
+      className="flex flex-col glass-strong border-r border-[rgba(255,255,255,0.08)] h-screen"
     >
       {/* Logo */}
       <div className="h-16 flex items-center px-6 border-b border-[rgba(255,255,255,0.08)] shrink-0 relative">
