@@ -525,7 +525,7 @@ const Settings = () => {
 
   return (
     <DashboardLayout>
-      <div className="space-y-4 sm:space-y-6 max-w-[1200px] mx-auto">
+      <div className="space-y-4 sm:space-y-6 w-full min-w-0 max-w-full">
         {/* Header */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4">
           <div>

@@ -290,7 +290,7 @@ const Inbox = () => {
 
   return (
     <DashboardLayout>
-      <div className="space-y-4 sm:space-y-6 max-w-[1600px] mx-auto flex-1 flex flex-col min-h-0 w-full">
+      <div className="space-y-4 sm:space-y-6 w-full min-w-0 flex-1 flex flex-col min-h-0">
         {/* Header */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4 mb-6 sm:mb-8">
           <div>
