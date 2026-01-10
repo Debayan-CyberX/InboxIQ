@@ -247,13 +247,13 @@ const Drafts = () => {
         if (errorMessage.includes("not found") || errorMessage.includes("PGRST116")) {
           console.log("Draft not found, creating new draft instead");
           
-          // Get lead details for creating the draft
-          const lead = await leadsApi.getById(draft.leadId, userId);
-          if (!lead) {
-            throw new Error("Lead not found - cannot create draft");
+          // We already have all the info we need from the draft object
+          // No need to fetch the lead - just create the draft directly
+          if (!draft.leadId) {
+            throw new Error("Cannot create draft: No lead ID available");
           }
 
-          // Create new draft
+          // Create new draft with the information we already have
           const newDraft = await emailsApi.create(
             {
               thread_id: draft.threadId || null,
