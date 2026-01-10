@@ -47,7 +47,7 @@ export const AuthLayout = ({ children }: AuthLayoutProps) => {
           </defs>
           
           {/* Sky */}
-          <rect width="100%" height="100%" fill="url(#skyGradient)" />
+          <rect width="1920" height="1080" fill="url(#skyGradient)" />
           
           {/* Soft clouds */}
           <ellipse cx="300" cy="150" rx="180" ry="60" fill="#7A6B9A" opacity="0.3" />

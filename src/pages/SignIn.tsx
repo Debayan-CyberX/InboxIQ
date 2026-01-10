@@ -81,7 +81,8 @@ export default function SignIn() {
 
   /* -------------------- UI -------------------- */
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background px-4">
+    <AuthLayout>
+      <div className="min-h-screen flex items-center justify-center px-4">
         <Card className="w-full max-w-md relative overflow-hidden">
           {/* Subtle glow effect on card when submitting */}
           {isSubmitting && (
