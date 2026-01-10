@@ -10,11 +10,12 @@ interface AuthLayoutProps {
  */
 export const AuthLayout = ({ children }: AuthLayoutProps) => {
   return (
-    <div className="relative min-h-screen w-full overflow-hidden bg-[#0D0F14]">
+    <div className="relative min-h-screen w-full overflow-hidden" style={{ backgroundColor: '#0D0F14', minHeight: '100vh' }}>
       {/* Background Illustration */}
-      <div className="absolute inset-0 w-full h-full">
+      <div className="absolute inset-0 w-full h-full z-0 pointer-events-none">
         <svg
-          className="absolute inset-0 w-full h-full object-cover"
+          className="absolute inset-0 w-full h-full"
+          style={{ width: '100%', height: '100%', objectFit: 'cover' }}
           viewBox="0 0 1920 1080"
           preserveAspectRatio="xMidYMid slice"
           xmlns="http://www.w3.org/2000/svg"
@@ -28,16 +29,16 @@ export const AuthLayout = ({ children }: AuthLayoutProps) => {
               <stop offset="100%" stopColor="#0D0F14" stopOpacity="1" />
             </linearGradient>
             
-            {/* Radial gradient for subtle glow */}
+            {/* Radial gradient for subtle glow - more visible */}
             <radialGradient id="glowGradient1" cx="50%" cy="30%" r="50%">
-              <stop offset="0%" stopColor="#7C3AED" stopOpacity="0.15" />
-              <stop offset="50%" stopColor="#9333EA" stopOpacity="0.08" />
+              <stop offset="0%" stopColor="#7C3AED" stopOpacity="0.2" />
+              <stop offset="50%" stopColor="#9333EA" stopOpacity="0.12" />
               <stop offset="100%" stopColor="#9333EA" stopOpacity="0" />
             </radialGradient>
             
             <radialGradient id="glowGradient2" cx="80%" cy="70%" r="40%">
-              <stop offset="0%" stopColor="#A855F7" stopOpacity="0.12" />
-              <stop offset="70%" stopColor="#9333EA" stopOpacity="0.06" />
+              <stop offset="0%" stopColor="#A855F7" stopOpacity="0.18" />
+              <stop offset="70%" stopColor="#9333EA" stopOpacity="0.1" />
               <stop offset="100%" stopColor="#9333EA" stopOpacity="0" />
             </radialGradient>
             
@@ -62,22 +63,21 @@ export const AuthLayout = ({ children }: AuthLayoutProps) => {
           <rect width="1920" height="1080" fill="url(#mainGradient)" />
           
           {/* Subtle grid overlay */}
-          <rect width="1920" height="1080" fill="url(#gridPattern)" opacity="0.4" />
+          <rect width="1920" height="1080" fill="url(#gridPattern)" opacity="0.3" />
           
-          {/* Radial glow effects */}
+          {/* Radial glow effects - more visible */}
           <ellipse cx="960" cy="320" rx="800" ry="600" fill="url(#glowGradient1)" />
           <ellipse cx="1400" cy="750" rx="600" ry="500" fill="url(#glowGradient2)" />
           <ellipse cx="300" cy="800" rx="500" ry="400" fill="url(#glowGradient1)" opacity="0.6" />
           
-          {/* Abstract geometric shapes - subtle and modern */}
-          {/* Large blurred circles */}
-          <circle cx="200" cy="300" r="180" fill="#9333EA" opacity="0.08" filter="blur(60px)" />
-          <circle cx="1600" cy="400" r="220" fill="#A855F7" opacity="0.06" filter="blur(70px)" />
-          <circle cx="800" cy="750" r="200" fill="#7C3AED" opacity="0.07" filter="blur(65px)" />
+          {/* Large soft orbs - visible but subtle */}
+          <circle cx="200" cy="300" r="250" fill="#9333EA" opacity="0.12" />
+          <circle cx="1600" cy="400" r="280" fill="#A855F7" opacity="0.1" />
+          <circle cx="800" cy="750" r="260" fill="#7C3AED" opacity="0.11" />
+          <circle cx="1200" cy="200" r="200" fill="#9333EA" opacity="0.09" />
           
           {/* Subtle geometric shapes */}
-          {/* Hexagon-inspired shapes */}
-          <g opacity="0.15">
+          <g opacity="0.2">
             <polygon
               points="300,200 450,150 600,200 600,300 450,350 300,300"
               fill="url(#shapeGradient1)"
@@ -90,46 +90,26 @@ export const AuthLayout = ({ children }: AuthLayoutProps) => {
             />
           </g>
           
-          {/* Subtle diagonal lines/rays */}
-          <g opacity="0.08">
-            <line x1="0" y1="200" x2="1920" y2="400" stroke="#9333EA" strokeWidth="2" />
-            <line x1="0" y1="600" x2="1920" y2="800" stroke="#A855F7" strokeWidth="2" />
-            <line x1="0" y1="400" x2="1920" y2="600" stroke="#7C3AED" strokeWidth="1.5" />
-          </g>
-          
-          {/* Subtle wave patterns */}
+          {/* Very subtle diagonal accents */}
           <g opacity="0.12">
-            <path
-              d="M 0,800 Q 480,750 960,800 T 1920,800 L 1920,1080 L 0,1080 Z"
-              fill="#9333EA"
-            />
-            <path
-              d="M 0,900 Q 640,850 1280,900 T 1920,900 L 1920,1080 L 0,1080 Z"
-              fill="#A855F7"
-              opacity="0.8"
-            />
+            <line x1="0" y1="250" x2="1920" y2="450" stroke="#9333EA" strokeWidth="1.5" />
+            <line x1="0" y1="650" x2="1920" y2="850" stroke="#A855F7" strokeWidth="1.5" />
           </g>
           
-          {/* Floating orbs - subtle glow effect */}
-          <g opacity="0.2">
-            <circle cx="400" cy="500" r="3" fill="#9333EA" filter="blur(2px)" />
-            <circle cx="1200" cy="300" r="4" fill="#A855F7" filter="blur(2px)" />
-            <circle cx="1600" cy="600" r="3" fill="#7C3AED" filter="blur(2px)" />
-            <circle cx="600" cy="700" r="2" fill="#9333EA" filter="blur(1.5px)" />
-            <circle cx="1400" cy="200" r="3" fill="#A855F7" filter="blur(2px)" />
-            <circle cx="200" cy="600" r="2.5" fill="#7C3AED" filter="blur(1.5px)" />
-          </g>
-          
-          {/* Subtle mesh gradient overlay */}
-          <rect width="1920" height="1080" fill="rgba(147, 51, 234, 0.03)" />
+          {/* Bottom wave accent */}
+          <path
+            d="M 0,850 Q 480,800 960,850 T 1920,850 L 1920,1080 L 0,1080 Z"
+            fill="#9333EA"
+            opacity="0.15"
+          />
         </svg>
       </div>
       
       {/* Subtle dark overlay for depth */}
-      <div className="absolute inset-0 bg-gradient-to-b from-black/10 via-transparent to-black/15" />
+      <div className="absolute inset-0 bg-gradient-to-b from-black/5 via-transparent to-black/10" />
       
       {/* Content wrapper with subtle backdrop blur */}
-      <div className="relative z-10 min-h-screen w-full backdrop-blur-[2px]">
+      <div className="relative z-10 min-h-screen w-full">
         {children}
       </div>
     </div>
