@@ -371,7 +371,7 @@ const Inbox = () => {
           <div className="col-span-1 lg:col-span-9 flex flex-col min-h-0">
             <div className="glass-strong rounded-xl sm:rounded-2xl overflow-hidden flex flex-col flex-1 min-h-0">
               {/* Thread List - Scrollable Container */}
-              <div className="divide-y divide-[rgba(255,255,255,0.08)] overflow-y-auto overflow-x-hidden flex-1 min-h-0 max-h-[calc(100dvh-220px)] sm:max-h-[calc(100vh-280px)] lg:max-h-[calc(100vh-300px)]" style={{ WebkitOverflowScrolling: 'touch' }}>
+              <div className="divide-y divide-[rgba(255,255,255,0.08)] overflow-y-auto overflow-x-hidden flex-1 min-h-0" style={{ WebkitOverflowScrolling: 'touch' }}>
                 {filteredThreads.length === 0 ? (
                   <div className="p-8 sm:p-12 md:p-16 text-center">
                     <MailOpen className="w-12 h-12 sm:w-16 sm:h-16 text-muted-foreground/40 mx-auto mb-4 sm:mb-6" />

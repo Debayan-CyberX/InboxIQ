@@ -41,9 +41,9 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
   }, []);
 
   return (
-    <div className="min-h-screen bg-[#0D0F14] flex relative overflow-x-hidden w-full max-w-full">
-      {/* Desktop Sidebar (sticky, no scroll) */}
-      <aside className="hidden lg:block lg:w-64 lg:flex-shrink-0 lg:h-screen lg:sticky lg:top-0 lg:z-30">
+    <div className="min-h-screen bg-[#0D0F14] w-full overflow-x-hidden">
+      {/* Desktop Sidebar (fixed, no scroll) */}
+      <aside className="hidden lg:block lg:fixed lg:top-0 lg:left-0 lg:bottom-0 lg:w-64 lg:z-30">
         <Sidebar />
       </aside>
 
@@ -63,10 +63,10 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
         </div>
       )}
 
-      {/* Main Content Area */}
-      <div className="flex-1 flex flex-col min-w-0 overflow-x-hidden w-0 dashboard-main-content">
+      {/* Main Content Area - Scrollable */}
+      <div className="w-full lg:ml-64 min-w-0 overflow-x-hidden">
         {/* Mobile Header (sticky) */}
-        <div className="lg:hidden sticky top-0 z-20 flex items-center justify-between h-14 px-4 border-b border-[rgba(255,255,255,0.12)] glass-strong">
+        <div className="lg:hidden sticky top-0 z-20 flex items-center justify-between h-14 px-4 border-b border-[rgba(255,255,255,0.12)] glass-strong shrink-0">
           <button
             onClick={() => setMobileOpen(true)}
             className="text-xl"
@@ -78,13 +78,13 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
         </div>
 
         {/* Desktop Header */}
-        <div className="hidden lg:block sticky top-0 z-20">
+        <div className="hidden lg:block sticky top-0 z-20 shrink-0">
           <Header />
         </div>
 
         {/* Page Content */}
-        <main className="flex-1 p-3 sm:p-4 lg:p-8 pb-20 sm:pb-24 flex flex-col min-h-0 min-w-0 overflow-x-hidden">
-          <div className="flex-1 flex flex-col min-h-0 w-full min-w-0">
+        <main className="p-3 sm:p-4 lg:p-8 pb-20 sm:pb-24 flex flex-col min-h-0 min-w-0 overflow-x-hidden w-full">
+          <div className="flex flex-col min-h-0 w-full min-w-0">
             {children}
           </div>
         </main>
