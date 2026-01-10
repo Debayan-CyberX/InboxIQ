@@ -218,30 +218,109 @@ const Index = () => {
   const draftsReadyCount = statistics.hasDrafts;
   const atRiskCount = leads.filter(l => l.days_since_contact >= 5).length;
 
-  // Get latest insight and ensure highlights is an array with correct format
-  const getHighlights = (highlights: any): Array<{ type: "hot" | "risk" | "opportunity"; text: string }> => {
-    if (!highlights) return [];
-    if (!Array.isArray(highlights)) return [];
-    
-    // Filter and ensure each highlight has the correct structure
-    return highlights
-      .filter((h: any) => h && typeof h === 'object' && h.type && h.text)
-      .map((h: any) => ({
-        type: (h.type === "hot" || h.type === "risk" || h.type === "opportunity") 
-          ? h.type 
-          : "opportunity" as const,
-        text: String(h.text || ""),
-      }))
-      .filter((h: any) => h.text.length > 0);
+  // Generate actual insights from leads and action queue data
+  const generateInsights = (): { text: string; highlights: Array<{ type: "hot" | "risk" | "opportunity"; text: string }> } => {
+    const highlights: Array<{ type: "hot" | "risk" | "opportunity"; text: string }> = [];
+    let insightText = "";
+
+    // Analyze leads data
+    const hotLeads = leads.filter(l => l.status === "hot");
+    const leadsNeedingFollowUp = leads.filter(l => l.days_since_contact >= 3);
+    const atRiskLeads = leads.filter(l => l.days_since_contact >= 5 && l.status !== "cold");
+    const leadsWithDrafts = leads.filter(l => l.has_ai_draft);
+
+    // Generate insight text based on priority
+    if (hotLeads.length > 0) {
+      insightText = `You have ${hotLeads.length} hot lead${hotLeads.length > 1 ? 's' : ''} that need immediate attention. `;
+      if (hotLeads.length > 3) {
+        insightText += "This is an excellent opportunity to close deals - prioritize responses today.";
+        highlights.push({ type: "hot", text: `${hotLeads.length} hot leads ready to convert` });
+      } else {
+        insightText += "Focus on personalized outreach to maximize conversion potential.";
+        highlights.push({ type: "hot", text: `${hotLeads.length} active hot lead${hotLeads.length > 1 ? 's' : ''}` });
+      }
+    } else if (atRiskLeads.length > 0) {
+      insightText = `⚠️ ${atRiskLeads.length} lead${atRiskLeads.length > 1 ? 's are' : ' is'} at risk of going cold. `;
+      insightText += `These contacts haven't been reached in 5+ days - immediate follow-up is critical to maintain momentum.`;
+      highlights.push({ type: "risk", text: `${atRiskLeads.length} lead${atRiskLeads.length > 1 ? 's' : ''} at risk` });
+      
+      // Add specific at-risk companies if available
+      if (atRiskLeads.length <= 3) {
+        atRiskLeads.slice(0, 2).forEach(lead => {
+          highlights.push({ type: "risk", text: `${lead.company || lead.contact_name} - ${lead.days_since_contact} days` });
+        });
+      }
+    } else if (leadsNeedingFollowUp.length > 0) {
+      insightText = `${leadsNeedingFollowUp.length} lead${leadsNeedingFollowUp.length > 1 ? 's need' : ' needs'} follow-up. `;
+      insightText += "Following up within 3 days significantly increases response rates. Review your action queue to prioritize.";
+      highlights.push({ type: "opportunity", text: `${leadsNeedingFollowUp.length} follow-up${leadsNeedingFollowUp.length > 1 ? 's' : ''} due` });
+    } else if (leadsWithDrafts.length > 0) {
+      insightText = `You have ${leadsWithDrafts.length} AI-generated draft${leadsWithDrafts.length > 1 ? 's' : ''} ready for review. `;
+      insightText += "These personalized drafts are optimized for engagement - review and send to accelerate your sales pipeline.";
+      highlights.push({ type: "opportunity", text: `${leadsWithDrafts.length} AI draft${leadsWithDrafts.length > 1 ? 's' : ''} ready` });
+    } else if (actionQueueTasks.length > 0) {
+      const highPriorityTasks = actionQueueTasks.filter(t => t.priority === "high");
+      const followUpTasks = actionQueueTasks.filter(t => t.type === "followup");
+      const reviewTasks = actionQueueTasks.filter(t => t.type === "review");
+      
+      if (highPriorityTasks.length > 0) {
+        insightText = `${highPriorityTasks.length} high-priority action${highPriorityTasks.length > 1 ? 's' : ''} require${highPriorityTasks.length === 1 ? 's' : ''} immediate attention. `;
+        insightText += "Addressing these tasks now will help maintain strong relationships and close more deals.";
+        highlights.push({ type: "hot", text: `${highPriorityTasks.length} high-priority task${highPriorityTasks.length > 1 ? 's' : ''}` });
+      } else if (followUpTasks.length > 0) {
+        insightText = `${followUpTasks.length} follow-up${followUpTasks.length > 1 ? 's are' : ' is'} pending in your action queue. `;
+        insightText += "Timely follow-ups are key to converting warm leads into customers.";
+        highlights.push({ type: "opportunity", text: `${followUpTasks.length} follow-up${followUpTasks.length > 1 ? 's' : ''} pending` });
+      } else if (reviewTasks.length > 0) {
+        insightText = `${reviewTasks.length} AI-generated draft${reviewTasks.length > 1 ? 's are' : ' is'} awaiting your review. `;
+        insightText += "These drafts are ready to personalize and send - review them to keep your pipeline moving.";
+        highlights.push({ type: "opportunity", text: `${reviewTasks.length} draft${reviewTasks.length > 1 ? 's' : ''} to review` });
+      } else {
+        insightText = `You have ${actionQueueTasks.length} action${actionQueueTasks.length > 1 ? 's' : ''} in your queue. `;
+        insightText += "Stay organized and maintain momentum by working through these prioritized tasks.";
+        highlights.push({ type: "opportunity", text: `${actionQueueTasks.length} task${actionQueueTasks.length > 1 ? 's' : ''} in queue` });
+      }
+    } else if (leads.length > 0) {
+      const warmLeads = leads.filter(l => l.status === "warm");
+      const coldLeads = leads.filter(l => l.status === "cold");
+      
+      if (warmLeads.length > 0) {
+        insightText = `You have ${warmLeads.length} warm lead${warmLeads.length > 1 ? 's' : ''} in your pipeline. `;
+        insightText += "Nurture these relationships with regular, value-driven communication to convert them into customers.";
+        highlights.push({ type: "opportunity", text: `${warmLeads.length} warm lead${warmLeads.length > 1 ? 's' : ''} to nurture` });
+      } else if (coldLeads.length > 0) {
+        insightText = `${coldLeads.length} lead${coldLeads.length > 1 ? 's are' : ' is'} currently marked as cold. `;
+        insightText += "Consider a re-engagement campaign with fresh value propositions to reactivate these opportunities.";
+        highlights.push({ type: "opportunity", text: `${coldLeads.length} cold lead${coldLeads.length > 1 ? 's' : ''} to re-engage` });
+      } else {
+        insightText = `You're managing ${leads.length} lead${leads.length > 1 ? 's' : ''} across your pipeline. `;
+        insightText += "Keep the momentum going with consistent follow-ups and personalized outreach.";
+        highlights.push({ type: "opportunity", text: `${leads.length} active lead${leads.length > 1 ? 's' : ''}` });
+      }
+    } else {
+      // No leads yet
+      insightText = "Your pipeline is ready for new opportunities. Start by importing leads or connecting your email to automatically track conversations.";
+      highlights.push({ type: "opportunity", text: "Ready to add leads" });
+    }
+
+    // Add additional context highlights
+    if (draftsReadyCount > 0 && !highlights.some(h => h.text.includes("draft"))) {
+      highlights.push({ type: "opportunity", text: `${draftsReadyCount} draft${draftsReadyCount > 1 ? 's' : ''} ready to send` });
+    }
+
+    if (needsFollowUpCount > 0 && !highlights.some(h => h.text.includes("follow-up"))) {
+      highlights.push({ type: "opportunity", text: `${needsFollowUpCount} follow-up${needsFollowUpCount > 1 ? 's' : ''} needed` });
+    }
+
+    // Limit highlights to max 3 for clean display
+    return {
+      text: insightText,
+      highlights: highlights.slice(0, 3)
+    };
   };
 
-  const latestInsight = insights[0] ? {
-    text: insights[0].insight_text || "No insights available",
-    highlights: getHighlights(insights[0].highlights),
-  } : {
-    text: "No insights available yet. AI insights will appear here as your leads and emails are analyzed.",
-    highlights: [],
-  };
+  // Generate insights from actual data
+  const latestInsight = generateInsights();
 
   if (loading) {
     return (
