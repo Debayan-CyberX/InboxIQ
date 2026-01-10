@@ -46,7 +46,7 @@ const ActionQueue = ({
       initial={{ opacity: 0, x: 20, scale: 0.96 }}
       animate={{ opacity: 1, x: 0, scale: 1 }}
       transition={{ duration: 0.7, delay: 0.4, ease: [0.16, 1, 0.3, 1] }}
-      className="card-elevated animate-fade-in animation-delay-300 max-w-full overflow-hidden relative border-2 border-accent/25"
+      className="card-elevated animate-fade-in animation-delay-300 max-w-full overflow-visible relative border-2 border-accent/25"
       style={{ 
         background: "linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(147, 51, 234, 0.06) 100%)",
         backdropFilter: "blur(24px)",
@@ -83,11 +83,11 @@ const ActionQueue = ({
       
       {/* Header */}
       <div className="relative p-5 sm:p-6 border-b border-accent/30 flex items-start sm:items-center justify-between gap-3 bg-gradient-to-r from-accent/12 via-accent/5 to-transparent backdrop-blur-sm">
-        <div>
+        <div className="flex-1 min-w-0">
           <h2 className="text-lg sm:text-xl font-bold text-foreground flex items-center gap-3">
             <motion.div
               whileHover={{ scale: 1.15, rotate: 10 }}
-              className="relative p-2 rounded-xl bg-gradient-to-br from-accent/30 via-accent/20 to-accent/10 border-2 border-accent/40 shadow-lg"
+              className="relative p-2 rounded-xl bg-gradient-to-br from-accent/30 via-accent/20 to-accent/10 border-2 border-accent/40 shadow-lg shrink-0"
             >
               <div className="absolute inset-0 bg-gradient-to-br from-accent/40 to-transparent rounded-xl opacity-50" />
               <Sparkles className="relative z-10 w-5 h-5 sm:w-6 sm:h-6 text-accent shrink-0 drop-shadow-[0_0_16px_rgba(124,58,237,0.8)]" />
@@ -107,7 +107,7 @@ const ActionQueue = ({
             repeat: Infinity,
             ease: "easeInOut"
           }}
-          className="text-xs sm:text-sm font-bold text-accent bg-accent/20 border-2 border-accent/30 px-4 py-2 rounded-full shrink-0 shadow-lg backdrop-blur-sm"
+          className="text-xs sm:text-sm font-bold text-accent bg-accent/20 border-2 border-accent/30 px-3 sm:px-4 py-2 rounded-full shrink-0 shadow-lg backdrop-blur-sm whitespace-nowrap"
         >
           {actions.length} pending
         </motion.span>
@@ -198,7 +198,7 @@ const ActionQueue = ({
                 transition: { duration: 0.2, type: "spring", stiffness: 300 }
               }}
               className={cn(
-                "relative p-4 sm:p-5 border-l-4 transition-all duration-300 hover:bg-muted/60 rounded-r-2xl group border-r border-r-transparent hover:border-r-accent/30 overflow-hidden",
+                "relative p-4 sm:p-5 border-l-4 transition-all duration-300 hover:bg-muted/60 rounded-r-2xl group border-r border-r-transparent hover:border-r-accent/30 overflow-visible",
                 priorityStyles[action.priority]
               )}
               style={{
@@ -239,16 +239,16 @@ const ActionQueue = ({
               {/* Mobile-first layout */}
               <div className="relative flex flex-col sm:flex-row gap-3 sm:gap-4">
                 {/* Content */}
-                <div className="flex-1 min-w-0 space-y-2">
+                <div className="flex-1 min-w-0 space-y-2.5">
                   <div className="flex items-center gap-2.5 flex-wrap">
-                    <h4 className="font-bold text-foreground truncate text-base sm:text-lg">
+                    <h4 className="font-bold text-foreground text-base sm:text-lg break-words min-w-0 flex-1">
                       {action.company}
                     </h4>
 
                     {action.hasAIDraft && (
                       <motion.span
                         whileHover={{ scale: 1.1 }}
-                        className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-bold bg-gradient-to-r from-accent/20 to-accent/10 border-2 border-accent/30 text-accent shrink-0 shadow-lg backdrop-blur-sm"
+                        className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-bold bg-gradient-to-r from-accent/20 to-accent/10 border-2 border-accent/30 text-accent shrink-0 shadow-lg backdrop-blur-sm whitespace-nowrap"
                       >
                         <Sparkles className="w-3.5 h-3.5 shrink-0 drop-shadow-[0_0_8px_rgba(124,58,237,0.6)]" />
                         AI Draft
@@ -256,21 +256,21 @@ const ActionQueue = ({
                     )}
                   </div>
 
-                  <p className="text-sm sm:text-base text-foreground/98 line-clamp-2 break-words font-semibold">
+                  <p className="text-sm sm:text-base text-foreground/98 break-words font-semibold leading-relaxed min-h-[2.5rem]">
                     {action.subject}
                   </p>
 
-                  <p className="text-xs sm:text-sm text-muted-foreground/95 flex items-start gap-2">
-                    <Clock className="w-4 h-4 shrink-0 mt-0.5 text-accent/60" />
-                    <span className="line-clamp-2 break-words font-medium">
+                  <p className="text-xs sm:text-sm text-muted-foreground/95 flex items-start gap-2 leading-relaxed">
+                    <Clock className="w-4 h-4 shrink-0 mt-0.5 text-accent/60 flex-shrink-0" />
+                    <span className="break-words font-medium flex-1 min-w-0">
                       {action.reason}
                     </span>
                   </p>
                 </div>
 
                 {/* Actions */}
-                <div className="flex items-center gap-2 sm:gap-1.5 shrink-0">
-                  <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                <div className="flex items-center gap-2 sm:gap-1.5 shrink-0 flex-shrink-0">
+                  <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} className="shrink-0">
                     <Button
                       variant="accent"
                       size="sm"
