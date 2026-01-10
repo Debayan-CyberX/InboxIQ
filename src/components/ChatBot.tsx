@@ -72,7 +72,20 @@ const ChatBot = () => {
       });
 
       if (!response.ok) {
-        throw new Error("Failed to get response");
+        const errorData = await response.json().catch(() => ({}));
+        // Even if response is not ok, check if there's a fallback response
+        if (errorData.response) {
+          const assistantMessage: Message = {
+            id: (Date.now() + 1).toString(),
+            role: "assistant",
+            content: errorData.response,
+            timestamp: new Date(),
+          };
+          setMessages((prev) => [...prev, assistantMessage]);
+          setIsLoading(false);
+          return;
+        }
+        throw new Error(errorData.message || "Failed to get response");
       }
 
       const data = await response.json();
@@ -87,14 +100,17 @@ const ChatBot = () => {
       setMessages((prev) => [...prev, assistantMessage]);
     } catch (error) {
       console.error("Chat error:", error);
+      // Provide a helpful fallback message
       const errorMessage: Message = {
         id: (Date.now() + 1).toString(),
         role: "assistant",
-        content: "I'm sorry, I encountered an error. Please try again in a moment.",
+        content: "I'm having trouble connecting to the AI service right now. The Hugging Face API might be experiencing issues. Please try again in a moment, or check if the service is available. You can also try asking about specific InboxIQ features like 'How do I sync emails?' or 'How do I create drafts?'",
         timestamp: new Date(),
       };
       setMessages((prev) => [...prev, errorMessage]);
-      toast.error("Failed to get AI response");
+      toast.error("Failed to get AI response", {
+        description: "The AI service may be temporarily unavailable. Please try again.",
+      });
     } finally {
       setIsLoading(false);
     }

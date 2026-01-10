@@ -1040,11 +1040,25 @@ app.post("/api/chat", async (req, res) => {
     });
   } catch (error) {
     console.error("❌ Chat error:", error);
-    return res.status(500).json({
-      error: "Chat failed",
-      message: error instanceof Error ? error.message : "Unknown error",
-      response: "I apologize, but I'm having trouble processing your request right now. Please try again in a moment.",
-    });
+    
+    // Import fallback function
+    const { generateChatResponse } = await import("./chat.js");
+    
+    // Try to get a fallback response
+    try {
+      const fallbackResponse = await generateChatResponse(message, conversationHistory);
+      return res.json({
+        success: true,
+        response: fallbackResponse,
+      });
+    } catch (fallbackError) {
+      // If even fallback fails, return a generic message
+      return res.status(500).json({
+        error: "Chat failed",
+        message: error instanceof Error ? error.message : "Unknown error",
+        response: "I apologize, but I'm having trouble connecting to the AI service right now. Please try again in a moment, or check your connection.",
+      });
+    }
   }
 });
 
