@@ -111,9 +111,9 @@ const EmailThreadDetailPanel = ({ isOpen, onClose, thread }: EmailThreadDetailPa
   const latestEmail = emails.length > 0 ? emails[0] : null;
 
   return (
-    <div className="fixed inset-y-0 right-0 w-[600px] bg-card border-l border-border shadow-xl z-50 animate-slide-in flex flex-col">
+    <div className="fixed inset-0 sm:inset-y-0 sm:right-0 sm:w-[600px] bg-card sm:border-l border-border shadow-xl z-50 animate-slide-in flex flex-col">
       {/* Header */}
-      <div className="p-4 border-b border-border flex items-center justify-between shrink-0">
+      <div className="p-3 sm:p-4 border-b border-border flex items-center justify-between shrink-0">
         <div className="flex items-center gap-2 flex-1 min-w-0">
           <Mail className="w-4 h-4 text-accent shrink-0" />
           <div className="min-w-0 flex-1">
@@ -132,17 +132,17 @@ const EmailThreadDetailPanel = ({ isOpen, onClose, thread }: EmailThreadDetailPa
       {/* Content */}
       <div className="flex-1 overflow-y-auto">
         {loading ? (
-          <div className="p-8">
+          <div className="p-4 sm:p-8">
             <LoadingState message="Loading emails..." />
           </div>
         ) : error ? (
-          <div className="p-8">
+          <div className="p-4 sm:p-8">
             <ErrorState error={error} onRetry={fetchThreadEmails} />
           </div>
         ) : emails.length === 0 ? (
-          <div className="p-12 text-center">
-            <Mail className="w-12 h-12 text-muted-foreground mx-auto mb-4 opacity-50" />
-            <p className="text-muted-foreground">No emails found in this thread</p>
+          <div className="p-8 sm:p-12 text-center">
+            <Mail className="w-10 h-10 sm:w-12 sm:h-12 text-muted-foreground mx-auto mb-3 sm:mb-4 opacity-50" />
+            <p className="text-sm sm:text-base text-muted-foreground">No emails found in this thread</p>
           </div>
         ) : (
           <div className="divide-y divide-border">
@@ -162,7 +162,7 @@ const EmailThreadDetailPanel = ({ isOpen, onClose, thread }: EmailThreadDetailPa
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-                  className="p-4 m-4 rounded-xl border-2 border-accent/20 relative overflow-hidden"
+                  className="p-3 sm:p-4 m-3 sm:m-4 rounded-lg sm:rounded-xl border-2 border-accent/20 relative overflow-hidden"
                   style={{
                     background: "linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.04) 100%)",
                     backdropFilter: "blur(24px)",
@@ -184,18 +184,18 @@ const EmailThreadDetailPanel = ({ isOpen, onClose, thread }: EmailThreadDetailPa
                     }}
                   />
                   
-                  <div className="relative flex items-start gap-4">
+                  <div className="relative flex items-start gap-3 sm:gap-4">
                     <motion.div
                       whileHover={{ scale: 1.1, rotate: 10 }}
                       transition={{ type: "spring", stiffness: 400, damping: 10 }}
-                      className="relative p-3 rounded-xl bg-gradient-to-br from-accent/35 via-accent/25 to-accent/15 border-2 border-accent/40 shrink-0 shadow-lg shadow-accent/30"
+                      className="relative p-2.5 sm:p-3 rounded-lg sm:rounded-xl bg-gradient-to-br from-accent/35 via-accent/25 to-accent/15 border-2 border-accent/40 shrink-0 shadow-lg shadow-accent/30"
                     >
-                      <Sparkles className="w-5 h-5 text-accent drop-shadow-[0_0_20px_rgba(124,58,237,0.9)]" />
+                      <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 text-accent drop-shadow-[0_0_20px_rgba(124,58,237,0.9)]" />
                     </motion.div>
                     
-                    <div className="flex-1 min-w-0 space-y-3">
-                      <div className="flex items-center justify-between gap-3">
-                        <h3 className="text-base font-bold text-foreground tracking-tight">
+                    <div className="flex-1 min-w-0 space-y-2 sm:space-y-3">
+                      <div className="flex items-center justify-between gap-2 sm:gap-3 flex-wrap">
+                        <h3 className="text-sm sm:text-base font-bold text-foreground tracking-tight">
                           AI Insight
                         </h3>
                         <AIClassificationBadge
@@ -207,14 +207,14 @@ const EmailThreadDetailPanel = ({ isOpen, onClose, thread }: EmailThreadDetailPa
                       </div>
                       
                       {latestEmailWithAI.ai_reason && (
-                        <p className="text-sm text-foreground/90 leading-relaxed">
+                        <p className="text-xs sm:text-sm text-foreground/90 leading-relaxed">
                           {latestEmailWithAI.ai_reason}
                         </p>
                       )}
                       
                       {latestEmailWithAI.ai_confidence !== null && (
                         <div className="flex items-center gap-2 pt-1">
-                          <span className="text-xs text-muted-foreground font-medium">
+                          <span className="text-[10px] sm:text-xs text-muted-foreground font-medium whitespace-nowrap">
                             Confidence: {(latestEmailWithAI.ai_confidence * 100).toFixed(0)}%
                           </span>
                           <div className="flex-1 h-1.5 bg-muted/30 rounded-full overflow-hidden">
@@ -248,15 +248,15 @@ const EmailThreadDetailPanel = ({ isOpen, onClose, thread }: EmailThreadDetailPa
                 <div
                   key={email.id}
                   className={cn(
-                    "p-4 hover:bg-muted/30 transition-colors",
+                    "p-3 sm:p-4 hover:bg-muted/30 transition-colors",
                     isOutgoing && "bg-accent/5"
                   )}
                 >
                   {/* Email Header */}
-                  <div className="flex items-start justify-between gap-4 mb-3">
-                    <div className="flex items-start gap-3 flex-1 min-w-0">
+                  <div className="flex items-start justify-between gap-3 sm:gap-4 mb-2 sm:mb-3">
+                    <div className="flex items-start gap-2.5 sm:gap-3 flex-1 min-w-0">
                       {/* Avatar */}
-                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-violet-500 flex items-center justify-center text-white font-semibold text-sm shrink-0">
+                      <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-gradient-to-br from-purple-500 to-violet-500 flex items-center justify-center text-white font-semibold text-xs sm:text-sm shrink-0">
                         {isOutgoing ? "You" : (contactName.split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase() || "U")}
                       </div>
 
@@ -303,9 +303,9 @@ const EmailThreadDetailPanel = ({ isOpen, onClose, thread }: EmailThreadDetailPa
                     </div>
 
                     {/* Date */}
-                    <div className="flex items-center gap-2 shrink-0">
-                      <Clock className="w-4 h-4 text-muted-foreground" />
-                      <span className="text-xs text-muted-foreground whitespace-nowrap">
+                    <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+                      <Clock className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-muted-foreground" />
+                      <span className="text-[10px] sm:text-xs text-muted-foreground whitespace-nowrap">
                         {formatDistanceToNow(new Date(emailDate), { addSuffix: true })}
                       </span>
                     </div>
@@ -334,11 +334,11 @@ const EmailThreadDetailPanel = ({ isOpen, onClose, thread }: EmailThreadDetailPa
                   </div>
 
                   {/* Email Actions */}
-                  <div className="flex items-center gap-2 mt-3 pt-3 border-t border-border">
+                  <div className="flex items-center gap-1.5 sm:gap-2 mt-2 sm:mt-3 pt-2 sm:pt-3 border-t border-border flex-wrap">
                     <Button
                       variant="ghost"
                       size="sm"
-                      className="gap-2 h-8 text-xs"
+                      className="gap-1.5 sm:gap-2 h-7 sm:h-8 text-[10px] sm:text-xs"
                       onClick={() => handleReply(email)}
                       disabled={isOutgoing}
                     >
@@ -348,7 +348,7 @@ const EmailThreadDetailPanel = ({ isOpen, onClose, thread }: EmailThreadDetailPa
                     <Button
                       variant="ghost"
                       size="sm"
-                      className="gap-2 h-8 text-xs"
+                      className="gap-1.5 sm:gap-2 h-7 sm:h-8 text-[10px] sm:text-xs"
                       onClick={() => handleForward(email)}
                     >
                       <Forward className="w-3 h-3" />
@@ -357,8 +357,8 @@ const EmailThreadDetailPanel = ({ isOpen, onClose, thread }: EmailThreadDetailPa
                   </div>
 
                   {/* Email Footer */}
-                  <div className="flex items-center gap-2 mt-4 pt-3 border-t border-border">
-                    <span className="text-xs text-muted-foreground">
+                  <div className="flex items-center gap-2 mt-3 sm:mt-4 pt-2 sm:pt-3 border-t border-border">
+                    <span className="text-[10px] sm:text-xs text-muted-foreground">
                       {format(new Date(emailDate), "MMM d, yyyy 'at' h:mm a")}
                     </span>
                     {email.status && (
@@ -380,26 +380,26 @@ const EmailThreadDetailPanel = ({ isOpen, onClose, thread }: EmailThreadDetailPa
       </div>
 
       {/* Actions */}
-      <div className="p-4 border-t border-border bg-muted/30 shrink-0">
-        <div className="flex items-center gap-2">
+      <div className="p-3 sm:p-4 border-t border-border bg-muted/30 shrink-0">
+        <div className="flex items-center gap-2 sm:gap-3">
           <Button 
             variant="outline" 
             size="sm" 
-            className="gap-2 flex-1"
+            className="gap-1.5 sm:gap-2 flex-1 text-xs sm:text-sm"
             onClick={() => latestEmail && handleReply(latestEmail)}
             disabled={!latestEmail || latestEmail.direction === "outgoing"}
           >
-            <Reply className="w-4 h-4" />
+            <Reply className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             Reply
           </Button>
           <Button 
             variant="outline" 
             size="sm" 
-            className="gap-2 flex-1"
+            className="gap-1.5 sm:gap-2 flex-1 text-xs sm:text-sm"
             onClick={() => latestEmail && handleForward(latestEmail)}
             disabled={!latestEmail}
           >
-            <Forward className="w-4 h-4" />
+            <Forward className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             Forward
           </Button>
           <Button 

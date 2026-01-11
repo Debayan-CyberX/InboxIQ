@@ -550,7 +550,7 @@ const Inbox = () => {
                               )}
                               {/* Lead Intent Indicator */}
                               {thread.isLead && thread.leadType && thread.leadType !== "unknown" && (
-                                <span className="text-[10px] sm:text-xs font-medium px-2 py-0.5 rounded-md bg-muted/50 text-muted-foreground border border-border/50 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <span className="text-[10px] sm:text-xs font-medium px-1.5 sm:px-2 py-0.5 rounded-md bg-muted/50 text-muted-foreground border border-border/50 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
                                   {thread.leadType.charAt(0).toUpperCase() + thread.leadType.slice(1)}
                                 </span>
                               )}
