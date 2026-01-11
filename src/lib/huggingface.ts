@@ -1,8 +1,10 @@
-const HF_MODEL = "tiiuae/falcon-7b-instruct";
+const HF_MODEL = "mistralai/Mistral-7B-Instruct-v0.2";
 
-export async function generateWithHuggingFace(prompt: string): Promise<string> {
+export async function generateWithHuggingFace(
+  prompt: string
+): Promise<string> {
   const response = await fetch(
-    `https://router.huggingface.co/models/${HF_MODEL}`,
+    `https://api-inference.huggingface.co/models/${HF_MODEL}`,
     {
       method: "POST",
       headers: {
@@ -16,6 +18,7 @@ export async function generateWithHuggingFace(prompt: string): Promise<string> {
         parameters: {
           max_new_tokens: 250,
           temperature: 0.6,
+          top_p: 0.9,
           return_full_text: false,
         },
       }),
@@ -29,14 +32,16 @@ export async function generateWithHuggingFace(prompt: string): Promise<string> {
 
   const data = await response.json();
 
-  // Different models return different shapes
+  // HF Inference API usually returns:
+  // [{ generated_text: "..." }]
   if (Array.isArray(data) && data[0]?.generated_text) {
     return data[0].generated_text;
   }
 
-  if (data.generated_text) {
+  // Fallback safety
+  if (typeof data?.generated_text === "string") {
     return data.generated_text;
   }
 
-  return "";
+  throw new Error("HF API returned unexpected response shape");
 }
