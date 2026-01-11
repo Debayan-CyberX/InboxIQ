@@ -11,6 +11,7 @@ import {
 import { toast } from "sonner";
 import { emailsApi } from "@/lib/api";
 import { useUserId } from "@/hooks/useUserId";
+import { useSession } from "@/lib/auth-client";
 import type { Email } from "@/types/database";
 
 interface EmailComposeDialogProps {
@@ -37,10 +38,14 @@ const EmailComposeDialog = ({
   onSent,
 }: EmailComposeDialogProps) => {
   const userId = useUserId();
+  const { data: session } = useSession();
   const [to, setTo] = useState("");
   const [subject, setSubject] = useState("");
   const [body, setBody] = useState("");
   const [isSending, setIsSending] = useState(false);
+  
+  // Get user's email from session
+  const userEmail = session?.user?.email || "";
 
   useEffect(() => {
     if (isOpen) {
@@ -107,7 +112,7 @@ const EmailComposeDialog = ({
           thread_id: threadId || null,
           lead_id: originalEmail?.lead_id || null,
           direction: "outgoing",
-          from_email: "", // Will be set by backend
+          from_email: userEmail || "noreply@debx.co.in", // Use user's email from session
           to_email: to.trim(),
           cc_emails: null,
           bcc_emails: null,
