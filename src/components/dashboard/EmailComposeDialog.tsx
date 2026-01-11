@@ -111,7 +111,7 @@ const EmailComposeDialog = ({
         {
           thread_id: threadId || null,
           lead_id: originalEmail?.lead_id || null,
-          direction: "outgoing",
+          direction: "outbound",
           from_email: userEmail || "noreply@debx.co.in", // Use user's email from session
           to_email: to.trim(),
           cc_emails: null,
@@ -131,7 +131,7 @@ const EmailComposeDialog = ({
         userId
       );
 
-      // Send the email
+      // Send the email (update status to "sent" after sending)
       await emailsApi.sendEmail(emailDraft.id, userId, {
         to: to.trim(),
         subject: subject.trim(),
