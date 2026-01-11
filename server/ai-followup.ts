@@ -1,9 +1,9 @@
 /**
- * AI Follow-up Email Generation (Hugging Face – Free)
+ * AI Follow-up Email Generation (Groq)
  */
 
 import { Pool } from "pg";
-import { generateWithGroq } from "../src/lib/huggingface";
+import { generateAI, TONE_INSTRUCTIONS } from "../src/lib/groq";
 
 
 interface FollowUpContext {
@@ -16,13 +16,7 @@ interface FollowUpContext {
   variation?: number; // For generating unique messages
 }
 
-const TONE_INSTRUCTIONS = {
-  professional: "Use a formal, business-appropriate tone. Be courteous and respectful. Use complete sentences and proper grammar.",
-  short: "Keep it brief and to the point. Use short sentences. Maximum 60 words. Be direct but friendly.",
-  confident: "Write with confidence and assertiveness. Use strong, clear language. Show conviction without being pushy.",
-  polite: "Be extra courteous and considerate. Use gentle language. Show respect and appreciation. Be warm and friendly.",
-  "sales-focused": "Focus on value proposition and benefits. Be persuasive but not pushy. Highlight what's in it for them. Use compelling language."
-};
+// Tone instructions are now imported from centralized groq helper
 
 const FOLLOW_UP_PROMPT = `You are a professional email assistant that helps users write follow-up emails.
 
@@ -79,9 +73,15 @@ async function generateFollowUpWithAI(
   context: FollowUpContext
 ): Promise<{ subject: string; body: string }> {
   const prompt = replaceTemplateVars(FOLLOW_UP_PROMPT, context);
+  const tone = context.tone || "professional";
 
   try {
-    const rawText = await generateWithGroq(prompt);
+    const rawText = await generateAI(prompt, {
+      tone: tone as "professional" | "short" | "confident" | "polite" | "sales-focused",
+      systemPrompt: "You are a professional email assistant that helps users write follow-up emails. Increase reply rates, sound human and natural, be respectful and appropriate.",
+      temperature: 0.6,
+      maxTokens: tone === "short" ? 200 : 300,
+    });
 
     if (!rawText || rawText.trim().length === 0) {
       throw new Error("Empty Groq response");

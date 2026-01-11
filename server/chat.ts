@@ -2,42 +2,7 @@
  * Chat endpoint - AI Assistant using Groq
  */
 
-import Groq from "groq-sdk";
-
-const groq = new Groq({
-  apiKey: process.env.GROQ_API_KEY,
-});
-
-const GROQ_MODEL = "llama-3.1-8b-instant";
-
-// --------------------
-// AI GENERATION (Groq)
-// --------------------
-async function generateWithGroq(prompt: string): Promise<string> {
-  try {
-    const completion = await groq.chat.completions.create({
-      model: GROQ_MODEL,
-      messages: [
-        {
-          role: "system",
-          content:
-            "You are a helpful AI assistant for InboxIQ, an email management and lead tracking platform.",
-        },
-        {
-          role: "user",
-          content: prompt,
-        },
-      ],
-      temperature: 0.7,
-      max_tokens: 300,
-    });
-
-    return completion.choices[0]?.message?.content?.trim() || "";
-  } catch (error) {
-    console.error("Groq API error:", error);
-    throw error;
-  }
-}
+import { generateAI } from "../src/lib/groq";
 
 // ----------------------------------
 // FALLBACK RESPONSES (UNCHANGED)
@@ -131,7 +96,11 @@ Instructions:
 
 Response:`;
 
-    const aiResponse = await generateWithGroq(contextPrompt);
+    const aiResponse = await generateAI(contextPrompt, {
+      systemPrompt: "You are a helpful AI assistant for InboxIQ, an email management and lead tracking platform. Be concise, helpful, and professional.",
+      temperature: 0.7,
+      maxTokens: 300,
+    });
 
     let cleanResponse = aiResponse.trim();
     cleanResponse = cleanResponse.replace(/^(Assistant|AI|Bot|InboxIQ):\s*/i, "");
