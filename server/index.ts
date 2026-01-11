@@ -43,6 +43,9 @@ const allowedOrigins = [
   process.env.VITE_APP_URL || process.env.FRONTEND_URL || productionFrontendUrl
 ].filter(Boolean);
 
+app.set("trust proxy", 1);
+
+
 app.use(
   cors({
     origin: (origin, callback) => {
