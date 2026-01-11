@@ -147,5 +147,26 @@ export const insightsApi = {
       throw new Error(`Failed to delete insight: ${error.message}`);
     }
   },
+
+  // Generate AI insights from dashboard data
+  async generate(leads: any[], actionQueueTasks: any[], stats: any): Promise<{ text: string; highlights: Array<{ type: "hot" | "risk" | "opportunity"; text: string }> }> {
+    const authServerUrl = import.meta.env.VITE_BETTER_AUTH_URL || "http://localhost:3001";
+
+    const response = await fetch(`${authServerUrl}/api/insights/generate`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+      body: JSON.stringify({ leads, actionQueueTasks, stats }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({ error: "Unknown error" }));
+      throw new Error(errorData.message || errorData.error || `Failed to generate insights: ${response.statusText}`);
+    }
+
+    return response.json();
+  },
 };
 

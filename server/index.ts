@@ -9,6 +9,7 @@ import { detectLeadsFromEmailThreads } from "./lead-detection.js";
 import { generateFollowUpForLead, generateFollowUpText } from "./ai-followup.js";
 import { updateAllLeadsContactInfo } from "./update-lead-contact.js";
 import { generateChatResponse } from "./chat.js";
+import { generateAI } from "../src/lib/groq.js";
 
 type BetterAuthSession = {
   user?: {
@@ -1242,7 +1243,7 @@ app.post("/api/leads/:leadId/generate-followup-text", async (req, res) => {
   }
 });
 
-// Action Queue endpoint - Generate smart tasks based on leads and emails
+// Action Queue endpoint - Generate smart tasks based on leads and emails with AI descriptions
 app.get("/api/action-queue", async (req, res) => {
   try {
     // Get session from Better Auth
@@ -1327,7 +1328,7 @@ app.get("/api/action-queue", async (req, res) => {
       [userUuid]
     );
 
-    // Generate follow-up tasks
+    // Generate follow-up tasks with AI descriptions
     for (const lead of followUpLeadsResult.rows) {
       // Priority: high if >= 7 days, medium if >= 5 days, low otherwise
       const priority: "high" | "medium" | "low" =
@@ -1337,12 +1338,34 @@ app.get("/api/action-queue", async (req, res) => {
           ? "medium"
           : "low";
 
+      // Generate AI description for follow-up task
+      let description = lead.ai_suggestion;
+      if (!description) {
+        try {
+          const aiPrompt = `Generate a concise, actionable follow-up task description (max 80 words) for a lead:
+- Contact: ${lead.contact_name || lead.company || "Contact"}
+- Company: ${lead.company || "N/A"}
+- Days since last contact: ${lead.days_since_contact}
+- Priority: ${priority}
+
+Write a brief, professional description explaining why this follow-up is important and what action should be taken. Be specific and actionable.`;
+
+          description = await generateAI(aiPrompt, {
+            systemPrompt: "You are a sales productivity assistant that creates clear, actionable task descriptions.",
+            temperature: 0.7,
+            maxTokens: 150,
+          });
+        } catch (error) {
+          console.error("Error generating AI description for action queue:", error);
+          description = `No contact for ${lead.days_since_contact} days. Time to re-engage.`;
+        }
+      }
+
       tasks.push({
         id: `followup-${lead.id}`,
         type: "followup",
         title: `Follow up with ${lead.contact_name || lead.company}`,
-        description: lead.ai_suggestion ||
-          `No contact for ${lead.days_since_contact} days. Time to re-engage.`,
+        description: description || `No contact for ${lead.days_since_contact} days. Time to re-engage.`,
         leadId: lead.id,
         priority,
       });
@@ -1372,16 +1395,40 @@ app.get("/api/action-queue", async (req, res) => {
       [userUuid]
     );
 
-    // Generate review tasks
+    // Generate review tasks with AI descriptions
     for (const draft of aiDraftsResult.rows) {
       const company = draft.company || "Contact";
+      const contactName = draft.contact_name || "";
       const hasLead = !!draft.lead_id;
+
+      // Generate AI description for review task
+      let description = draft.ai_reason;
+      if (!description) {
+        try {
+          const aiPrompt = `Generate a concise review task description (max 60 words) for an AI-generated email draft:
+- Company: ${company}
+- Contact: ${contactName || "N/A"}
+- Subject: ${draft.subject || "Email draft"}
+- Priority: ${hasLead ? "high" : "medium"}
+
+Write a brief description explaining why this draft should be reviewed and what to look for.`;
+
+          description = await generateAI(aiPrompt, {
+            systemPrompt: "You are a sales productivity assistant that creates clear, actionable task descriptions.",
+            temperature: 0.7,
+            maxTokens: 120,
+          });
+        } catch (error) {
+          console.error("Error generating AI description for review task:", error);
+          description = "AI-generated draft ready for review";
+        }
+      }
 
       tasks.push({
         id: `review-${draft.id}`,
         type: "review",
         title: `Review AI draft for ${company}`,
-        description: draft.ai_reason || "AI-generated draft ready for review",
+        description: description || "AI-generated draft ready for review",
         leadId: draft.lead_id || undefined,
         emailId: draft.id,
         priority: hasLead ? "high" : "medium", // Prioritize drafts with leads
@@ -1447,6 +1494,125 @@ app.get("/api/action-queue", async (req, res) => {
     console.error("❌ Action queue generation error:", error);
     return res.status(500).json({
       error: "Failed to generate action queue",
+      message: error instanceof Error ? error.message : "Unknown error",
+    });
+  }
+});
+
+// Generate AI insights endpoint
+app.post("/api/insights/generate", async (req, res) => {
+  try {
+    const sessionData = await getSessionFromRequest(req);
+    if (!sessionData || !sessionData.user || !sessionData.user.id) {
+      return res.status(401).json({
+        error: "Unauthorized",
+        message: "You must be logged in",
+      });
+    }
+
+    const { leads, actionQueueTasks, stats } = req.body;
+
+    if (!leads || !Array.isArray(leads)) {
+      return res.status(400).json({
+        error: "Invalid request",
+        message: "leads array is required",
+      });
+    }
+
+    // Analyze data for AI context
+    const hotLeads = leads.filter((l: any) => l.status === "hot");
+    const atRiskLeads = leads.filter((l: any) => l.days_since_contact >= 5 && l.status !== "cold");
+    const leadsNeedingFollowUp = leads.filter((l: any) => l.days_since_contact >= 3);
+    const leadsWithDrafts = leads.filter((l: any) => l.has_ai_draft);
+    const highPriorityTasks = (actionQueueTasks || []).filter((t: any) => t.priority === "high");
+
+    // Build context for AI
+    const contextSummary = `
+Dashboard Summary:
+- Total leads: ${leads.length}
+- Hot leads: ${hotLeads.length}
+- At-risk leads (5+ days): ${atRiskLeads.length}
+- Leads needing follow-up: ${leadsNeedingFollowUp.length}
+- Leads with AI drafts: ${leadsWithDrafts.length}
+- High-priority tasks: ${highPriorityTasks.length}
+- Total action queue tasks: ${actionQueueTasks?.length || 0}
+`;
+
+    // Generate AI insight
+    const insightPrompt = `Generate a concise, actionable insight (max 150 words) for a sales dashboard based on this data:
+
+${contextSummary}
+
+Priority order:
+1. Hot leads (if any) - emphasize urgency
+2. At-risk leads (5+ days) - emphasize risk
+3. High-priority tasks - emphasize action
+4. Follow-ups needed - emphasize opportunity
+5. AI drafts ready - emphasize productivity
+6. General pipeline status
+
+Write a professional, insightful summary that:
+- Highlights the most important action items
+- Explains why they matter
+- Provides actionable guidance
+- Sounds natural and human (not robotic)
+- Is concise and scannable
+
+Output format: Just the insight text, no markdown, no bullet points.`;
+
+    let insightText: string;
+    const highlights: Array<{ type: "hot" | "risk" | "opportunity"; text: string }> = [];
+
+    try {
+      insightText = await generateAI(insightPrompt, {
+        systemPrompt: "You are a sales analytics assistant that provides clear, actionable insights from sales pipeline data.",
+        temperature: 0.7,
+        maxTokens: 250,
+      });
+
+      // Clean response
+      insightText = insightText.trim().replace(/^(Insight|Summary|Analysis):\s*/i, "");
+
+      if (!insightText) {
+        throw new Error("Empty AI response");
+      }
+    } catch (error) {
+      console.error("Error generating AI insight:", error);
+      // Fallback to rule-based logic
+      if (hotLeads.length > 0) {
+        insightText = `You have ${hotLeads.length} hot lead${hotLeads.length > 1 ? 's' : ''} that need immediate attention. This is an excellent opportunity to close deals - prioritize responses today.`;
+        highlights.push({ type: "hot", text: `${hotLeads.length} hot leads ready to convert` });
+      } else if (atRiskLeads.length > 0) {
+        insightText = `⚠️ ${atRiskLeads.length} lead${atRiskLeads.length > 1 ? 's are' : ' is'} at risk of going cold. These contacts haven't been reached in 5+ days - immediate follow-up is critical to maintain momentum.`;
+        highlights.push({ type: "risk", text: `${atRiskLeads.length} lead${atRiskLeads.length > 1 ? 's' : ''} at risk` });
+      } else if (leadsNeedingFollowUp.length > 0) {
+        insightText = `${leadsNeedingFollowUp.length} lead${leadsNeedingFollowUp.length > 1 ? 's need' : ' needs'} follow-up. Following up within 3 days significantly increases response rates. Review your action queue to prioritize.`;
+        highlights.push({ type: "opportunity", text: `${leadsNeedingFollowUp.length} follow-up${leadsNeedingFollowUp.length > 1 ? 's' : ''} due` });
+      } else {
+        insightText = `You're managing ${leads.length} lead${leads.length > 1 ? 's' : ''} across your pipeline. Keep the momentum going with consistent follow-ups and personalized outreach.`;
+        highlights.push({ type: "opportunity", text: `${leads.length} active lead${leads.length > 1 ? 's' : ''}` });
+      }
+    }
+
+    // Generate highlights from data
+    if (hotLeads.length > 0 && !highlights.some(h => h.type === "hot")) {
+      highlights.push({ type: "hot", text: `${hotLeads.length} hot lead${hotLeads.length > 1 ? 's' : ''}` });
+    }
+    if (atRiskLeads.length > 0 && !highlights.some(h => h.type === "risk")) {
+      highlights.push({ type: "risk", text: `${atRiskLeads.length} lead${atRiskLeads.length > 1 ? 's' : ''} at risk` });
+    }
+    if (leadsNeedingFollowUp.length > 0 && highlights.length < 3) {
+      highlights.push({ type: "opportunity", text: `${leadsNeedingFollowUp.length} follow-up${leadsNeedingFollowUp.length > 1 ? 's' : ''} due` });
+    }
+
+    return res.json({
+      text: insightText,
+      highlights: highlights.slice(0, 3),
+    });
+  } catch (error) {
+    console.error("❌ Insight generation error:", error);
+    return res.status(500).json({
+      error: "Failed to generate insights",
       message: error instanceof Error ? error.message : "Unknown error",
     });
   }
