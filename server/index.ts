@@ -4,6 +4,7 @@ import dotenv from "dotenv";
 import express, { Request as ExpressRequest, Response as ExpressResponse } from "express";
 import cors from "cors";
 import { Pool } from "pg";
+import { Resend } from "resend";
 import { auth } from "./auth.js";
 import { detectLeadsFromEmailThreads } from "./lead-detection.js";
 import { generateFollowUpForLead, generateFollowUpText } from "./ai-followup.js";
@@ -450,8 +451,7 @@ app.post("/api/emails/send", async (req, res) => {
       });
     }
 
-    // Import Resend dynamically
-    const { Resend } = await import("resend");
+    // Initialize Resend client
     const resend = new Resend(resendApiKey);
 
     // Get from email from env or use default
