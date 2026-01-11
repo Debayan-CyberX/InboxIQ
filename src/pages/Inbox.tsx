@@ -103,6 +103,10 @@ const transformEmailThread = (dbThread: DBEmailThread & { lead_company?: string;
     tags: [],
     aiSuggestion: undefined, // TODO: Get from AI insights
     hasAIDraft: false, // TODO: Check if thread has AI drafts
+    // AI Classification (from latest incoming email)
+    aiCategory: dbThread.ai_category || undefined,
+    aiConfidence: dbThread.ai_confidence ?? undefined,
+    aiReason: dbThread.ai_reason || undefined,
   };
 };
 
@@ -118,7 +122,6 @@ const Inbox = () => {
   const [selectedThread, setSelectedThread] = useState<DBEmailThread & { lead_company?: string; lead_contact_name?: string; lead_email?: string } | null>(null);
   const [isDetailPanelOpen, setIsDetailPanelOpen] = useState(false);
   const [isComposeOpen, setIsComposeOpen] = useState(false);
-  const [threadAIClassifications, setThreadAIClassifications] = useState<Map<string, { category?: string; confidence?: number | null; reason?: string | null }>>(new Map());
 
   // Fetch email threads from database
   const fetchThreads = async () => {
@@ -201,12 +204,7 @@ const Inbox = () => {
 
     // Apply AI category filter (from smart tabs)
     if (selectedAICategory !== "all") {
-      threads = threads.filter(t => {
-        // Check thread's AI classification or fallback to threadAIClassifications map
-        const aiData = threadAIClassifications.get(t.id);
-        const category = t.aiCategory || aiData?.category;
-        return category === selectedAICategory;
-      });
+      threads = threads.filter(t => t.aiCategory === selectedAICategory);
     }
 
     // Apply search
@@ -222,7 +220,7 @@ const Inbox = () => {
     }
 
     return threads;
-  }, [transformedThreads, selectedFilter, selectedAICategory, searchQuery, threadAIClassifications]);
+  }, [transformedThreads, selectedFilter, selectedAICategory, searchQuery]);
 
   const unreadCount = transformedThreads.filter(t => !t.isRead || t.unreadCount > 0).length;
   const importantCount = transformedThreads.filter(t => t.isImportant).length;
@@ -542,11 +540,11 @@ const Inbox = () => {
                                 </span>
                               )}
                               {/* AI Classification Badge */}
-                              {(thread.aiCategory || threadAIClassifications.get(thread.id)?.category) && (
+                              {thread.aiCategory && (
                                 <AIClassificationBadge
-                                  category={(thread.aiCategory || threadAIClassifications.get(thread.id)?.category) as any}
-                                  confidence={thread.aiConfidence ?? threadAIClassifications.get(thread.id)?.confidence ?? null}
-                                  reason={thread.aiReason ?? threadAIClassifications.get(thread.id)?.reason ?? null}
+                                  category={thread.aiCategory}
+                                  confidence={thread.aiConfidence ?? null}
+                                  reason={thread.aiReason ?? null}
                                   size="sm"
                                 />
                               )}

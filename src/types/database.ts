@@ -65,6 +65,10 @@ export interface EmailThread {
   status: ThreadStatus;
   created_at: string; // ISO timestamp
   updated_at: string; // ISO timestamp
+  // AI Classification fields (from latest incoming email)
+  ai_category?: "lead" | "follow_up_needed" | "important" | "promo" | "newsletter" | "spam" | null;
+  ai_confidence?: number | null; // 0-1
+  ai_reason?: string | null;
 }
 
 export interface Email {
