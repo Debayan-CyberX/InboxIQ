@@ -130,7 +130,7 @@ const Header = () => {
 
   return (
     <>
-      <header className="h-14 sm:h-16 border-b border-[rgba(255,255,255,0.12)] glass-strong flex items-center justify-between px-3 sm:px-4 md:px-6 sticky top-0 z-30 w-full min-w-0 max-w-full overflow-x-hidden">
+      <header className="h-14 sm:h-16 flex items-center justify-between px-3 sm:px-4 md:px-6 fixed top-0 left-0 lg:left-64 right-0 z-50 w-full lg:w-[calc(100%-16rem)] min-w-0 max-w-full overflow-x-hidden bg-[#0D0F14]/80 backdrop-blur-xl backdrop-saturate-150 border-b border-[rgba(255,255,255,0.08)] shadow-lg shadow-black/20">
         <div className="flex items-center gap-2 sm:gap-4 min-w-0 flex-1 max-w-full overflow-hidden">
           <div className="min-w-0 flex-shrink">
             <h1 className="text-base sm:text-lg md:text-xl font-semibold text-foreground truncate">

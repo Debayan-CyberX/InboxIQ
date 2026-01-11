@@ -65,8 +65,8 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
 
       {/* Main Content Area - Scrollable */}
       <div className="w-full lg:ml-64 min-w-0 overflow-x-hidden" style={{ width: 'calc(100% - 0px)', maxWidth: 'none' }}>
-        {/* Mobile Header (sticky) */}
-        <div className="lg:hidden sticky top-0 z-20 flex items-center justify-between h-14 px-4 border-b border-[rgba(255,255,255,0.12)] glass-strong shrink-0">
+        {/* Mobile Header (fixed with glass effect) */}
+        <div className="lg:hidden fixed top-0 left-0 right-0 z-50 flex items-center justify-between h-14 px-4 bg-[#0D0F14]/80 backdrop-blur-xl backdrop-saturate-150 border-b border-[rgba(255,255,255,0.08)] shadow-lg shadow-black/20 shrink-0">
           <button
             onClick={() => setMobileOpen(true)}
             className="text-xl"
@@ -78,12 +78,12 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
         </div>
 
         {/* Desktop Header */}
-        <div className="hidden lg:block sticky top-0 z-20 shrink-0">
+        <div className="hidden lg:block shrink-0">
           <Header />
         </div>
 
-        {/* Page Content */}
-        <main className="p-3 sm:p-4 lg:p-8 pb-20 sm:pb-24 flex flex-col min-h-0 min-w-0 overflow-x-hidden w-full max-w-full">
+        {/* Page Content - Add padding-top to account for fixed header (h-14=56px, h-16=64px) */}
+        <main className="p-3 sm:p-4 lg:p-8 pt-14 sm:pt-16 pb-20 sm:pb-24 flex flex-col min-h-0 min-w-0 overflow-x-hidden w-full max-w-full">
           <div className="flex flex-col min-h-0 w-full min-w-0 max-w-full">
             {children}
           </div>
