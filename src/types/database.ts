@@ -84,6 +84,8 @@ export interface Email {
   is_ai_draft: boolean;
   tone: EmailTone | null;
   ai_reason: string | null;
+  ai_category: "lead" | "follow_up_needed" | "important" | "promo" | "newsletter" | "spam" | null; // AI email classification
+  ai_confidence: number | null; // 0-1, AI classification confidence
   external_email_id: string | null;
   sent_at: string | null; // ISO timestamp
   received_at: string | null; // ISO timestamp

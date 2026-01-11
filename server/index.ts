@@ -10,6 +10,7 @@ import { generateFollowUpForLead, generateFollowUpText } from "./ai-followup.js"
 import { updateAllLeadsContactInfo } from "./update-lead-contact.js";
 import { generateChatResponse } from "./chat.js";
 import { generateAI } from "../src/lib/groq.js";
+import { classifyEmailWithAICombined } from "./ai-email-classification.js";
 
 type BetterAuthSession = {
   user?: {
@@ -2223,32 +2224,119 @@ if (existingThread.rows.length > 0) {
                 const finalBodyText = bodyText || (msgSnippet && !bodyHtml ? msgSnippet : null);
                 const finalBodyHtml = bodyHtml || null;
                 
-                await pool.query(
-                  `INSERT INTO public.emails (
-                    thread_id, user_id, lead_id,
-                    direction, from_email, to_email, subject,
-                    body_text, body_html, status,
-                    sent_at, received_at, external_email_id, created_at, updated_at
-                  ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, NOW(), NOW())`,
-                  [
-                    emailThreadId,
-                    userUuid,
-                    leadId,
-                    direction,
-                    msgFromEmail,
-                    msgToEmail,
-                    subject,
-                    finalBodyText ? finalBodyText.substring(0, 50000) : null, // Limit text length
-                    finalBodyHtml ? finalBodyHtml.substring(0, 100000) : null, // Limit HTML length
-                    status,
-                    direction === "outbound" ? msgDate : null,
-                    direction === "inbound" ? msgDate : null,
-                    message.id || null,
-                  ]
-                );
+                // Save email first (without AI data) - don't block sync on AI
+                let savedEmailId: string;
+                try {
+                  // Try to insert with AI columns (they may not exist yet)
+                  const insertResult = await pool.query(
+                    `INSERT INTO public.emails (
+                      thread_id, user_id, lead_id,
+                      direction, from_email, to_email, subject,
+                      body_text, body_html, status,
+                      sent_at, received_at, external_email_id,
+                      ai_category, ai_confidence, ai_reason,
+                      created_at, updated_at
+                    ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, NOW(), NOW())
+                    RETURNING id`,
+                    [
+                      emailThreadId,
+                      userUuid,
+                      leadId,
+                      direction,
+                      msgFromEmail,
+                      msgToEmail,
+                      subject,
+                      finalBodyText ? finalBodyText.substring(0, 50000) : null, // Limit text length
+                      finalBodyHtml ? finalBodyHtml.substring(0, 100000) : null, // Limit HTML length
+                      status,
+                      direction === "outbound" ? msgDate : null,
+                      direction === "inbound" ? msgDate : null,
+                      message.id || null,
+                      null, // ai_category - will be updated by AI
+                      null, // ai_confidence - will be updated by AI
+                      null, // ai_reason - will be updated by AI
+                    ]
+                  );
+                  savedEmailId = insertResult.rows[0].id;
+                } catch (insertError: any) {
+                  // If AI columns don't exist, insert without them
+                  if (insertError.message?.includes("ai_category") || insertError.message?.includes("column") || insertError.code === "42703") {
+                    const insertResult = await pool.query(
+                      `INSERT INTO public.emails (
+                        thread_id, user_id, lead_id,
+                        direction, from_email, to_email, subject,
+                        body_text, body_html, status,
+                        sent_at, received_at, external_email_id, created_at, updated_at
+                      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, NOW(), NOW())
+                      RETURNING id`,
+                      [
+                        emailThreadId,
+                        userUuid,
+                        leadId,
+                        direction,
+                        msgFromEmail,
+                        msgToEmail,
+                        subject,
+                        finalBodyText ? finalBodyText.substring(0, 50000) : null,
+                        finalBodyHtml ? finalBodyHtml.substring(0, 100000) : null,
+                        status,
+                        direction === "outbound" ? msgDate : null,
+                        direction === "inbound" ? msgDate : null,
+                        message.id || null,
+                      ]
+                    );
+                    savedEmailId = insertResult.rows[0].id;
+                  } else {
+                    throw insertError; // Re-throw if it's a different error
+                  }
+                }
+                
                 emailsInThread++;
                 if (msgIndex === 0) latestMessageSaved = true;
                 console.log(`  📧 Inserted email: ${msgFromName || msgFromEmail} (${msgFromEmail}) → ${msgToEmail} (${direction})`);
+                
+                // Run AI classification AFTER email is saved (non-blocking)
+                // Only classify incoming emails
+                if ((direction === "inbound" || direction === "incoming") && savedEmailId) {
+                  // Fire-and-forget: run AI classification asynchronously, don't block sync
+                  (async () => {
+                    try {
+                      const classificationResult = await classifyEmailWithAICombined({
+                        from: msgFromEmail,
+                        to: msgToEmail,
+                        subject: subject,
+                        body: finalBodyText || msgSnippet || "",
+                        direction: direction,
+                      });
+                      
+                      // Update email record with AI classification results
+                      try {
+                        await pool.query(
+                          `UPDATE public.emails 
+                           SET ai_category = $1, ai_confidence = $2, ai_reason = $3, updated_at = NOW()
+                           WHERE id = $4`,
+                          [
+                            classificationResult.classification.category,
+                            classificationResult.classification.confidence,
+                            classificationResult.classification.reason,
+                            savedEmailId,
+                          ]
+                        );
+                        console.log(`  🤖 AI Classification updated: ${classificationResult.classification.category} (confidence: ${(classificationResult.classification.confidence * 100).toFixed(0)}%)`);
+                      } catch (updateError: any) {
+                        // Columns might not exist - log and continue
+                        if (updateError.message?.includes("ai_category") || updateError.code === "42703") {
+                          console.warn(`  ⚠️ AI classification columns not found, skipping update`);
+                        } else {
+                          console.warn(`  ⚠️ Failed to update AI classification:`, updateError);
+                        }
+                      }
+                    } catch (aiError) {
+                      // Don't block email sync if AI fails - log and continue silently
+                      console.warn(`  ⚠️ AI classification failed (non-blocking):`, aiError instanceof Error ? aiError.message : aiError);
+                    }
+                  })();
+                }
               }
             } catch (emailError) {
               console.error(`❌ Error processing email in thread ${thread.id}:`, emailError);
