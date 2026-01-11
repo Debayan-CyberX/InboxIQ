@@ -174,7 +174,7 @@ export default function SignIn() {
               <Button
                 type="submit"
                 className="w-full relative overflow-hidden"
-                  disabled={isSubmitting || isPending}
+                disabled={isSubmitting}
               >
                 {/* Glow effect on button */}
                 {isSubmitting && (
