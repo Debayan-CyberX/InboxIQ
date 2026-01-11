@@ -3,7 +3,7 @@
  */
 
 import { Pool } from "pg";
-import { generateWithHuggingFace } from "../src/lib/huggingface";
+import { generateWithGroq } from "../src/lib/huggingface";
 
 
 interface FollowUpContext {
@@ -81,10 +81,10 @@ async function generateFollowUpWithAI(
   const prompt = replaceTemplateVars(FOLLOW_UP_PROMPT, context);
 
   try {
-    const rawText = await generateWithHuggingFace(prompt);
+    const rawText = await generateWithGroq(prompt);
 
     if (!rawText || rawText.trim().length === 0) {
-      throw new Error("Empty Hugging Face response");
+      throw new Error("Empty Groq response");
     }
 
     // Expected:
@@ -103,7 +103,7 @@ async function generateFollowUpWithAI(
       body: body || generateFallbackFollowUp(context).body,
     };
   } catch (error) {
-    console.error("❌ Hugging Face error:", error);
+    console.error("❌ Groq error:", error);
     return generateFallbackFollowUp(context);
   }
 }

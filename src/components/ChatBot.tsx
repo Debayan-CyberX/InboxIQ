@@ -104,7 +104,7 @@ const ChatBot = () => {
       const errorMessage: Message = {
         id: (Date.now() + 1).toString(),
         role: "assistant",
-        content: "I'm having trouble connecting to the AI service right now. The Hugging Face API might be experiencing issues. Please try again in a moment, or check if the service is available. You can also try asking about specific InboxIQ features like 'How do I sync emails?' or 'How do I create drafts?'",
+        content: "I'm having trouble connecting to the AI service right now. The Groq API might be experiencing issues. Please try again in a moment, or check if the service is available. You can also try asking about specific InboxIQ features like 'How do I sync emails?' or 'How do I create drafts?'",
         timestamp: new Date(),
       };
       setMessages((prev) => [...prev, errorMessage]);
