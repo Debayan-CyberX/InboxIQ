@@ -48,33 +48,55 @@ export default function SignIn() {
     try {
       console.log("🔄 Attempting to sign in...");
 
-      const result = await signIn.email({
+      // Add timeout for mobile networks (20 seconds max)
+      const timeoutPromise = new Promise((_, reject) => {
+        setTimeout(() => {
+          reject(new Error("Request timed out. Please check your connection and try again."));
+        }, 20000);
+      });
+
+      const signInPromise = signIn.email({
         email,
         password,
       });
 
+      const result = await Promise.race([signInPromise, timeoutPromise]) as any;
+
       console.log("📥 Sign in result:", result);
 
       if (result?.error) {
-        const message = result.error.message || "Failed to sign in";
+        let message = result.error.message || "Failed to sign in";
+        // Improve error messages for mobile users
+        if (message.toLowerCase().includes("network") || message.toLowerCase().includes("fetch") || message.toLowerCase().includes("timeout")) {
+          message = "Network error. Please check your connection and try again.";
+        } else if (message.toLowerCase().includes("invalid") || message.toLowerCase().includes("credential")) {
+          message = "Invalid email or password. Please check your credentials.";
+        }
         setError(message);
         toast.error("Sign in failed", { description: message });
         setIsSubmitting(false);
       } else {
         // Navigate immediately after successful sign in
         navigate("/dashboard", { replace: true });
+        // Don't set isSubmitting to false here since we're navigating
       }
     } catch (err) {
       console.error("❌ Sign in error:", err);
 
-      const message =
-        err instanceof Error
-          ? err.message
-          : "Unexpected error during sign in";
+      let message = "An error occurred during sign in. Please try again.";
+      
+      if (err instanceof Error) {
+        message = err.message;
+        // Provide user-friendly messages for common mobile errors
+        if (err.message.includes("timeout") || err.message.includes("Network") || err.message.includes("fetch")) {
+          message = "Network error. Please check your internet connection and try again.";
+        } else if (err.message.includes("Invalid credentials") || err.message.includes("password") || err.message.includes("email")) {
+          message = "Invalid email or password. Please check your credentials.";
+        }
+      }
 
       setError(message);
       toast.error("Sign in failed", { description: message });
-    } finally {
       setIsSubmitting(false);
     }
   };
