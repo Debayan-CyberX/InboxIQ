@@ -58,11 +58,35 @@ const Landing = () => {
     return () => clearTimeout(timer);
   }, []);
 
-  if (isPending) return null;
+  // Show minimal loading state instead of null to prevent blank screen on mobile
+  // Add timeout to prevent indefinite loading (5 seconds max)
+  const [showTimeout, setShowTimeout] = useState(false);
+  useEffect(() => {
+    if (isPending) {
+      const timeout = setTimeout(() => {
+        setShowTimeout(true);
+      }, 5000);
+      return () => clearTimeout(timeout);
+    } else {
+      setShowTimeout(false);
+    }
+  }, [isPending]);
+
+  // If pending for too long, show content anyway (network might be slow)
+  if (isPending && !showTimeout) {
+    return (
+      <div className="min-h-screen bg-[#0D0F14] flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-12 h-12 border-4 border-[#7C3AED]/20 border-t-[#7C3AED] rounded-full animate-spin"></div>
+          <p className="text-muted-foreground text-sm">Loading...</p>
+        </div>
+      </div>
+    );
+  }
 
   if (session) {
-  return <Navigate to="/dashboard" replace />;
-}
+    return <Navigate to="/dashboard" replace />;
+  }
 
 
   return (
