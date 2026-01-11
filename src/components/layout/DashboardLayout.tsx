@@ -83,7 +83,7 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
         </div>
 
         {/* Page Content - Add padding-top to account for fixed header (h-14=56px mobile, h-16=64px desktop) */}
-        <main className="p-3 sm:p-4 lg:p-8 pt-14 sm:pt-16 pb-20 sm:pb-24 flex flex-col min-h-0 min-w-0 overflow-x-hidden w-full max-w-full">
+        <main className="px-3 sm:px-4 lg:px-8 pt-14 sm:pt-16 pb-20 sm:pb-24 flex flex-col min-h-0 min-w-0 overflow-x-hidden w-full max-w-full">
           <div className="flex flex-col min-h-0 w-full min-w-0 max-w-full">
             {children}
           </div>
