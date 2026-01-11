@@ -633,7 +633,7 @@ const Leads = () => {
                         </div>
 
                         {/* Actions */}
-                        <div className="col-span-1 flex items-center justify-end gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                        <div className="col-span-1 flex items-center justify-end gap-1.5 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity duration-200">
                           <button
                             onClick={async (e) => {
                               e.stopPropagation();
@@ -720,6 +720,81 @@ const Leads = () => {
                             Follow-up: {new Date(lead.metadata.follow_up_due_at).toLocaleDateString()}
                           </div>
                         )}
+                        {/* Mobile: Actions */}
+                        <div className="flex items-center gap-2 mt-2">
+                          <button
+                            onClick={async (e) => {
+                              e.stopPropagation();
+                              if (!userId) {
+                                toast.error("User not authenticated");
+                                return;
+                              }
+                              
+                              setGeneratingLeadId(lead.id);
+                              try {
+                                toast.loading("Generating follow-up...", { id: `generate-${lead.id}` });
+                                const draft = await leadsApi.generateFollowUp(lead.id, userId);
+                                toast.success("Follow-up generated!", {
+                                  id: `generate-${lead.id}`,
+                                  description: "Draft saved and ready to review",
+                                });
+                                // Refresh leads to update has_ai_draft flag
+                                const status = statusFilter !== "all" ? statusFilter : undefined;
+                                const search = searchQuery.trim() || undefined;
+                                const fetchedLeads = await leadsApi.getAll(userId, status, search);
+                                setLeads(fetchedLeads);
+                                // Navigate to drafts page to see the new draft
+                                setTimeout(() => {
+                                  window.location.href = "/drafts";
+                                }, 1000);
+                              } catch (err) {
+                                toast.error("Failed to generate follow-up", {
+                                  id: `generate-${lead.id}`,
+                                  description: err instanceof Error ? err.message : "Unknown error",
+                                });
+                              } finally {
+                                setGeneratingLeadId(null);
+                              }
+                            }}
+                            disabled={generatingLeadId === lead.id}
+                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[rgba(124,58,237,0.15)] hover:bg-[rgba(124,58,237,0.25)] border border-[rgba(124,58,237,0.3)] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                            title={(lead.days_since_contact || 0) < 3 ? "User replied recently (within 3 days)" : generatingLeadId === lead.id ? "Generating..." : "Generate Follow-up"}
+                          >
+                            <Sparkles className={cn(
+                              "w-3.5 h-3.5", 
+                              generatingLeadId === lead.id 
+                                ? "animate-spin text-[#7C3AED]" 
+                                : "text-[#7C3AED]"
+                            )} />
+                            <span className="text-xs font-semibold text-[#7C3AED]">
+                              {generatingLeadId === lead.id ? "Generating..." : "Generate Follow-up"}
+                            </span>
+                          </button>
+                          {lead.has_ai_draft && (
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                window.location.href = "/drafts";
+                              }}
+                              className="px-3 py-1.5 rounded-lg bg-[rgba(124,58,237,0.15)] border border-[rgba(124,58,237,0.3)] hover:bg-[rgba(124,58,237,0.25)] transition-all"
+                              title="View Draft"
+                            >
+                              <Sparkles className="w-3.5 h-3.5 text-[#7C3AED]" />
+                            </button>
+                          )}
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              if (confirm("Are you sure you want to delete this lead?")) {
+                                handleDelete(lead.id);
+                              }
+                            }}
+                            className="p-1.5 rounded-lg hover:bg-[rgba(239,68,68,0.1)] transition-all text-muted-foreground/60 hover:text-[#EF4444]"
+                            title="Delete lead"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
                       </div>
                     </div>
 

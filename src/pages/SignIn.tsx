@@ -76,9 +76,12 @@ export default function SignIn() {
         toast.error("Sign in failed", { description: message });
         setIsSubmitting(false);
       } else {
-        // Navigate immediately after successful sign in
-        navigate("/dashboard", { replace: true });
-        // Don't set isSubmitting to false here since we're navigating
+        // Use hard redirect to ensure session is fully loaded (more reliable on mobile)
+        // Small delay to allow session to be set in cookies/localStorage
+        setTimeout(() => {
+          window.location.href = "/dashboard";
+        }, 100);
+        // Don't set isSubmitting to false here since we're redirecting
       }
     } catch (err) {
       console.error("❌ Sign in error:", err);
