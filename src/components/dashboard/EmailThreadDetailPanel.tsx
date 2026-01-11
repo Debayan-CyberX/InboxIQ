@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { X, Mail, Reply, Forward, Archive, Star, AlertCircle, Clock, User } from "lucide-react";
+import { X, Mail, Reply, Forward, Archive, Star, AlertCircle, Clock, User, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { emailsApi } from "@/lib/api";
@@ -10,6 +10,8 @@ import { toast } from "sonner";
 import { formatDistanceToNow, format } from "date-fns";
 import type { EmailThread as DBEmailThread, Email } from "@/types/database";
 import EmailComposeDialog from "./EmailComposeDialog";
+import { AIClassificationBadge } from "./AIClassificationBadge";
+import { motion } from "framer-motion";
 
 interface EmailThreadDetailPanelProps {
   isOpen: boolean;
@@ -144,6 +146,99 @@ const EmailThreadDetailPanel = ({ isOpen, onClose, thread }: EmailThreadDetailPa
           </div>
         ) : (
           <div className="divide-y divide-border">
+            {/* AI Insight Card - Show for latest incoming email with AI classification */}
+            {(() => {
+              // Find latest incoming email with AI classification
+              const latestEmailWithAI = emails.find(
+                (email) =>
+                  (email.direction === "inbound" || email.direction === "incoming") &&
+                  email.ai_category
+              );
+              
+              if (!latestEmailWithAI || !latestEmailWithAI.ai_category) return null;
+              
+              return (
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+                  className="p-4 m-4 rounded-xl border-2 border-accent/20 relative overflow-hidden"
+                  style={{
+                    background: "linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.04) 100%)",
+                    backdropFilter: "blur(24px)",
+                    boxShadow: "0 8px 32px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(147, 51, 234, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.15), inset 0 0 20px rgba(147, 51, 234, 0.1)"
+                  }}
+                >
+                  {/* Animated gradient background */}
+                  <div className="absolute inset-0 bg-gradient-to-br from-accent/15 via-purple-500/8 to-transparent pointer-events-none opacity-60" />
+                  <motion.div
+                    className="absolute top-0 right-0 w-64 h-64 bg-accent/12 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none"
+                    animate={{
+                      scale: [1, 1.2, 1],
+                      opacity: [0.3, 0.5, 0.3]
+                    }}
+                    transition={{
+                      duration: 4,
+                      repeat: Infinity,
+                      ease: "easeInOut"
+                    }}
+                  />
+                  
+                  <div className="relative flex items-start gap-4">
+                    <motion.div
+                      whileHover={{ scale: 1.1, rotate: 10 }}
+                      transition={{ type: "spring", stiffness: 400, damping: 10 }}
+                      className="relative p-3 rounded-xl bg-gradient-to-br from-accent/35 via-accent/25 to-accent/15 border-2 border-accent/40 shrink-0 shadow-lg shadow-accent/30"
+                    >
+                      <Sparkles className="w-5 h-5 text-accent drop-shadow-[0_0_20px_rgba(124,58,237,0.9)]" />
+                    </motion.div>
+                    
+                    <div className="flex-1 min-w-0 space-y-3">
+                      <div className="flex items-center justify-between gap-3">
+                        <h3 className="text-base font-bold text-foreground tracking-tight">
+                          AI Insight
+                        </h3>
+                        <AIClassificationBadge
+                          category={latestEmailWithAI.ai_category}
+                          confidence={latestEmailWithAI.ai_confidence}
+                          reason={latestEmailWithAI.ai_reason}
+                          size="sm"
+                        />
+                      </div>
+                      
+                      {latestEmailWithAI.ai_reason && (
+                        <p className="text-sm text-foreground/90 leading-relaxed">
+                          {latestEmailWithAI.ai_reason}
+                        </p>
+                      )}
+                      
+                      {latestEmailWithAI.ai_confidence !== null && (
+                        <div className="flex items-center gap-2 pt-1">
+                          <span className="text-xs text-muted-foreground font-medium">
+                            Confidence: {(latestEmailWithAI.ai_confidence * 100).toFixed(0)}%
+                          </span>
+                          <div className="flex-1 h-1.5 bg-muted/30 rounded-full overflow-hidden">
+                            <motion.div
+                              initial={{ width: 0 }}
+                              animate={{ width: `${latestEmailWithAI.ai_confidence * 100}%` }}
+                              transition={{ duration: 0.8, ease: "easeOut" }}
+                              className={cn(
+                                "h-full rounded-full",
+                                latestEmailWithAI.ai_confidence > 0.8
+                                  ? "bg-[#10B981]"
+                                  : latestEmailWithAI.ai_confidence > 0.5
+                                  ? "bg-[#F59E0B]"
+                                  : "bg-[#EF4444]"
+                              )}
+                            />
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </motion.div>
+              );
+            })()}
             {emails.map((email, index) => {
               const isOutgoing = email.direction === "outgoing";
               const emailDate = email.received_at || email.sent_at || email.created_at;
@@ -167,7 +262,7 @@ const EmailThreadDetailPanel = ({ isOpen, onClose, thread }: EmailThreadDetailPa
 
                       {/* Sender Info */}
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-1">
+                        <div className="flex items-center gap-2 mb-1 flex-wrap">
                           <p className="font-semibold text-foreground">
                             {isOutgoing ? "You" : (() => {
                               // Try to extract name from email if contactName is Unknown
@@ -185,6 +280,15 @@ const EmailThreadDetailPanel = ({ isOpen, onClose, thread }: EmailThreadDetailPa
                             <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs font-medium bg-accent/10 text-accent">
                               AI Draft
                             </span>
+                          )}
+                          {/* AI Classification Badge */}
+                          {!isOutgoing && email.ai_category && (
+                            <AIClassificationBadge
+                              category={email.ai_category}
+                              confidence={email.ai_confidence}
+                              reason={email.ai_reason}
+                              size="sm"
+                            />
                           )}
                         </div>
                         <p className="text-sm text-muted-foreground truncate">

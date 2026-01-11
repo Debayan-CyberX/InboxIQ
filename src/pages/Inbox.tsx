@@ -28,8 +28,10 @@ import { toast } from "sonner";
 import { formatDistanceToNow } from "date-fns";
 import EmailThreadDetailPanel from "@/components/dashboard/EmailThreadDetailPanel";
 import EmailComposeDialog from "@/components/dashboard/EmailComposeDialog";
+import { AIClassificationBadge } from "@/components/dashboard/AIClassificationBadge";
 
 type FilterType = "all" | "unread" | "important" | "starred" | "archived" | "drafts";
+type AICategoryFilter = "all" | "lead" | "follow_up_needed" | "important" | "promo" | "newsletter" | "spam";
 
 // Local EmailThread type for UI display
 interface EmailThread {
@@ -54,6 +56,13 @@ interface EmailThread {
   tags: string[];
   aiSuggestion?: string;
   hasAIDraft: boolean;
+  // AI Classification fields (from latest email in thread)
+  aiCategory?: "lead" | "follow_up_needed" | "important" | "promo" | "newsletter" | "spam" | null;
+  aiConfidence?: number | null;
+  aiReason?: string | null;
+  // Lead detection fields (optional, from latest email)
+  isLead?: boolean;
+  leadType?: "buyer" | "recruiter" | "investor" | "customer" | "unknown";
 }
 
 // Transform database EmailThread to component EmailThread format
@@ -103,11 +112,13 @@ const Inbox = () => {
   const [error, setError] = useState<Error | null>(null);
   const [emailThreads, setEmailThreads] = useState<DBEmailThread[]>([]);
   const [selectedFilter, setSelectedFilter] = useState<FilterType>("all");
+  const [selectedAICategory, setSelectedAICategory] = useState<AICategoryFilter>("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedThreads, setSelectedThreads] = useState<Set<string>>(new Set());
   const [selectedThread, setSelectedThread] = useState<DBEmailThread & { lead_company?: string; lead_contact_name?: string; lead_email?: string } | null>(null);
   const [isDetailPanelOpen, setIsDetailPanelOpen] = useState(false);
   const [isComposeOpen, setIsComposeOpen] = useState(false);
+  const [threadAIClassifications, setThreadAIClassifications] = useState<Map<string, { category?: string; confidence?: number | null; reason?: string | null }>>(new Map());
 
   // Fetch email threads from database
   const fetchThreads = async () => {
@@ -188,6 +199,16 @@ const Inbox = () => {
         threads = threads.filter(t => t.status !== "archived");
     }
 
+    // Apply AI category filter (from smart tabs)
+    if (selectedAICategory !== "all") {
+      threads = threads.filter(t => {
+        // Check thread's AI classification or fallback to threadAIClassifications map
+        const aiData = threadAIClassifications.get(t.id);
+        const category = t.aiCategory || aiData?.category;
+        return category === selectedAICategory;
+      });
+    }
+
     // Apply search
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
@@ -201,7 +222,7 @@ const Inbox = () => {
     }
 
     return threads;
-  }, [transformedThreads, selectedFilter, searchQuery]);
+  }, [transformedThreads, selectedFilter, selectedAICategory, searchQuery, threadAIClassifications]);
 
   const unreadCount = transformedThreads.filter(t => !t.isRead || t.unreadCount > 0).length;
   const importantCount = transformedThreads.filter(t => t.isImportant).length;
@@ -377,6 +398,48 @@ const Inbox = () => {
           {/* Main Content - Email Threads */}
           <div className="col-span-1 lg:col-span-9 flex flex-col min-h-0">
             <div className="glass-strong rounded-xl sm:rounded-2xl overflow-hidden flex flex-col flex-1 min-h-0">
+              {/* Smart Inbox Tabs */}
+              <div className="border-b border-[rgba(255,255,255,0.08)] px-4 sm:px-6 pt-4 pb-0">
+                <div className="flex items-center gap-1 sm:gap-2 overflow-x-auto scrollbar-hide -mb-px">
+                  {[
+                    { id: "all" as AICategoryFilter, label: "All" },
+                    { id: "lead" as AICategoryFilter, label: "Leads" },
+                    { id: "follow_up_needed" as AICategoryFilter, label: "Follow Ups" },
+                    { id: "important" as AICategoryFilter, label: "Important" },
+                    { id: "promo" as AICategoryFilter, label: "Promo" },
+                    { id: "newsletter" as AICategoryFilter, label: "Newsletter" },
+                    { id: "spam" as AICategoryFilter, label: "Spam" },
+                  ].map((tab) => {
+                    const isActive = selectedAICategory === tab.id;
+                    return (
+                      <button
+                        key={tab.id}
+                        onClick={() => setSelectedAICategory(tab.id)}
+                        className={cn(
+                          "relative px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base font-semibold transition-all duration-200 whitespace-nowrap",
+                          isActive
+                            ? "text-[#7C3AED]"
+                            : "text-foreground/60 hover:text-foreground"
+                        )}
+                      >
+                        {tab.label}
+                        {isActive && (
+                          <motion.div
+                            layoutId="activeTabIndicator"
+                            className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#7C3AED] rounded-t-full"
+                            initial={false}
+                            transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                            style={{
+                              boxShadow: "0 0 12px rgba(124, 58, 237, 0.6)",
+                            }}
+                          />
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+              
               {/* Thread List - Scrollable Container */}
               <div className="divide-y divide-[rgba(255,255,255,0.08)] overflow-y-auto overflow-x-hidden flex-1 min-h-0" style={{ WebkitOverflowScrolling: 'touch' }}>
                 {filteredThreads.length === 0 ? (
@@ -476,6 +539,21 @@ const Inbox = () => {
                                 <span className="text-[10px] sm:text-xs font-semibold text-[#7C3AED] flex items-center gap-1 sm:gap-1.5">
                                   <Sparkles className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
                                   <span className="hidden sm:inline">{thread.aiSuggestion}</span>
+                                </span>
+                              )}
+                              {/* AI Classification Badge */}
+                              {(thread.aiCategory || threadAIClassifications.get(thread.id)?.category) && (
+                                <AIClassificationBadge
+                                  category={(thread.aiCategory || threadAIClassifications.get(thread.id)?.category) as any}
+                                  confidence={thread.aiConfidence ?? threadAIClassifications.get(thread.id)?.confidence ?? null}
+                                  reason={thread.aiReason ?? threadAIClassifications.get(thread.id)?.reason ?? null}
+                                  size="sm"
+                                />
+                              )}
+                              {/* Lead Intent Indicator */}
+                              {thread.isLead && thread.leadType && thread.leadType !== "unknown" && (
+                                <span className="text-[10px] sm:text-xs font-medium px-2 py-0.5 rounded-md bg-muted/50 text-muted-foreground border border-border/50 opacity-0 group-hover:opacity-100 transition-opacity">
+                                  {thread.leadType.charAt(0).toUpperCase() + thread.leadType.slice(1)}
                                 </span>
                               )}
                             </div>
