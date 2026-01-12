@@ -27,6 +27,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { useSession } from "@/lib/auth-client";
 import { Navigate } from "react-router-dom";
+import { cn } from "@/lib/utils";
 
 const Landing = () => {
   
@@ -1754,20 +1755,18 @@ const TypewriterText = memo(({ texts, className }: { texts: string[]; className?
 
   return (
     <span 
-      className={className}
+      className={cn(className, "block w-full text-center")}
       style={{ 
-        display: "inline-block",
-        minWidth: "100%",
+        display: "block",
         width: "100%",
-        textAlign: "center"
       }}
     >
-      <span style={{ 
-        display: "inline-block",
-        minWidth: `${longestText.length}ch`,
-        width: `${longestText.length}ch`,
-        textAlign: "center"
-      }}>
+      <span 
+        className="inline-block text-center"
+        style={{ 
+          minWidth: `${longestText.length}ch`,
+        }}
+      >
         {displayText}
         <motion.span
           animate={{ opacity: [1, 0] }}
