@@ -1,6 +1,7 @@
 // API service for Leads
 import { supabase } from "@/lib/supabase";
 import type { Lead, InsertLead, UpdateLead } from "@/types/database";
+import { getApiBase } from "./base-url";
 
 export const leadsApi = {
   // Get all leads for the current user
@@ -203,7 +204,7 @@ export const leadsApi = {
 
   // Detect leads from email threads
   async detectLeads(betterAuthUserId: string): Promise<{ success: boolean; leadsCreated: number; threadsUpdated: number }> {
-    const authServerUrl = import.meta.env.VITE_BETTER_AUTH_URL || "http://localhost:3001";
+    const authServerUrl = getApiBase();
 
     const response = await fetch(`${authServerUrl}/api/leads/detect`, {
       method: "POST",
@@ -255,7 +256,7 @@ export const leadsApi = {
 
   // Generate AI follow-up for a lead (creates a new draft)
   async generateFollowUp(leadId: string, betterAuthUserId: string, tone?: "professional" | "short" | "confident" | "polite" | "sales-focused"): Promise<{ id: string; subject: string; body: string }> {
-    const authServerUrl = import.meta.env.VITE_BETTER_AUTH_URL || "http://localhost:3001";
+    const authServerUrl = getApiBase();
 
     const response = await fetch(`${authServerUrl}/api/leads/${leadId}/generate-followup`, {
       method: "POST",
@@ -277,7 +278,7 @@ export const leadsApi = {
 
   // Generate follow-up text only (doesn't create a draft - for regeneration)
   async generateFollowUpText(leadId: string, betterAuthUserId: string, tone?: "professional" | "short" | "confident" | "polite" | "sales-focused"): Promise<{ subject: string; body: string }> {
-    const authServerUrl = import.meta.env.VITE_BETTER_AUTH_URL || "http://localhost:3001";
+    const authServerUrl = getApiBase();
 
     const response = await fetch(`${authServerUrl}/api/leads/${leadId}/generate-followup-text`, {
       method: "POST",

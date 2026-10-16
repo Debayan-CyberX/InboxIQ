@@ -1,6 +1,7 @@
 // API service for Emails and Email Threads
 import { supabase } from "@/lib/supabase";
 import type { Email, EmailThread, InsertEmail, UpdateEmail, InsertEmailThread, UpdateEmailThread } from "@/types/database";
+import { getApiBase } from "./base-url";
 
 export const emailsApi = {
   // Get all email threads for the current user
@@ -72,7 +73,7 @@ export const emailsApi = {
 
   // Create a new email (uses backend endpoint to bypass RLS)
   async create(email: InsertEmail, betterAuthUserId: string): Promise<Email> {
-    const authServerUrl = import.meta.env.VITE_BETTER_AUTH_URL || "http://localhost:3001";
+    const authServerUrl = getApiBase();
 
     const response = await fetch(`${authServerUrl}/api/emails`, {
       method: "POST",
@@ -94,7 +95,7 @@ export const emailsApi = {
 
   // Update an email (uses backend endpoint to bypass RLS)
   async update(emailId: string, betterAuthUserId: string, updates: UpdateEmail): Promise<Email> {
-    const authServerUrl = import.meta.env.VITE_BETTER_AUTH_URL || "http://localhost:3001";
+    const authServerUrl = getApiBase();
 
     const response = await fetch(`${authServerUrl}/api/emails/${emailId}`, {
       method: "PUT",
@@ -129,7 +130,7 @@ export const emailsApi = {
     }
 
     // Use backend endpoint to bypass RLS
-    const authServerUrl = import.meta.env.VITE_BETTER_AUTH_URL || "http://localhost:3001";
+    const authServerUrl = getApiBase();
 
     const response = await fetch(`${authServerUrl}/api/emails/${emailId}`, {
       method: "DELETE",
@@ -259,8 +260,8 @@ export const emailsApi = {
     }
 
     // Get auth server URL (production or development)
-    const authServerUrl = import.meta.env.VITE_BETTER_AUTH_URL || 
-      (import.meta.env.PROD ? "https://api.inboxiq.debx.co.in" : "http://localhost:3001");
+    const { getApiBase } = await import("./base-url");
+    const authServerUrl = getApiBase();
 
     // Send email via backend API
     const response = await fetch(`${authServerUrl}/api/emails/send`, {

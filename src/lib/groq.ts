@@ -1,9 +1,5 @@
 import Groq from "groq-sdk";
 
-const groq = new Groq({
-  apiKey: process.env.GROQ_API_KEY,
-});
-
 const GROQ_MODEL = "llama-3.1-8b-instant";
 // Fast, free-tier friendly, production-safe
 
@@ -28,6 +24,11 @@ export interface GenerateAIOptions {
 /**
  * Centralized Groq AI generation helper
  * Reusable across all AI features: drafts, follow-ups, chat, action queue
+ *
+ * NOTE: Groq client is instantiated INSIDE the function (lazy init) so that
+ * the module can be imported without a GROQ_API_KEY at startup time.
+ * This is required for Cloudflare Workers, which validate module-level code
+ * at deploy time before secrets are injected into process.env.
  */
 export async function generateAI(
   prompt: string,
@@ -39,6 +40,14 @@ export async function generateAI(
     maxTokens = 300,
     temperature = 0.7,
   } = options;
+
+  const apiKey = process.env.GROQ_API_KEY;
+  if (!apiKey) {
+    throw new Error("GROQ_API_KEY is not configured. Set it via: wrangler secret put GROQ_API_KEY");
+  }
+
+  // Lazy init: create per-call (Workers are stateless, no persistent module state)
+  const groq = new Groq({ apiKey });
 
   // Build system message
   let systemContent = systemPrompt || "You are a helpful AI assistant that writes concise, professional, human-sounding content.";
@@ -71,6 +80,7 @@ export async function generateAI(
     throw new Error("AI generation failed");
   }
 }
+
 
 /**
  * Legacy function - uses generateAI for backward compatibility

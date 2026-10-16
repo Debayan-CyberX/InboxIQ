@@ -54,7 +54,8 @@ const ChatBot = () => {
     setIsLoading(true);
 
     try {
-      const authServerUrl = import.meta.env.VITE_BETTER_AUTH_URL || "http://localhost:3001";
+      const { getApiBase } = await import("@/lib/api/base-url");
+      const authServerUrl = getApiBase();
       
       const response = await fetch(`${authServerUrl}/api/chat`, {
         method: "POST",

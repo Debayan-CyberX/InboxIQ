@@ -41,8 +41,12 @@ if (databaseUrl) {
 }
 
 // Production URLs
-const productionFrontendUrl = "https://inboxiq.debx.co.in";
-const productionBackendUrl = "https://api.inboxiq.debx.co.in";
+const productionFrontendUrl = process.env.FRONTEND_URL || process.env.RENDER_EXTERNAL_URL || "http://localhost:8080";
+const productionBackendUrl = process.env.RENDER_EXTERNAL_URL || "http://localhost:3001";
+
+if (process.env.NODE_ENV === "production" && !process.env.BETTER_AUTH_SECRET) {
+  throw new Error("BETTER_AUTH_SECRET is required in production");
+}
 
 // Better Auth configuration
 export const auth = betterAuth({
@@ -58,11 +62,6 @@ export const auth = betterAuth({
   /**
    * ✅ COOKIE CONFIGURATION (SINGLE SOURCE OF TRUTH)
    */
-  cookies: {
-    secure: true,          // Required for SameSite=None
-    sameSite: "none",      // Required for cross-site (Vercel → Render)
-    domain: ".debx.co.in", // Share cookie across subdomains
-  },
 
   /**
    * ✅ TRUSTED FRONTEND ORIGINS
@@ -78,6 +77,8 @@ export const auth = betterAuth({
 
     // Prod
     productionFrontendUrl,
+    productionBackendUrl,
+    process.env.BETTER_AUTH_URL || productionBackendUrl,
     process.env.VITE_APP_URL ||
       process.env.FRONTEND_URL ||
       productionFrontendUrl,

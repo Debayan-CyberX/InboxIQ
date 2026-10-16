@@ -32,6 +32,7 @@ import { LoadingState } from "@/components/LoadingState";
 import { ErrorState } from "@/components/ErrorState";
 import type { Lead } from "@/types/database";
 import { toast } from "sonner";
+import { getApiBase } from "@/lib/api/base-url";
 
 type StatusFilter = "all" | "hot" | "warm" | "cold";
 type SortOption = "recent" | "name" | "company" | "status" | "days";
@@ -71,7 +72,7 @@ const Leads = () => {
         // Update contact info first to ensure accurate days_since_contact
         // This recalculates based on outgoing emails only
         try {
-          const authServerUrl = import.meta.env.VITE_BETTER_AUTH_URL || "http://localhost:3001";
+          const authServerUrl = getApiBase();
           await fetch(`${authServerUrl}/api/leads/update-contact-info`, {
             method: "POST",
             credentials: "include",

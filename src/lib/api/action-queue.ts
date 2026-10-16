@@ -18,9 +18,8 @@ interface ActionQueueResponse {
 export const actionQueueApi = {
   // Get action queue tasks for the current user
   async getTasks(betterAuthUserId: string): Promise<ActionQueueTask[]> {
-    // Get auth server URL (production or development)
-    const authServerUrl = import.meta.env.VITE_BETTER_AUTH_URL || 
-      (import.meta.env.PROD ? "https://api.inboxiq.debx.co.in" : "http://localhost:3001");
+    const { getApiBase } = await import("./base-url");
+    const authServerUrl = getApiBase();
 
     // Fetch tasks from backend API
     const response = await fetch(`${authServerUrl}/api/action-queue`, {
@@ -30,6 +29,7 @@ export const actionQueueApi = {
       },
       credentials: "include", // Include cookies for auth
     });
+
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({ error: "Unknown error" }));

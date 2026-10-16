@@ -1,5 +1,6 @@
 // API service for Email Connections
 import { supabase } from "@/lib/supabase";
+import { getApiBase } from "./base-url";
 
 export interface EmailConnection {
   id: string;
@@ -50,7 +51,7 @@ export const emailConnectionsApi = {
     userId: string,
     redirectUri?: string
   ): Promise<{ authUrl: string }> {
-    const authServerUrl = import.meta.env.VITE_BETTER_AUTH_URL || "http://localhost:3001";
+    const authServerUrl = getApiBase();
 
     const params = new URLSearchParams({
       userId,
@@ -76,7 +77,7 @@ export const emailConnectionsApi = {
     betterAuthUserId: string,
     connection: ConnectEmailRequest
   ): Promise<EmailConnection> {
-    const authServerUrl = import.meta.env.VITE_BETTER_AUTH_URL || "http://localhost:3001";
+    const authServerUrl = getApiBase();
 
     // Get user UUID
     const { getUserIdFromBetterAuth } = await import("./utils");
@@ -203,7 +204,7 @@ export const emailConnectionsApi = {
 
   // Sync emails from a connected account
   async sync(connectionId: string): Promise<{ success: boolean; message: string; threadsSynced?: number }> {
-    const authServerUrl = import.meta.env.VITE_BETTER_AUTH_URL || "http://localhost:3001";
+    const authServerUrl = getApiBase();
 
     // For Gmail, use the new /gmail/sync endpoint
     const response = await fetch(`${authServerUrl}/gmail/sync`, {

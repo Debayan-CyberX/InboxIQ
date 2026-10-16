@@ -3,6 +3,7 @@
 import dotenv from "dotenv";
 import express, { Request as ExpressRequest, Response as ExpressResponse } from "express";
 import cors from "cors";
+import path from "node:path";
 import { Pool } from "pg";
 import { Resend } from "resend";
 import { auth } from "./auth.js";
@@ -25,7 +26,7 @@ dotenv.config({ path: ".env.local" });
 dotenv.config(); // Also load .env if it exists (lower priority)
 
 const app = express();
-const PORT = process.env.AUTH_PORT || 3001;
+const PORT = Number(process.env.PORT || process.env.AUTH_PORT || 3001);
 const VITE_PORT = process.env.VITE_PORT || 8081;
 
 // Middleware - CORS configuration for development and production
@@ -43,6 +44,8 @@ const allowedOrigins = [
     `http://localhost:${VITE_PORT}`,
   // Production URLs
   productionFrontendUrl,
+  process.env.RENDER_EXTERNAL_URL,
+  process.env.BETTER_AUTH_URL,
   process.env.VITE_APP_URL || process.env.FRONTEND_URL || productionFrontendUrl
 ].filter(Boolean);
 
@@ -2643,7 +2646,18 @@ app.get("/api/emails/thread/:threadId", async (req, res) => {
   }
 });
 
-app.listen(PORT, () => {
+// Keep API failures as JSON; only browser routes receive the React SPA.
+app.use(["/api", "/gmail"], (_req, res) => {
+  res.status(404).json({ error: "Not found" });
+});
+
+if (process.env.NODE_ENV === "production") {
+  const frontendDirectory = path.resolve(process.cwd(), "dist");
+  app.use(express.static(frontendDirectory));
+  app.get(/.*/, (_req, res) => res.sendFile(path.join(frontendDirectory, "index.html")));
+}
+
+app.listen(PORT, "0.0.0.0", () => {
   console.log(`\n✅ Better Auth server running on http://localhost:${PORT}`);
   console.log(`📡 Auth API available at http://localhost:${PORT}/api/auth`);
   console.log(`📧 Email API available at http://localhost:${PORT}/api/emails/send`);

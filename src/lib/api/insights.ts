@@ -1,6 +1,7 @@
 // API service for AI Insights
 import { supabase } from "@/lib/supabase";
 import type { AIInsight, InsertAIInsight, UpdateAIInsight } from "@/types/database";
+import { getApiBase } from "./base-url";
 
 export const insightsApi = {
   // Get recent insights for the current user
@@ -150,7 +151,7 @@ export const insightsApi = {
 
   // Generate AI insights from dashboard data
   async generate(leads: any[], actionQueueTasks: any[], stats: any): Promise<{ text: string; highlights: Array<{ type: "hot" | "risk" | "opportunity"; text: string }> }> {
-    const authServerUrl = import.meta.env.VITE_BETTER_AUTH_URL || "http://localhost:3001";
+    const authServerUrl = getApiBase();
 
     const response = await fetch(`${authServerUrl}/api/insights/generate`, {
       method: "POST",
