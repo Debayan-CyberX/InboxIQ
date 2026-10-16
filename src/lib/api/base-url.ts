@@ -15,12 +15,8 @@
  * NEVER put secrets (API keys, DB passwords) in VITE_ variables.
  */
 export function getApiBase(): string {
-  return (
-    import.meta.env.VITE_BETTER_AUTH_URL ||
-    (import.meta.env.PROD
-      ? "" // Same origin on Cloudflare Workers
-      : "http://localhost:3001")
-  );
+  if (import.meta.env.PROD) return "";
+  return import.meta.env.VITE_BETTER_AUTH_URL || "http://localhost:3001";
 }
 
 /**

@@ -9,11 +9,9 @@ import { createAuthClient } from "better-auth/react";
  * For the Cloudflare Workers deployment, do NOT set VITE_BETTER_AUTH_URL.
  * The Worker handles /api/auth/* from the same origin as the frontend.
  */
-const authBaseURL =
-  import.meta.env.VITE_BETTER_AUTH_URL ||
-  (import.meta.env.PROD
-    ? "" // Same origin on Workers — no VITE_BETTER_AUTH_URL needed
-    : "http://localhost:3001");
+const authBaseURL = import.meta.env.PROD
+  ? window.location.origin
+  : import.meta.env.VITE_BETTER_AUTH_URL || "http://localhost:3001";
 
 export const authClient = createAuthClient({
   baseURL: authBaseURL,
