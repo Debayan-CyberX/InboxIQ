@@ -18,7 +18,8 @@ const ChatBot = () => {
     {
       id: "1",
       role: "assistant",
-      content: "Hello! I'm your InboxIQ AI assistant. How can I help you today?",
+      content:
+        "Hello! I'm your InboxIQ AI assistant. How can I help you today?",
       timestamp: new Date(),
     },
   ]);
@@ -56,7 +57,7 @@ const ChatBot = () => {
     try {
       const { getApiBase } = await import("@/lib/api/base-url");
       const authServerUrl = getApiBase();
-      
+
       const response = await fetch(`${authServerUrl}/api/chat`, {
         method: "POST",
         headers: {
@@ -65,7 +66,7 @@ const ChatBot = () => {
         credentials: "include",
         body: JSON.stringify({
           message: userMessage.content,
-          conversationHistory: messages.slice(-5).map(m => ({
+          conversationHistory: messages.slice(-5).map((m) => ({
             role: m.role,
             content: m.content,
           })),
@@ -90,11 +91,13 @@ const ChatBot = () => {
       }
 
       const data = await response.json();
-      
+
       const assistantMessage: Message = {
         id: (Date.now() + 1).toString(),
         role: "assistant",
-        content: data.response || "I apologize, but I couldn't generate a response. Please try again.",
+        content:
+          data.response ||
+          "I apologize, but I couldn't generate a response. Please try again.",
         timestamp: new Date(),
       };
 
@@ -105,12 +108,14 @@ const ChatBot = () => {
       const errorMessage: Message = {
         id: (Date.now() + 1).toString(),
         role: "assistant",
-        content: "I'm having trouble connecting to the AI service right now. The Groq API might be experiencing issues. Please try again in a moment, or check if the service is available. You can also try asking about specific InboxIQ features like 'How do I sync emails?' or 'How do I create drafts?'",
+        content:
+          "I'm having trouble connecting to the AI service right now. The Groq API might be experiencing issues. Please try again in a moment, or check if the service is available. You can also try asking about specific InboxIQ features like 'How do I sync emails?' or 'How do I create drafts?'",
         timestamp: new Date(),
       };
       setMessages((prev) => [...prev, errorMessage]);
       toast.error("Failed to get AI response", {
-        description: "The AI service may be temporarily unavailable. Please try again.",
+        description:
+          "The AI service may be temporarily unavailable. Please try again.",
       });
     } finally {
       setIsLoading(false);
@@ -133,8 +138,8 @@ const ChatBot = () => {
         whileHover={{ scale: 1.1 }}
         whileTap={{ scale: 0.95 }}
         onClick={() => setIsOpen(!isOpen)}
-        className="fixed bottom-6 right-6 z-50 w-14 h-14 rounded-full bg-gradient-to-br from-[#7C3AED] to-[#A855F7] shadow-2xl shadow-purple-500/30 flex items-center justify-center text-white hover:shadow-purple-500/50 transition-shadow"
-        aria-label="Open chatbot"
+        className="fixed bottom-24 lg:bottom-6 right-4 lg:right-6 z-40 w-11 h-11 rounded-xl bg-[#bda5fb] border border-[#d6c4ff]/40 flex items-center justify-center text-[#21152f] shadow-lg"
+        aria-label={isOpen ? "Close assistant" : "Open assistant"}
       >
         <AnimatePresence mode="wait">
           {isOpen ? (
@@ -166,7 +171,7 @@ const ChatBot = () => {
             initial={{ opacity: 0, y: 20, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 20, scale: 0.95 }}
-            className="fixed bottom-24 right-6 z-50 w-96 h-[600px] max-h-[80vh] rounded-2xl bg-[rgba(13,15,20,0.95)] backdrop-blur-xl border border-[rgba(255,255,255,0.12)] shadow-2xl flex flex-col overflow-hidden"
+            className="fixed bottom-40 lg:bottom-20 right-4 lg:right-6 z-50 w-[calc(100vw-2rem)] sm:w-96 h-[560px] max-h-[65dvh] rounded-2xl bg-[rgba(13,15,20,0.95)] backdrop-blur-xl border border-[rgba(255,255,255,0.12)] shadow-2xl flex flex-col overflow-hidden"
           >
             {/* Header */}
             <div className="flex items-center justify-between p-4 border-b border-[rgba(255,255,255,0.12)] bg-gradient-to-r from-[#7C3AED]/20 to-[#A855F7]/20">
@@ -175,8 +180,12 @@ const ChatBot = () => {
                   <Bot className="w-5 h-5 text-white" />
                 </div>
                 <div>
-                  <h3 className="font-semibold text-foreground">AI Assistant</h3>
-                  <p className="text-xs text-muted-foreground">InboxIQ Helper</p>
+                  <h3 className="font-semibold text-foreground">
+                    AI Assistant
+                  </h3>
+                  <p className="text-xs text-muted-foreground">
+                    InboxIQ Helper
+                  </p>
                 </div>
               </div>
             </div>
@@ -202,9 +211,14 @@ const ChatBot = () => {
                         : "bg-[rgba(255,255,255,0.06)] text-foreground border border-[rgba(255,255,255,0.08)]"
                     }`}
                   >
-                    <p className="text-sm whitespace-pre-wrap break-words">{message.content}</p>
+                    <p className="text-sm whitespace-pre-wrap break-words">
+                      {message.content}
+                    </p>
                     <p className="text-xs opacity-60 mt-1">
-                      {message.timestamp.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                      {message.timestamp.toLocaleTimeString([], {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })}
                     </p>
                   </div>
                   {message.role === "user" && (
@@ -233,12 +247,20 @@ const ChatBot = () => {
                       <motion.div
                         className="w-2 h-2 rounded-full bg-purple-400"
                         animate={{ opacity: [0.3, 1, 0.3] }}
-                        transition={{ duration: 1, repeat: Infinity, delay: 0.2 }}
+                        transition={{
+                          duration: 1,
+                          repeat: Infinity,
+                          delay: 0.2,
+                        }}
                       />
                       <motion.div
                         className="w-2 h-2 rounded-full bg-purple-400"
                         animate={{ opacity: [0.3, 1, 0.3] }}
-                        transition={{ duration: 1, repeat: Infinity, delay: 0.4 }}
+                        transition={{
+                          duration: 1,
+                          repeat: Infinity,
+                          delay: 0.4,
+                        }}
                       />
                     </div>
                   </div>

@@ -315,17 +315,13 @@ const Inbox = () => {
         {/* Header */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4 mb-6 sm:mb-8">
           <div>
-            <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-foreground tracking-tight mb-1 sm:mb-2">Inbox</h1>
+            <div className="iq-page-intro"><span className="iq-eyebrow"><span className="iq-dot"/>CONVERSATIONS</span><h1>Inbox</h1><p>Every conversation, with the context to move it forward.</p></div>
             <p className="text-sm sm:text-base text-muted-foreground font-medium">
               {filteredThreads.length} {filteredThreads.length === 1 ? "conversation" : "conversations"}
               {selectedFilter !== "all" && ` • ${filters.find(f => f.id === selectedFilter)?.label}`}
             </p>
           </div>
           <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto">
-            <Button variant="outline" size="sm" className="gap-2 text-xs sm:text-sm flex-1 sm:flex-initial">
-              <Filter className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-              <span className="hidden sm:inline">Filters</span>
-            </Button>
             <Button 
               variant="default" 
               size="sm" 

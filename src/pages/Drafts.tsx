@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import { useState, useMemo, useEffect } from "react";
 import { motion } from "framer-motion";
 import { 
@@ -530,21 +531,13 @@ const Drafts = () => {
         {/* Header */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4">
           <div>
-            <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight mb-1 sm:mb-2 flex items-center gap-2 sm:gap-3">
-              <Sparkles className="w-6 h-6 sm:w-8 sm:h-8 text-accent drop-shadow-[0_0_10px_rgba(34,211,238,0.4)]" />
-              <span className="text-gradient-primary text-glow-primary">AI Drafts</span>
-            </h1>
+            <div className="iq-page-intro"><span className="iq-eyebrow"><span className="iq-dot"/>YOUR WORDS, WITH A HEAD START</span><h1>Draft studio</h1><p>Thoughtful replies. Your perspective. Ready when you are.</p></div>
             <p className="text-sm sm:text-base text-muted-foreground/90 font-medium">
               <span className="text-gradient font-bold text-base sm:text-lg">{filteredAndSortedDrafts.length}</span>{" "}
               {filteredAndSortedDrafts.length === 1 ? "draft" : "drafts"} ready for review
             </p>
           </div>
-          <div className="flex items-center gap-2 w-full sm:w-auto">
-            <Button variant="outline" size="sm" className="gap-2 text-xs sm:text-sm flex-1 sm:flex-initial">
-              <Filter className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-              <span className="hidden sm:inline">Filters</span>
-            </Button>
-          </div>
+          <Button asChild variant="outline" size="sm"><Link to="/leads">Explore your pipeline</Link></Button>
         </div>
 
         {/* Stats Cards */}

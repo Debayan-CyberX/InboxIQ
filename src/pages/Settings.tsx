@@ -28,7 +28,8 @@ import { LoadingState } from "@/components/LoadingState";
 import { ErrorState } from "@/components/ErrorState";
 import { useUserId } from "@/hooks/useUserId";
 import { settingsApi, type SettingsUpdate } from "@/lib/api/settings";
-import { emailConnectionsApi, type EmailConnection } from "@/lib/api";
+import { emailConnectionsApi } from "@/lib/api";
+import type { EmailConnection } from "@/lib/api/email-connections";
 import { useSession } from "@/lib/auth-client";
 import { toast } from "sonner";
 import ConnectEmailDialog from "@/components/ConnectEmailDialog";
@@ -529,10 +530,7 @@ const Settings = () => {
         {/* Header */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4">
           <div>
-            <h1 className="text-xl sm:text-2xl font-bold text-foreground flex items-center gap-2">
-              <SettingsIcon className="w-5 h-5 sm:w-6 sm:h-6 text-accent" />
-              Settings
-            </h1>
+            <div className="iq-page-intro"><span className="iq-eyebrow"><span className="iq-dot"/>MAKE IT YOURS</span><h1>Workspace settings</h1><p>A workspace that works the way you do.</p></div>
             <p className="text-xs sm:text-sm text-muted-foreground mt-0.5 sm:mt-1">
               Manage your account preferences and configuration
             </p>

@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import { useState, useMemo, useEffect } from "react";
 import { motion } from "framer-motion";
 import { 
@@ -255,9 +256,7 @@ const Leads = () => {
         {/* Header */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4 mb-6 sm:mb-8">
           <div>
-            <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight mb-1 sm:mb-2">
-              <span className="text-gradient-primary text-glow-primary">Leads</span>
-            </h1>
+            <div className="iq-page-intro"><span className="iq-eyebrow"><span className="iq-dot"/>RELATIONSHIPS</span><h1>Lead pipeline</h1><p>Turn promising conversations into lasting connections.</p></div>
             <p className="text-sm sm:text-base text-muted-foreground/90 font-semibold">
               <span className="text-gradient font-bold text-base sm:text-lg text-glow">{filteredAndSortedLeads.length}</span>{" "}
               {filteredAndSortedLeads.length === 1 ? "lead" : "leads"}
@@ -293,15 +292,7 @@ const Leads = () => {
               <span className="hidden sm:inline">Detect Leads</span>
               <span className="sm:hidden">Detect</span>
             </Button>
-            <Button variant="outline" size="sm" className="gap-1.5 sm:gap-2 text-xs sm:text-sm flex-1 sm:flex-initial">
-              <Filter className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-              <span className="hidden sm:inline">Filters</span>
-            </Button>
-            <Button variant="default" size="sm" className="gap-1.5 sm:gap-2 text-xs sm:text-sm flex-1 sm:flex-initial">
-              <Plus className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-              <span className="hidden sm:inline">Add Lead</span>
-              <span className="sm:hidden">Add</span>
-            </Button>
+            <Button asChild variant="default" size="sm" className="gap-2"><Link to="/inbox"><Mail size={14}/>Open inbox</Link></Button>
           </div>
         </div>
 

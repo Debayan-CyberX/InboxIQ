@@ -7,150 +7,112 @@ import {
   Settings,
   Sparkles,
   LogOut,
+  ChevronsUpDown,
+  ArrowUpRight,
 } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { Link, useLocation } from "react-router-dom";
 import { useSession, signOut } from "@/lib/auth-client";
-import { useNavigate, useLocation, Link } from "react-router-dom";
 import { toast } from "sonner";
-
+import Brand from "@/components/Brand";
 const navigation = [
-  { name: "Dashboard", icon: LayoutDashboard, href: "/dashboard" },
+  { name: "Overview", icon: LayoutDashboard, href: "/dashboard" },
   { name: "Inbox", icon: Inbox, href: "/inbox" },
-  { name: "Leads", icon: Users, href: "/leads" },
-  { name: "Drafts", icon: Send, href: "/drafts", badge: 3 },
+  { name: "Lead pipeline", icon: Users, href: "/leads" },
+  { name: "Drafts", icon: Send, href: "/drafts" },
   { name: "Analytics", icon: BarChart3, href: "/analytics" },
 ];
-
-const Sidebar = () => {
+export default function Sidebar() {
   const { data: session } = useSession();
-  const navigate = useNavigate();
   const location = useLocation();
-
-  const handleSignOut = async () => {
+  const user = session?.user;
+  const initials = (user?.name || user?.email || "You")
+    .split(" ")
+    .map((n) => n[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
+  async function handleSignOut() {
     try {
       await signOut();
-      // Clear any stored state
       sessionStorage.removeItem("landingLoaderShown");
       sessionStorage.removeItem("fromSignIn");
-      toast.success("Signed out successfully");
-      // Use window.location for a hard redirect to ensure clean state
       window.location.href = "/";
-    } catch (error) {
-      toast.error("Failed to sign out");
-      console.error("Sign out error:", error);
+    } catch {
+      toast.error("Could not sign out. Please try again.");
     }
-  };
-
-  const user = session?.user;
-  const userInitials = user?.name
-    ? user.name
-        .split(" ")
-        .map((n) => n[0])
-        .join("")
-        .toUpperCase()
-        .slice(0, 2)
-    : user?.email
-    ? user.email[0].toUpperCase()
-    : "U";
-
+  }
   return (
-    <aside
-      className="flex flex-col glass-strong border-r border-[rgba(255,255,255,0.08)] h-screen w-full"
-    >
-      {/* Logo */}
-      <div className="h-16 flex items-center px-6 border-b border-[rgba(255,255,255,0.08)] shrink-0 relative">
-        <div className="absolute inset-0 bg-gradient-to-r from-[rgba(147,51,234,0.1)] to-transparent pointer-events-none" />
-        <div className="relative flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#9333EA] to-[#EC4899] flex items-center justify-center shadow-lg shadow-[#9333EA]/30 glow-primary">
-            <Sparkles className="w-5 h-5 text-white" />
+    <div className="iq-sidebar">
+      <Link to="/dashboard" aria-label="InboxIQ overview">
+        <Brand />
+      </Link>
+      <div className="iq-workspace-switch">
+        <span className="iq-workspace-icon">{initials}</span>
+        <div className="flex-1 min-w-0">
+          <div className="text-[11px] font-medium truncate">
+            Personal workspace
           </div>
-          <span className="text-lg font-bold text-foreground tracking-tight">
-            InboxIQ
-          </span>
+          <div className="text-[9px] text-muted-foreground">
+            Your relationship command center
+          </div>
         </div>
+        <ChevronsUpDown size={12} className="text-muted-foreground" />
       </div>
-
-      {/* Navigation */}
-      <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
-        {navigation.map((item) => {
-          const isActive = location.pathname === item.href;
-
-          return (
-            <Link
-              key={item.name}
-              to={item.href}
-              onClick={() => {
-                // ensure body scroll unlock on mobile
-                if (window.innerWidth < 1024) {
-                  document.body.style.overflow = "";
-                }
-              }}
-              className={cn(
-                "flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium transition-all duration-200 relative group",
-                isActive
-                  ? "bg-[rgba(147,51,234,0.15)] text-[#9333EA] shadow-lg shadow-[#9333EA]/20 border border-[rgba(147,51,234,0.2)]"
-                  : "text-foreground/70 hover:bg-[rgba(255,255,255,0.08)] hover:text-foreground hover:translate-x-1"
-              )}
-            >
-              <item.icon className="w-5 h-5 shrink-0" />
-              <span className="flex-1">{item.name}</span>
-
-              {item.badge && (
-                <span className="px-2 py-0.5 text-xs font-medium rounded-full bg-[#9333EA] text-white">
-                  {item.badge}
-                </span>
-              )}
-            </Link>
-          );
-        })}
-      </nav>
-
-      {/* Bottom section */}
-      <div className="p-3 border-t border-[rgba(255,255,255,0.08)] shrink-0 space-y-1">
-        <Link
-          to="/settings"
-          onClick={() => {
-            if (window.innerWidth < 1024) {
-              document.body.style.overflow = "";
-            }
-          }}
-          className={cn(
-            "flex items-center gap-3 px-3 py-3 rounded-lg text-sm font-medium transition-all duration-200",
-            location.pathname === "/settings"
-              ? "bg-[rgba(147,51,234,0.15)] text-[#9333EA] border border-[rgba(147,51,234,0.2)]"
-              : "text-foreground/70 hover:bg-[rgba(255,255,255,0.08)] hover:text-foreground"
-          )}
-        >
-          <Settings className="w-5 h-5" />
-          <span>Settings</span>
-        </Link>
-
-        {/* User */}
-        <div className="flex items-center gap-3 px-3 py-3 mt-2">
-          <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[#9333EA] to-[#EC4899] flex items-center justify-center text-white font-medium text-sm shrink-0 shadow-lg shadow-[#9333EA]/30">
-            {userInitials}
-          </div>
-
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium text-foreground truncate">
-              {user?.name || "User"}
-            </p>
-            <p className="text-xs text-foreground/60 truncate">
-              {user?.email || "user@example.com"}
-            </p>
-          </div>
-
-          <button
-            onClick={handleSignOut}
-            className="p-2 rounded-md text-foreground/50 hover:text-foreground hover:bg-[rgba(255,255,255,0.08)] transition-all duration-200"
-            title="Sign out"
+      <p className="iq-nav-label">Workspace</p>
+      <nav aria-label="Main navigation">
+        {navigation.map((item) => (
+          <Link
+            key={item.href}
+            to={item.href}
+            aria-current={location.pathname === item.href ? "page" : undefined}
+            className={`iq-nav-item ${location.pathname === item.href ? "active" : ""}`}
           >
-            <LogOut className="w-4 h-4" />
-          </button>
-        </div>
+            <item.icon size={16} strokeWidth={1.6} />
+            <span>{item.name}</span>
+          </Link>
+        ))}
+      </nav>
+      <div className="iq-sidebar-note">
+        <Sparkles size={16} className="text-primary mb-3" />
+        <p className="text-[11px] font-medium mb-1">
+          A little more intentional.
+        </p>
+        <p className="text-[10px] text-muted-foreground leading-relaxed">
+          Turn your next conversation into your next opportunity.
+        </p>
+        <Link
+          to="/leads"
+          className="mt-3 flex items-center justify-between text-[10px] text-primary"
+        >
+          Explore your pipeline <ArrowUpRight size={13} />
+        </Link>
       </div>
-    </aside>
+      <Link
+        to="/settings"
+        aria-current={location.pathname === "/settings" ? "page" : undefined}
+        className={`iq-nav-item ${location.pathname === "/settings" ? "active" : ""}`}
+      >
+        <Settings size={16} />
+        <span>Settings & preferences</span>
+      </Link>
+      <div className="iq-sidebar-user">
+        <span className="iq-avatar">{initials}</span>
+        <div className="min-w-0 flex-1">
+          <p className="text-[11px] font-medium truncate">
+            {user?.name || "Your workspace"}
+          </p>
+          <p className="text-[9px] text-muted-foreground truncate">
+            {user?.email}
+          </p>
+        </div>
+        <button
+          onClick={handleSignOut}
+          aria-label="Sign out"
+          className="p-2 text-muted-foreground hover:text-foreground"
+        >
+          <LogOut size={14} />
+        </button>
+      </div>
+    </div>
   );
-};
-
-export default Sidebar;
+}

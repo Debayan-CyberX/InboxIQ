@@ -1,18 +1,17 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { motion } from "framer-motion";
-import { Flame, Bell, FileEdit, AlertTriangle, TrendingUp, Clock, Zap } from "lucide-react";
+import { Flame, Bell, FileEdit, AlertTriangle, Zap } from "lucide-react";
 import DashboardLayout from "@/components/layout/DashboardLayout";
 import StatusCard from "@/components/dashboard/StatusCard";
 import AIInsightPanel from "@/components/dashboard/AIInsightPanel";
 import LeadPipeline from "@/components/dashboard/LeadPipeline";
-import ActionQueue from "@/components/dashboard/ActionQueue";
+import ActionQueue, { type Action } from "@/components/dashboard/ActionQueue";
 import EmailPreviewPanel from "@/components/dashboard/EmailPreviewPanel";
-import PerformanceSnapshot from "@/components/dashboard/PerformanceSnapshot";
 import { LoadingState } from "@/components/LoadingState";
 import { ErrorState } from "@/components/ErrorState";
 import { useUserId } from "@/hooks/useUserId";
-import { leadsApi, insightsApi, analyticsApi, actionQueueApi, type ActionQueueTask } from "@/lib/api";
+import { leadsApi, insightsApi, actionQueueApi } from "@/lib/api";
+import type { ActionQueueTask } from "@/lib/api/action-queue";
 import type { Lead, AIInsight } from "@/types/database";
 import { toast } from "sonner";
 
@@ -30,25 +29,31 @@ const transformLead = (lead: Lead) => ({
 });
 
 // Transform ActionQueueTask to component Action format
-const transformActionQueueTask = (task: ActionQueueTask, leads: Lead[]) => {
+const transformActionQueueTask = (
+  task: ActionQueueTask,
+  leads: Lead[],
+): Action => {
   // Find the lead if leadId is provided
-  const relatedLead = task.leadId ? leads.find(l => l.id === task.leadId) : null;
-  
+  const relatedLead = task.leadId
+    ? leads.find((l) => l.id === task.leadId)
+    : null;
+
   // Determine company name and subject based on task type
   let company = "Contact";
   let subject = task.title;
-  
+
   if (relatedLead) {
     company = relatedLead.company || relatedLead.contact_name || "Contact";
   }
-  
+
   // Map task types to component action types
-  const actionType = task.type === "followup" 
-    ? "follow-up" 
-    : task.type === "review" || task.type === "send"
-    ? "reply"
-    : "follow-up";
-  
+  const actionType =
+    task.type === "followup"
+      ? "follow-up"
+      : task.type === "review" || task.type === "send"
+        ? "reply"
+        : "follow-up";
+
   return {
     id: task.id,
     company,
@@ -75,12 +80,17 @@ const Index = () => {
     reason: string;
     draft: string;
   } | null>(null);
-  
+
   // Data state
   const [leads, setLeads] = useState<Lead[]>([]);
-  const [actionQueueTasks, setActionQueueTasks] = useState<ActionQueueTask[]>([]);
+  const [actionQueueTasks, setActionQueueTasks] = useState<ActionQueueTask[]>(
+    [],
+  );
   const [insights, setInsights] = useState<AIInsight[]>([]);
-  const [aiInsight, setAiInsight] = useState<{ text: string; highlights: Array<{ type: "hot" | "risk" | "opportunity"; text: string }> }>({
+  const [aiInsight, setAiInsight] = useState<{
+    text: string;
+    highlights: Array<{ type: "hot" | "risk" | "opportunity"; text: string }>;
+  }>({
     text: "",
     highlights: [],
   });
@@ -106,15 +116,16 @@ const Index = () => {
         setError(null);
 
         // Fetch all data in parallel
-        const [leadsData, actionQueueData, insightsData, statsData] = await Promise.all([
-          leadsApi.getAll(userId),
-          actionQueueApi.getTasks(userId).catch((err) => {
-            console.error("Error fetching action queue:", err);
-            return []; // Return empty array on error
-          }),
-          insightsApi.getRecent(userId, 1),
-          leadsApi.getStatistics(userId),
-        ]);
+        const [leadsData, actionQueueData, insightsData, statsData] =
+          await Promise.all([
+            leadsApi.getAll(userId),
+            actionQueueApi.getTasks(userId).catch((err) => {
+              console.error("Error fetching action queue:", err);
+              return []; // Return empty array on error
+            }),
+            insightsApi.getRecent(userId, 1),
+            leadsApi.getStatistics(userId),
+          ]);
 
         setLeads(leadsData);
         setActionQueueTasks(actionQueueData);
@@ -125,12 +136,16 @@ const Index = () => {
           warm: Number(statsData.warm_leads) || 0,
           cold: Number(statsData.cold_leads) || 0,
           needsFollowUp: Number(statsData.needs_follow_up) || 0,
-          hasDrafts: leadsData.filter(l => l.has_ai_draft).length,
+          hasDrafts: leadsData.filter((l) => l.has_ai_draft).length,
         });
 
         // Generate AI insights from the data
         try {
-          const generatedInsight = await insightsApi.generate(leadsData, actionQueueData, statsData);
+          const generatedInsight = await insightsApi.generate(
+            leadsData,
+            actionQueueData,
+            statsData,
+          );
           setAiInsight(generatedInsight);
         } catch (err) {
           console.error("Error generating AI insights:", err);
@@ -142,7 +157,9 @@ const Index = () => {
         }
       } catch (err) {
         console.error("Error fetching dashboard data:", err);
-        setError(err instanceof Error ? err : new Error("Failed to load dashboard"));
+        setError(
+          err instanceof Error ? err : new Error("Failed to load dashboard"),
+        );
         toast.error("Failed to load dashboard", {
           description: err instanceof Error ? err.message : "Unknown error",
         });
@@ -155,22 +172,24 @@ const Index = () => {
   }, [userId]);
 
   const handleLeadClick = (lead: ReturnType<typeof transformLead>) => {
-    const dbLead = leads.find(l => l.id === lead.id);
+    const dbLead = leads.find((l) => l.id === lead.id);
     if (dbLead?.has_ai_draft) {
       setSelectedEmail({
         to: lead.email,
         subject: `Re: ${lead.company} - Follow Up`,
         company: lead.company,
-        reason: lead.aiSuggestion || "AI suggested follow-up based on conversation history",
+        reason:
+          lead.aiSuggestion ||
+          "AI suggested follow-up based on conversation history",
         draft: "AI draft content would go here...", // TODO: Fetch actual draft
       });
       setEmailPanelOpen(true);
     }
   };
 
-  const handleActionReviewSend = (action: ReturnType<typeof transformActionQueueTask>) => {
+  const handleActionReviewSend = (action: Action) => {
     // Find the original task
-    const task = actionQueueTasks.find(t => t.id === action.id);
+    const task = actionQueueTasks.find((t) => t.id === action.id);
     if (!task) return;
 
     // Handle navigation based on task type
@@ -182,7 +201,9 @@ const Index = () => {
       navigate("/drafts");
     } else {
       // Fallback: try to open email preview if we have lead info
-      const relatedLead = action.leadId ? leads.find(l => l.id === action.leadId) : null;
+      const relatedLead = action.leadId
+        ? leads.find((l) => l.id === action.leadId)
+        : null;
       if (relatedLead) {
         setSelectedEmail({
           to: relatedLead.email || "contact@company.com",
@@ -199,41 +220,18 @@ const Index = () => {
     }
   };
 
-  // Calculate performance metrics (simplified for now)
-  const performanceMetricsWithIcons = [
-    { 
-      label: "Reply Rate", 
-      value: "0%", 
-      change: 0, 
-      trend: "neutral" as const,
-      icon: TrendingUp 
-    },
-    { 
-      label: "Avg Response Time", 
-      value: "0h", 
-      change: 0, 
-      trend: "neutral" as const,
-      icon: Clock 
-    },
-    { 
-      label: "Time Saved", 
-      value: "0h", 
-      change: 0, 
-      trend: "neutral" as const,
-      icon: Zap 
-    },
-  ];
-
   // Transform leads for components
   const transformedLeads = leads.map(transformLead);
   // Transform action queue tasks to component actions
-  const transformedActions = actionQueueTasks.map(task => transformActionQueueTask(task, leads));
+  const transformedActions = actionQueueTasks.map((task) =>
+    transformActionQueueTask(task, leads),
+  );
 
   // Calculate stats from real data
   const hotLeadsCount = statistics.hot;
   const needsFollowUpCount = statistics.needsFollowUp;
   const draftsReadyCount = statistics.hasDrafts;
-  const atRiskCount = leads.filter(l => l.days_since_contact >= 5).length;
+  const atRiskCount = leads.filter((l) => l.days_since_contact >= 5).length;
 
   // AI insights are now generated on the backend and stored in state
 
@@ -248,195 +246,145 @@ const Index = () => {
   if (error) {
     return (
       <DashboardLayout>
-        <ErrorState 
-          error={error} 
-          onRetry={() => window.location.reload()} 
-        />
+        <ErrorState error={error} onRetry={() => window.location.reload()} />
       </DashboardLayout>
     );
   }
 
   return (
     <DashboardLayout>
-      {/* Futuristic animated background */}
-      <div className="fixed inset-0 -z-10 overflow-hidden pointer-events-none">
-        {/* Deep gradient base */}
-        <div className="absolute inset-0 bg-gradient-to-br from-[#0F0A1A] via-[#1a0f2e] via-[#0F0A1A] to-[#0F0A1A]" />
-        
-        {/* Animated gradient orbs */}
-        <motion.div
-          className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-purple-500/25 rounded-full blur-3xl"
-          animate={{
-            scale: [1, 1.3, 1],
-            opacity: [0.3, 0.5, 0.3],
-            x: [0, 50, 0],
-            y: [0, 30, 0]
-          }}
-          transition={{
-            duration: 8,
-            repeat: Infinity,
-            ease: "easeInOut"
-          }}
-        />
-        <motion.div
-          className="absolute bottom-0 right-1/4 w-[400px] h-[400px] bg-violet-500/20 rounded-full blur-3xl"
-          animate={{
-            scale: [1, 1.4, 1],
-            opacity: [0.2, 0.4, 0.2],
-            x: [0, -40, 0],
-            y: [0, -20, 0]
-          }}
-          transition={{
-            duration: 10,
-            repeat: Infinity,
-            ease: "easeInOut",
-            delay: 1
-          }}
-        />
-        <motion.div
-          className="absolute top-1/2 right-0 w-[300px] h-[300px] bg-accent/15 rounded-full blur-3xl"
-          animate={{
-            scale: [1, 1.2, 1],
-            opacity: [0.2, 0.35, 0.2]
-          }}
-          transition={{
-            duration: 6,
-            repeat: Infinity,
-            ease: "easeInOut",
-            delay: 0.5
-          }}
-        />
-        
-        {/* Futuristic grid pattern */}
-        <div 
-          className="absolute inset-0 opacity-[0.04]"
-          style={{
-            backgroundImage: `
-              linear-gradient(rgba(147, 51, 234, 0.15) 1px, transparent 1px),
-              linear-gradient(90deg, rgba(147, 51, 234, 0.15) 1px, transparent 1px)
-            `,
-            backgroundSize: '60px 60px',
-            backgroundPosition: '0 0, 0 0'
-          }}
-        />
-        
-        {/* Animated scan lines */}
-        <motion.div
-          className="absolute inset-0 bg-gradient-to-b from-transparent via-purple-500/8 to-transparent"
-          animate={{
-            opacity: [0, 0.3, 0],
-            y: ['-100%', '100%']
-          }}
-          transition={{
-            duration: 5,
-            repeat: Infinity,
-            ease: "linear"
-          }}
-        />
+      <div className="iq-page-heading">
+        <div>
+          <span className="iq-eyebrow">
+            <span className="iq-dot" />
+            YOUR DAILY PERSPECTIVE
+          </span>
+          <h1>Your next move, made clear.</h1>
+          <p>
+            A little context. A clear priority. More room for meaningful work.
+          </p>
+        </div>
+        <button
+          onClick={() => navigate("/inbox")}
+          className="iq-button secondary text-[11px] py-2.5"
+        >
+          Open your inbox <Zap size={13} />
+        </button>
       </div>
-
-      <div className="relative space-y-6 sm:space-y-8 w-full min-w-0 max-w-full overflow-x-hidden pb-8">
-        {/* Status Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 sm:gap-6 w-full min-w-0">
+      <div className="space-y-5">
+        <div className="grid grid-cols-2 xl:grid-cols-4 gap-3 sm:gap-4">
           <StatusCard
-            title="Hot Leads"
+            title="High-intent leads"
             value={hotLeadsCount}
-            change={{ value: 25, trend: "up" }}
             icon={Flame}
             variant="hot"
-            subtitle="Ready to close"
+            subtitle="Conversations with momentum"
           />
           <StatusCard
-            title="Needs Follow-Up"
+            title="Follow-ups due"
             value={needsFollowUpCount}
             icon={Bell}
             variant="warm"
-            subtitle="Due today"
+            subtitle="A good time to reconnect"
           />
           <StatusCard
-            title="AI Drafts Ready"
+            title="Drafts to review"
             value={draftsReadyCount}
-            change={{ value: 3, trend: "up" }}
             icon={FileEdit}
             variant="default"
-            subtitle="Awaiting review"
+            subtitle="Your next reply starts here"
           />
           <StatusCard
-            title="Deals at Risk"
+            title="Needs your attention"
             value={atRiskCount}
             icon={AlertTriangle}
             variant="risk"
-            subtitle="No reply 5+ days"
+            subtitle="No contact in 5+ days"
           />
         </div>
-
-        {/* AI Insight Panel */}
-        <AIInsightPanel 
-          insight={aiInsight.text || "Analyzing your pipeline..."}
+        <AIInsightPanel
+          insight={
+            leads.length === 0
+              ? "Your next opportunity starts with a conversation. Connect your email to bring your relationships into focus."
+              : aiInsight.text ||
+                "Explore your pipeline to see which relationships are ready for a next step."
+          }
           highlights={aiInsight.highlights}
         />
-
-        {/* Performance Metrics - Full Width */}
-        <PerformanceSnapshot metrics={performanceMetricsWithIcons} />
-
-        {/* Futuristic Section Divider */}
-        <div className="relative py-4">
-          <div className="absolute inset-0 flex items-center">
-            <div className="w-full h-px bg-gradient-to-r from-transparent via-accent/40 to-transparent"></div>
-          </div>
-          <motion.div
-            className="absolute left-1/2 -translate-x-1/2 px-6 bg-background"
-            animate={{
-              scale: [1, 1.2, 1],
-              opacity: [0.6, 1, 0.6]
-            }}
-            transition={{
-              duration: 2,
-              repeat: Infinity,
-              ease: "easeInOut"
-            }}
-          >
-            <div className="w-3 h-3 rounded-full bg-gradient-to-br from-accent to-purple-500 border-2 border-accent/50 shadow-lg shadow-accent/30"></div>
-          </motion.div>
-        </div>
-
-        {/* Main content grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-7 min-w-0 w-full max-w-full overflow-x-hidden">
-
-          {/* Lead Pipeline - Takes 8 columns */}
-          <div className="col-span-1 lg:col-span-8 min-w-0 w-full max-w-full overflow-x-hidden">
-            <LeadPipeline 
+        <div className="grid grid-cols-1 xl:grid-cols-12 gap-5">
+          <div className="xl:col-span-8 min-w-0">
+            <LeadPipeline
               leads={transformedLeads}
               onLeadClick={handleLeadClick}
             />
           </div>
-
-          {/* Right column - Action Queue */}
-          <div className="col-span-1 lg:col-span-4 min-w-0 w-full max-w-full overflow-x-hidden">
-            <ActionQueue 
+          <div className="xl:col-span-4 min-w-0">
+            <ActionQueue
               actions={transformedActions}
               onReviewSend={handleActionReviewSend}
             />
           </div>
         </div>
+        <section className="card-elevated p-5 sm:p-6">
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h2 className="iq-section-heading">The shape of your pipeline</h2>
+              <p className="text-[10px] text-muted-foreground mt-1">
+                A live view of your relationships, by stage.
+              </p>
+            </div>
+            <span className="text-[10px] text-muted-foreground">
+              {statistics.total} total leads
+            </span>
+          </div>
+          <div className="flex h-2 rounded-full overflow-hidden gap-1 bg-white/[.03] mb-5">
+            {[
+              { n: statistics.hot, c: "#c59b86" },
+              { n: statistics.warm, c: "#c9ae7c" },
+              { n: statistics.cold, c: "#a18ac7" },
+            ].map((stage, i) => (
+              <div
+                key={i}
+                style={{
+                  width: `${statistics.total ? (stage.n / statistics.total) * 100 : 0}%`,
+                  background: stage.c,
+                }}
+              />
+            ))}
+          </div>
+          <div className="flex flex-wrap gap-6 text-[10px] text-muted-foreground">
+            {[
+              { label: "High intent", n: statistics.hot, c: "#c59b86" },
+              { label: "In conversation", n: statistics.warm, c: "#c9ae7c" },
+              { label: "Room to reconnect", n: statistics.cold, c: "#a18ac7" },
+            ].map((stage) => (
+              <span key={stage.label} className="flex gap-2 items-center">
+                <i
+                  className="w-1.5 h-1.5 rounded-full"
+                  style={{ background: stage.c }}
+                />
+                {stage.label}
+                <strong className="text-foreground font-medium">
+                  {stage.n}
+                </strong>
+              </span>
+            ))}
+          </div>
+        </section>
       </div>
-
-      {/* Email Preview Panel (Slide-over) */}
       <EmailPreviewPanel
         isOpen={emailPanelOpen}
         onClose={() => setEmailPanelOpen(false)}
         email={selectedEmail}
       />
-
-      {/* Overlay when panel is open */}
       {emailPanelOpen && (
-        <div 
-          className="fixed inset-0 bg-foreground/10 z-40"
+        <button
+          aria-label="Close email preview"
+          className="fixed inset-0 bg-black/50 z-40"
           onClick={() => setEmailPanelOpen(false)}
         />
       )}
     </DashboardLayout>
   );
 };
-
 export default Index;
