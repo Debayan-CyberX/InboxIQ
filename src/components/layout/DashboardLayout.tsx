@@ -12,6 +12,7 @@ import Header from "./Header";
 import BottomNav from "./BottomNav";
 import { useGmailSync } from "@/hooks/use-gmail-sync";
 import IntelligenceStatus from "@/components/dashboard/IntelligenceStatus";
+import "@/graphite.css";
 export default function DashboardLayout({ children }: { children: ReactNode }) {
   useGmailSync();
   const [collapsed, setCollapsed] = useState(

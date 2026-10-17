@@ -1,0 +1,461 @@
+/* Authenticated material layer. No root tokens or public-page selectors.
+   Radix portals and toasts receive the same material only while the app exists. */
+.app-shell,
+body:has(.app-shell) :is(.surface-floating, [data-sonner-toaster]) {
+  --workspace-frame: 220 8% 93%;
+  --workspace-canvas: 220 10% 99%;
+  --workspace-edge: 220 8% 83%;
+  --background: 220 10% 99%;
+  --foreground: 220 10% 13%;
+  --card: 220 10% 99%;
+  --card-foreground: var(--foreground);
+  --popover: 220 8% 98%;
+  --popover-foreground: var(--foreground);
+  --secondary: 220 8% 92%;
+  --secondary-foreground: var(--foreground);
+  --muted: 220 6% 94%;
+  --muted-foreground: 220 5% 43%;
+  --border: 220 8% 86%;
+  --input: 220 8% 81%;
+  --sidebar-background: 220 8% 94%;
+  --sidebar-border: 220 8% 85%;
+  --surface-inset: 220 8% 96%;
+  --surface-hover: 220 7% 92%;
+
+  --graphite-recessed: #f0f1f3;
+  --graphite-surface: #fafafa;
+  --graphite-reading: #fdfdfd;
+  --graphite-writing: #fff;
+  --graphite-edge: #34394226;
+  --graphite-edge-lit: #34394236;
+  --graphite-specular: #ffffffd9;
+  --graphite-hover: #11172206;
+  --graphite-canvas:
+    radial-gradient(ellipse at 85% 0%, #fff 0%, #fff0 65%), #f8f9fa;
+  --graphite-raised: linear-gradient(145deg, #fff, #f5f6f7);
+  --graphite-floating: linear-gradient(145deg, #fff8, #fff0 65%);
+  --graphite-ambient: 0 6px 20px #10131a08, 0 1px 3px #10131a05;
+  --graphite-float-shadow: 0 22px 64px #10131a26, 0 4px 12px #10131a0d;
+  --graphite-grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160' viewBox='0 0 160 160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.92' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Cpath d='M0 0h160v160H0z' filter='url(%23n)' opacity='.8'/%3E%3C/svg%3E");
+}
+
+.dark .app-shell,
+.dark body:has(.app-shell) :is(.surface-floating, [data-sonner-toaster]) {
+  --workspace-frame: 220 12% 5%;
+  --workspace-canvas: 216 11% 9%;
+  --workspace-edge: 220 5% 23%;
+  --background: 216 8% 10%;
+  --foreground: 60 3% 95%;
+  --card: 220 6% 13%;
+  --popover: 220 7% 12%;
+  --secondary: 220 5% 18%;
+  --muted: 220 5% 13%;
+  --muted-foreground: 220 4% 69%;
+  --border: 220 5% 22%;
+  --input: 220 5% 27%;
+  --sidebar-background: 220 7% 7%;
+  --sidebar-border: 220 5% 19%;
+  --surface-inset: 220 7% 7%;
+  --surface-hover: 220 5% 18%;
+
+  --graphite-recessed: #111214;
+  --graphite-surface: #1a1c1f;
+  --graphite-reading: #17191c;
+  --graphite-writing: #1b1d20;
+  --graphite-edge: #e9ecf21a;
+  --graphite-edge-lit: #e9ecf22e;
+  --graphite-specular: #ffffff0e;
+  --graphite-hover: #ffffff08;
+  --graphite-canvas:
+    radial-gradient(ellipse at 85% -12%, #bfc1c614, #bfc1c600 60%),
+    linear-gradient(155deg, #1d1f22, #17191c 38%, #15171a 80%);
+  --graphite-raised:
+    radial-gradient(ellipse at 0% 115%, #d2d5db07, #d2d5db00 65%),
+    linear-gradient(155deg, #292b2e, #212326 48%, #1f2124);
+  --graphite-floating: linear-gradient(145deg, #ffffff05, #ffffff00 65%);
+  --graphite-ambient: 0 8px 24px #00000026, 0 2px 5px #0000001a;
+  --graphite-float-shadow: 0 22px 70px #0006, 0 4px 16px #0003;
+}
+
+/* Ambient studio lighting stays behind the content, without continuous motion. */
+.app-shell {
+  background:
+    radial-gradient(ellipse at 88% 0%, #ffffff16, #ffffff00 48%),
+    radial-gradient(ellipse at 0% 85%, #ffffff08, #ffffff00 55%),
+    hsl(var(--workspace-frame));
+}
+.app-shell .app-workspace {
+  position: relative;
+  isolation: isolate;
+  background: var(--graphite-canvas);
+  border-color: var(--graphite-edge-lit);
+  border-radius: 12px;
+  box-shadow:
+    inset 0 1px 0 var(--graphite-specular),
+    -8px 0 32px #0000000a;
+}
+.app-shell .app-workspace::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  border-radius: inherit;
+  background-image: var(--graphite-grain);
+  background-size: 160px 160px;
+  opacity: 0.028;
+}
+.app-shell .app-topbar {
+  background: hsl(var(--workspace-canvas));
+  border-bottom-color: var(--graphite-edge);
+  box-shadow: inset 0 1px 0 var(--graphite-specular);
+}
+.app-shell .app-sidebar-wrap {
+  background: transparent;
+}
+.app-shell .app-sidebar {
+  background:
+    linear-gradient(175deg, var(--graphite-hover), transparent 60%),
+    hsl(var(--sidebar-background));
+  border-right: 0;
+}
+.app-shell .sidebar-workspace,
+.app-shell .sidebar-user {
+  border-color: var(--graphite-edge);
+}
+.app-shell .nav-link {
+  color: hsl(var(--muted-foreground));
+  transition:
+    background-color 150ms,
+    border-color 150ms,
+    color 150ms,
+    box-shadow 180ms;
+}
+.app-shell .nav-link svg {
+  opacity: 0.9;
+}
+.app-shell .nav-link:hover {
+  color: hsl(var(--foreground));
+  background: var(--graphite-hover);
+}
+.app-shell .nav-link[aria-current] {
+  color: hsl(var(--foreground));
+  background:
+    linear-gradient(110deg, var(--graphite-hover), transparent 90%),
+    hsl(var(--secondary) / 0.7);
+  border-color: var(--graphite-edge);
+  box-shadow:
+    inset 0 1px 0 var(--graphite-specular),
+    0 2px 4px #0000000a;
+}
+.app-shell .avatar {
+  background: var(--graphite-surface);
+  border-color: var(--graphite-edge-lit);
+  box-shadow: inset 0 1px 0 var(--graphite-specular);
+}
+
+/* Elevation is reserved for grouped decisions and context, not every row. */
+.app-shell :is(.metric-strip, .briefing, .onboarding, .panel) {
+  background: var(--graphite-raised);
+  border-color: var(--graphite-edge-lit);
+  border-radius: 10px;
+  box-shadow:
+    inset 0 1px 0 var(--graphite-specular),
+    var(--graphite-ambient);
+}
+.app-shell .metric-strip > :is(a, div) {
+  border-color: var(--graphite-edge);
+}
+.app-shell .metric-strip > a:hover {
+  background: var(--graphite-hover);
+}
+.app-shell .metric-value {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "ss01";
+}
+.app-shell .work-list > li {
+  border-color: var(--graphite-edge);
+  transition: background-color 150ms;
+}
+.app-shell .work-list > li:hover {
+  background: var(--graphite-hover);
+}
+.app-shell .overview-columns > aside {
+  border-color: var(--graphite-edge);
+}
+.app-shell .queue-clear {
+  background: hsl(var(--surface-inset) / 0.5);
+  border-color: var(--graphite-edge);
+  box-shadow: inset 0 1px 0 var(--graphite-specular);
+}
+.app-shell .intelligence-status {
+  border-color: var(--graphite-edge);
+}
+
+/* Recessed navigation, a standard list, and an opaque, texture-free reader. */
+.app-shell :is(.inbox-workspace, .draft-workspace) {
+  background: var(--graphite-surface);
+  border-color: var(--graphite-edge-lit);
+  border-radius: 10px;
+  box-shadow:
+    0 6px 20px #0000000d,
+    inset 0 1px 0 var(--graphite-specular);
+}
+.app-shell .inbox-folders,
+.app-shell .draft-list-panel {
+  background: var(--graphite-recessed);
+  border-color: var(--graphite-edge);
+}
+.app-shell .inbox-folders > button[aria-pressed="true"] {
+  background: hsl(var(--secondary) / 0.8);
+  color: hsl(var(--foreground));
+  box-shadow: inset 0 1px 0 var(--graphite-specular);
+}
+.app-shell .inbox-list-panel {
+  background: var(--graphite-surface);
+}
+.app-shell
+  :is(
+    .inbox-list-search,
+    .inbox-list-controls,
+    .inbox-mobile-folders,
+    .inbox-list-bottom,
+    .inbox-folder-note
+  ) {
+  border-color: var(--graphite-edge);
+}
+.app-shell :is(.inbox-list-controls select, .inbox-mobile-folders select) {
+  background: var(--graphite-surface);
+}
+.app-shell :is(.inbox-message, .draft-list-item) {
+  border-color: var(--graphite-edge);
+}
+.app-shell
+  :is(
+    .inbox-message:hover,
+    .inbox-message:focus-within,
+    .draft-list-item:hover
+  ) {
+  background: var(--graphite-hover);
+}
+.app-shell :is(.inbox-message.selected, .draft-list-item.active) {
+  background:
+    linear-gradient(110deg, var(--graphite-hover), transparent),
+    hsl(var(--secondary) / 0.6);
+  box-shadow:
+    inset 2px 0 hsl(var(--primary) / 0.65),
+    inset 0 1px 0 var(--graphite-specular);
+}
+.app-shell .inbox-resize-handle {
+  background: linear-gradient(
+    var(--graphite-edge-lit),
+    var(--graphite-edge) 35%,
+    var(--graphite-edge-lit)
+  );
+}
+.app-shell
+  .inbox-resize-handle:is(:hover, :focus-visible, [data-resize-handle-active]) {
+  background: hsl(var(--primary) / 0.8);
+}
+.app-shell
+  :is(.thread-reader, .reader-scroll, .draft-editor, .draft-review-scroll) {
+  background: var(--graphite-reading);
+}
+.app-shell :is(.reader-tools, .reader-footer, .draft-review-footer) {
+  background: var(--graphite-surface);
+  border-color: var(--graphite-edge);
+  box-shadow: inset 0 1px 0 var(--graphite-specular);
+}
+.app-shell
+  :is(
+    .reader-contact,
+    .reader-intelligence,
+    .reader-email,
+    .draft-original,
+    .draft-recipient
+  ) {
+  border-color: var(--graphite-edge);
+}
+.app-shell .draft-body.form-input {
+  background: var(--graphite-writing);
+  border-color: var(--graphite-edge-lit);
+  box-shadow: inset 0 1px 3px #0000000d;
+}
+
+/* Tables and plotting areas remain solid. Texture never sits over their data. */
+.app-shell .data-table {
+  background: var(--graphite-reading);
+}
+.app-shell .data-table th {
+  background: var(--graphite-recessed);
+  border-color: var(--graphite-edge);
+}
+.app-shell .data-table td {
+  border-color: var(--graphite-edge);
+}
+.app-shell .data-table tr:hover td {
+  background: var(--graphite-surface);
+}
+.app-shell .lead-board > section {
+  background: hsl(var(--surface-inset) / 0.75);
+  border-color: var(--graphite-edge);
+  border-radius: 9px;
+}
+.app-shell .lead-board article {
+  background: var(--graphite-raised);
+  border-color: var(--graphite-edge);
+  border-radius: 8px;
+  box-shadow:
+    inset 0 1px 0 var(--graphite-specular),
+    0 3px 8px #00000012;
+  transition:
+    border-color 150ms,
+    box-shadow 180ms;
+}
+.app-shell .lead-board article:hover {
+  background: var(--graphite-raised);
+  border-color: var(--graphite-edge-lit);
+  box-shadow:
+    inset 0 1px 0 var(--graphite-specular),
+    0 5px 12px #0000001a;
+}
+.app-shell .analytics-grid > section {
+  background: var(--graphite-surface);
+  border-color: var(--graphite-edge);
+  border-radius: 10px;
+  box-shadow: inset 0 1px 0 var(--graphite-specular);
+}
+.app-shell :is(.distribution-track, .chart-grid-lines i) {
+  border-color: var(--graphite-edge);
+}
+.app-shell
+  :is(
+    .toolbar,
+    .settings-workspace,
+    .settings-section,
+    .settings-row,
+    .email-connection-row
+  ) {
+  border-color: var(--graphite-edge);
+}
+.app-shell .settings-navigation button[aria-current] {
+  background:
+    linear-gradient(110deg, var(--graphite-hover), transparent),
+    hsl(var(--secondary) / 0.7);
+  box-shadow: inset 0 1px 0 var(--graphite-specular);
+}
+.app-shell :is(.form-input, .compact-select, .segmented, .topbar-search) {
+  background: hsl(var(--surface-inset));
+  border-color: var(--graphite-edge-lit);
+}
+.app-shell .segmented button[aria-pressed="true"] {
+  box-shadow:
+    inset 0 1px 0 var(--graphite-specular),
+    0 1px 3px #00000012;
+}
+.app-shell .ui-button.border:not(.bg-primary) {
+  background: var(--graphite-surface);
+  border-color: var(--graphite-edge-lit);
+  box-shadow:
+    inset 0 1px 0 var(--graphite-specular),
+    0 1px 3px #00000012;
+}
+.app-shell .ui-button.border:not(.bg-primary):hover {
+  background: hsl(var(--surface-hover));
+}
+
+/* Body portals have a strict authenticated-page boundary and opaque fallbacks. */
+body:has(.app-shell) .surface-overlay {
+  background: #05060794;
+}
+body:has(.app-shell) .surface-floating {
+  background: var(--graphite-floating), hsl(var(--popover));
+  color: hsl(var(--foreground));
+  border-color: var(--graphite-edge-lit);
+  box-shadow:
+    inset 0 1px 0 var(--graphite-specular),
+    var(--graphite-float-shadow);
+  animation-timing-function: cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+body:has(.app-shell) .surface-modal {
+  border-radius: 12px;
+}
+body:has(.app-shell) .surface-menu {
+  border-radius: 9px;
+}
+body:has(.app-shell) .surface-floating :is(.form-input, [cmdk-input-wrapper]) {
+  border-color: var(--graphite-edge-lit);
+}
+body:has(.app-shell) .surface-floating .form-input {
+  background: hsl(var(--surface-inset) / 0.85);
+}
+body:has(.app-shell) .assistant-sheet > :first-child {
+  border-color: var(--graphite-edge);
+}
+body:has(.app-shell) .assistant-sheet form {
+  background: hsl(var(--surface-inset) / 0.6);
+  border-color: var(--graphite-edge);
+}
+body:has(.app-shell) .assistant-sheet form > .flex {
+  background: var(--graphite-recessed);
+  border-color: var(--graphite-edge-lit);
+}
+body:has(.app-shell) .assistant-sheet textarea.form-input {
+  background: transparent;
+}
+body:has(.app-shell) [data-sonner-toast][data-styled="true"] {
+  background: var(--graphite-raised);
+  color: hsl(var(--foreground));
+  border-color: var(--graphite-edge-lit);
+  box-shadow:
+    inset 0 1px 0 var(--graphite-specular),
+    var(--graphite-float-shadow);
+}
+.app-shell :is(.form-input, .compact-select):focus-visible,
+body:has(.app-shell) .surface-floating .form-input:focus-visible {
+  border-color: hsl(var(--ring));
+  box-shadow: 0 0 0 3px hsl(var(--ring) / 0.18);
+}
+body:has(.app-shell) .assistant-sheet form > .flex:focus-within {
+  border-color: hsl(var(--ring));
+  box-shadow: 0 0 0 3px hsl(var(--ring) / 0.18);
+}
+body:has(.app-shell) .assistant-sheet textarea.form-input:focus-visible {
+  box-shadow: none;
+}
+@supports (
+  (backdrop-filter: blur(18px)) or (-webkit-backdrop-filter: blur(18px))
+) {
+  body:has(.app-shell) .surface-floating {
+    background: var(--graphite-floating), hsl(var(--popover) / 0.94);
+    -webkit-backdrop-filter: blur(18px) saturate(115%);
+    backdrop-filter: blur(18px) saturate(115%);
+  }
+  .dark body:has(.app-shell) .surface-floating {
+    background: var(--graphite-floating), hsl(var(--popover) / 0.9);
+  }
+}
+@media (max-width: 900px) {
+  .app-shell .app-workspace {
+    border-radius: 0;
+    box-shadow: none;
+  }
+  .app-shell > dialog .app-sidebar {
+    background: hsl(var(--sidebar-background));
+  }
+  .app-shell .mobile-nav {
+    background: hsl(var(--workspace-canvas));
+    border-top-color: var(--graphite-edge-lit);
+    box-shadow: 0 -4px 16px #0000000a;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .app-shell :is(.nav-link, .lead-board article) {
+    transition: none;
+  }
+}
+@media (max-width: 767px) {
+  .app-shell .topbar-search {
+    background: transparent;
+  }
+}
