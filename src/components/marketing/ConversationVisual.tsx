@@ -1,28 +1,5 @@
-import {
-  Component,
-  lazy,
-  Suspense,
-  useEffect,
-  useRef,
-  useState,
-  type ReactNode,
-} from "react";
-const Scene = lazy(() => import("./ConversationScene"));
-class SceneBoundary extends Component<
-  { children: ReactNode; onError: () => void },
-  { failed: boolean }
-> {
-  state = { failed: false };
-  static getDerivedStateFromError() {
-    return { failed: true };
-  }
-  componentDidCatch() {
-    this.props.onError();
-  }
-  render() {
-    return this.state.failed ? null : this.props.children;
-  }
-}
+import { useEffect, useRef, useState } from "react";
+import { Pause, Play } from "lucide-react";
 export function ConversationFallback({
   className = "",
 }: {
@@ -84,16 +61,15 @@ export function ConversationFallback({
 }
 export default function ConversationVisual() {
   const root = useRef<HTMLDivElement>(null),
-    progress = useRef(0),
-    pointer = useRef({ x: 0, y: 0, hover: 0 });
+    video = useRef<HTMLVideoElement>(null);
   const [enabled, setEnabled] = useState(false),
-    [ready, setReady] = useState(false),
-    [failed, setFailed] = useState(false),
     [visible, setVisible] = useState(true),
-    [pageVisible, setPageVisible] = useState(!document.hidden);
+    [pageVisible, setPageVisible] = useState(!document.hidden),
+    [ready, setReady] = useState(false),
+    [paused, setPaused] = useState(false),
+    [blocked, setBlocked] = useState(false),
+    [failed, setFailed] = useState(false);
   useEffect(() => {
-    const onVisibility = () => setPageVisible(!document.hidden);
-    document.addEventListener("visibilitychange", onVisibility);
     const media = matchMedia("(prefers-reduced-motion: reduce)");
     const update = () =>
       setEnabled(
@@ -101,62 +77,106 @@ export default function ConversationVisual() {
           !(navigator as Navigator & { connection?: { saveData?: boolean } })
             .connection?.saveData,
       );
-    const timer = window.setTimeout(update, 500);
+    const timer = setTimeout(update, 300);
     media.addEventListener("change", update);
+    const onVisibility = () => setPageVisible(!document.hidden);
+    document.addEventListener("visibilitychange", onVisibility);
     const observer = new IntersectionObserver(
       ([entry]) => setVisible(entry.isIntersecting),
       { rootMargin: "120px" },
     );
     if (root.current) observer.observe(root.current);
-    const scroll = () => {
-      progress.current = Math.min(
-        1,
-        Math.max(0, window.scrollY / window.innerHeight),
-      );
-    };
-    window.addEventListener("scroll", scroll, { passive: true });
     return () => {
-      document.removeEventListener("visibilitychange", onVisibility);
       clearTimeout(timer);
       media.removeEventListener("change", update);
+      document.removeEventListener("visibilitychange", onVisibility);
       observer.disconnect();
-      window.removeEventListener("scroll", scroll);
     };
   }, []);
+  useEffect(() => {
+    const element = video.current;
+    if (!element) return;
+    if (enabled && visible && pageVisible && !paused && !failed) {
+      element
+        .play()
+        .then(() => setBlocked(false))
+        .catch(() => setBlocked(true));
+    } else element.pause();
+  }, [enabled, visible, pageVisible, paused, failed]);
+  function toggle() {
+    if (!enabled || blocked) {
+      setEnabled(true);
+      setPaused(false);
+      video.current
+        ?.play()
+        .then(() => setBlocked(false))
+        .catch(() => setBlocked(true));
+    } else setPaused((v) => !v);
+  }
   return (
     <div
       ref={root}
-      className={`conversation-visual ${ready && !failed && enabled ? "is-rendered" : ""}`}
-      role="img"
-      aria-label="A reflective liquid-metal orb, continuously flowing and deforming toward your pointer."
+      className={`conversation-visual reference-orb ${ready && !failed ? "is-rendered" : ""}`}
+      role="group"
+      aria-label="Flowing reflective orb animation"
       onPointerMove={(e) => {
+        if (!enabled) return;
         const r = e.currentTarget.getBoundingClientRect();
-        pointer.current = {
-          x: ((e.clientX - r.left) / r.width - 0.5) * 2,
-          y: ((e.clientY - r.top) / r.height - 0.5) * 2,
-          hover: 1,
-        };
+        e.currentTarget.style.setProperty(
+          "--orb-x",
+          `${((e.clientX - r.left) / r.width - 0.5) * 8}px`,
+        );
+        e.currentTarget.style.setProperty(
+          "--orb-y",
+          `${((e.clientY - r.top) / r.height - 0.5) * 8}px`,
+        );
       }}
-      onPointerLeave={() => {
-        pointer.current = { x: 0, y: 0, hover: 0 };
+      onPointerLeave={(e) => {
+        e.currentTarget.style.setProperty("--orb-x", "0px");
+        e.currentTarget.style.setProperty("--orb-y", "0px");
       }}
     >
-      <ConversationFallback />
-      {enabled && !failed && (
-        <SceneBoundary onError={() => setFailed(true)}>
-          <Suspense fallback={null}>
-            <Scene
-              active={visible && pageVisible}
-              progress={progress}
-              pointer={pointer}
-              onReady={() => setReady(true)}
-              onUnavailable={() => setFailed(true)}
-            />
-          </Suspense>
-        </SceneBoundary>
-      )}
+      <img
+        className="reference-orb-poster"
+        src="/media/liquid-orb-poster.webp"
+        alt=""
+        width="1200"
+        height="674"
+        fetchPriority="high"
+      />
+      <video
+        ref={video}
+        className="reference-orb-video"
+        src={enabled && !failed ? "/media/liquid-orb.mp4" : undefined}
+        poster="/media/liquid-orb-poster.webp"
+        muted
+        loop
+        playsInline
+        preload={enabled ? "auto" : "none"}
+        onLoadedData={() => setReady(true)}
+        onError={() => setFailed(true)}
+        aria-hidden="true"
+      />
       <span className="sculpture-caption">
-        FIG. 01 <span>INTELLIGENCE IN MOTION</span>
+        <span>FIG. 01 / LIQUID INTELLIGENCE</span>
+        {!failed && (
+          <button
+            type="button"
+            onClick={toggle}
+            aria-label={
+              paused || !enabled || blocked
+                ? "Play orb animation"
+                : "Pause orb animation"
+            }
+          >
+            {paused || !enabled || blocked ? (
+              <Play size={10} />
+            ) : (
+              <Pause size={10} />
+            )}
+            <span>{paused || !enabled || blocked ? "Play" : "Pause"}</span>
+          </button>
+        )}
       </span>
     </div>
   );

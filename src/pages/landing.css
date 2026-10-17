@@ -3178,3 +3178,73 @@
     opacity: 0.32;
   }
 }
+
+/* Exact reference motion is a video, independent of the retired WebGL shader. */
+.reference-orb {
+  mix-blend-mode: screen;
+}
+.reference-orb-video,
+.reference-orb-poster {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  transform: translate3d(var(--orb-x, 0px), var(--orb-y, 0px), 0);
+  transition:
+    transform 0.45s ease,
+    opacity 0.5s;
+}
+.reference-orb-video {
+  opacity: 0;
+}
+.reference-orb.is-rendered .reference-orb-video {
+  opacity: 1;
+}
+.reference-orb.is-rendered .reference-orb-poster {
+  opacity: 0;
+}
+.reference-orb .sculpture-caption {
+  bottom: 13%;
+  right: 15%;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  z-index: 6;
+}
+.reference-orb .sculpture-caption > span {
+  color: #7f8b8e;
+}
+.reference-orb .sculpture-caption button {
+  display: inline-flex;
+  gap: 5px;
+  align-items: center;
+  font-size: 8px;
+  padding: 6px;
+  color: #b4bebd;
+  border: 1px solid #ffffff22;
+  border-radius: 3px;
+}
+@media (max-width: 700px) {
+  .reference-orb .sculpture-caption {
+    bottom: 0;
+    right: 10%;
+    font-size: 6px;
+    gap: 10px;
+  }
+  .reference-orb .sculpture-caption button {
+    font-size: 7px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .reference-orb-video,
+  .reference-orb-poster {
+    transform: none;
+    transition: none;
+  }
+}
+
+.cinema-hero .reference-orb:after{display:none;}
+.reference-orb{mask-image:linear-gradient(90deg,transparent,#000 28%);}
+@media(max-width:700px){.reference-orb{mask-image:none;}}
