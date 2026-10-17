@@ -38,9 +38,9 @@ export function ConversationFallback({
       <defs>
         <radialGradient id="orb-body" cx=".36" cy=".23" r=".75">
           <stop stopColor="#8c959e" />
-          <stop offset=".2" stopColor="#151b21" />
-          <stop offset=".65" stopColor="#030506" />
-          <stop offset=".88" stopColor="#11191f" />
+          <stop offset=".2" stopColor="#8c9aa8" />
+          <stop offset=".65" stopColor="#4d5b6a" />
+          <stop offset=".88" stopColor="#8494a5" />
           <stop offset="1" stopColor="#a2b1bc" />
         </radialGradient>
         <linearGradient

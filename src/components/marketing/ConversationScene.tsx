@@ -47,7 +47,7 @@ function Studio() {
   const { gl, scene } = useThree();
   useEffect(() => {
     const studio = new Scene();
-    studio.background = new Color("#030405");
+    studio.background = new Color("#485361");
     const geometry = new BoxGeometry(1, 1, 1);
     const materials: MeshBasicMaterial[] = [];
     const panel = (
@@ -76,7 +76,8 @@ function Studio() {
     panel([0.467, 0.513, 5.02], [5, 0.13, 0.05], 2.1, "#6400ff", -0.6);
     panel([0.41, 0.43, 5.03], [5, 0.035, 0.05], 1.2, "#ffbd45", -0.6);
     panel([0, -3, -2], [7, 0.04, 0.45], 1.8, "#a5b6c4", 0.2);
-    panel([-2, 0, 4], [3, 4, 0.05], 0.14, "#8099b1");
+    panel([-2, 0, 4], [4, 5, 0.05], 0.55, "#d2dce5");
+    panel([3, -1, 3], [3, 5, 0.08], 0.45, "#c5d0db", -0.3);
     const generator = new PMREMGenerator(gl),
       texture = generator.fromScene(studio, 0.025);
     scene.environment = texture.texture;
@@ -121,14 +122,14 @@ function LiquidOrb({
   const material = useMemo(() => {
     const surface = new MeshPhysicalMaterial({
       color: "#c9ced4",
-      metalness: 1,
-      roughness: 0.065,
+      metalness: 0.94,
+      roughness: 0.075,
       clearcoat: 1,
       clearcoatRoughness: 0.045,
       iridescence: 0.25,
       iridescenceIOR: 1.45,
       iridescenceThicknessRange: [260, 440],
-      envMapIntensity: 1.15,
+      envMapIntensity: 1.35,
     });
     surface.onBeforeCompile = (shader) => {
       Object.assign(shader.uniforms, uniforms);
@@ -138,10 +139,10 @@ function LiquidOrb({
         "#include <opaque_fragment>",
         `
         float reflectedEnergy=dot(outgoingLight,vec3(.2126,.7152,.0722));
-        float spectrumEdge=smoothstep(.04,.16,reflectedEnergy)*(1.-smoothstep(.65,1.3,reflectedEnergy));
+        float spectrumEdge=smoothstep(.32,.75,reflectedEnergy)*(1.-smoothstep(1.8,3.,reflectedEnergy));
         float hue=sin(normal.y*4.+normal.x*2.5+uTime*.3)*.5+.5;
         vec3 spectralTint=mix(vec3(.0,.82,1.),vec3(.045,.0,1.),smoothstep(.22,.8,hue));
-        outgoingLight=mix(outgoingLight,spectralTint*1.5,spectrumEdge*.86);
+        outgoingLight=mix(outgoingLight,spectralTint*1.5,spectrumEdge*.65);
         #include <opaque_fragment>
       `,
       );
@@ -154,7 +155,7 @@ function LiquidOrb({
         "#include <begin_vertex>\ntransformed=liquidShape(position);",
       );
     };
-    surface.customProgramCacheKey = () => "inboxiq-liquid-orb-v2";
+    surface.customProgramCacheKey = () => "inboxiq-liquid-orb-v3";
     return surface;
   }, [uniforms]);
   useEffect(() => () => material.dispose(), [material]);
