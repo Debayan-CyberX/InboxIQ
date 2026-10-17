@@ -24,6 +24,7 @@ body:has(.app-shell) :is(.surface-floating, [data-sonner-toaster]) {
 
   --graphite-recessed: #f0f1f3;
   --graphite-surface: #fafafa;
+  --graphite-list: #f2f3f5;
   --graphite-reading: #fdfdfd;
   --graphite-writing: #fff;
   --graphite-edge: #34394226;
@@ -60,7 +61,8 @@ body:has(.app-shell) :is(.surface-floating, [data-sonner-toaster]) {
 
   --graphite-recessed: #111214;
   --graphite-surface: #1a1c1f;
-  --graphite-reading: #17191c;
+  --graphite-list: #151719;
+  --graphite-reading: #202226;
   --graphite-writing: #1b1d20;
   --graphite-edge: #e9ecf21a;
   --graphite-edge-lit: #e9ecf22e;
@@ -184,9 +186,76 @@ body:has(.app-shell) :is(.surface-floating, [data-sonner-toaster]) {
   border-color: var(--graphite-edge);
 }
 .app-shell .queue-clear {
-  background: hsl(var(--surface-inset) / 0.5);
+  display: grid;
+  grid-template-columns: 26px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  background: var(--graphite-surface);
   border-color: var(--graphite-edge);
   box-shadow: inset 0 1px 0 var(--graphite-specular);
+}
+.app-shell .queue-clear-icon {
+  width: 26px;
+  height: 26px;
+}
+.app-shell .queue-clear > div > p:first-child {
+  font-size: 13px;
+}
+.app-shell .queue-clear-action {
+  white-space: nowrap;
+}
+/* Existing work carries emphasis; zero counts and supporting context stay quiet. */
+.app-shell .overview-metrics {
+  background: var(--graphite-surface);
+  border-color: var(--graphite-edge);
+  box-shadow: inset 0 1px 0 var(--graphite-specular);
+}
+.app-shell .overview-metrics > a[data-has-work="true"] {
+  background: var(--graphite-hover);
+}
+.app-shell .overview-metrics > a[data-has-work="true"] .metric-label {
+  color: hsl(var(--foreground));
+}
+.app-shell .overview-metrics .metric-value {
+  display: flex;
+  align-items: center;
+  min-height: 36px;
+  font-size: 30px;
+}
+.app-shell .overview-metrics > a[data-has-work="false"] .metric-value {
+  color: hsl(var(--muted-foreground));
+  font-size: 24px;
+  font-weight: 400;
+}
+.app-shell .overview-metrics > a:hover,
+.app-shell .overview-metrics > a:focus-visible {
+  background: hsl(var(--surface-hover));
+}
+.app-shell .overview-next[data-has-work="true"] .section-heading h2 {
+  font-size: 15px;
+}
+.app-shell .overview-next .work-list h3 {
+  font-size: 14px;
+}
+.app-shell .overview-recent {
+  margin-top: 28px;
+}
+.app-shell .overview-recent .section-heading h2 {
+  color: hsl(var(--muted-foreground));
+  font-size: 13px;
+}
+.app-shell .overview-recent .work-list > li {
+  padding-block: 14px;
+}
+.app-shell .overview-columns > aside .briefing {
+  background: var(--graphite-surface);
+  border-color: var(--graphite-edge);
+  box-shadow: inset 0 1px 0 var(--graphite-specular);
+}
+.app-shell .overview-columns > aside .briefing p {
+  font-size: 12px;
+  line-height: 1.75;
 }
 .app-shell .intelligence-status {
   border-color: var(--graphite-edge);
@@ -212,7 +281,7 @@ body:has(.app-shell) :is(.surface-floating, [data-sonner-toaster]) {
   box-shadow: inset 0 1px 0 var(--graphite-specular);
 }
 .app-shell .inbox-list-panel {
-  background: var(--graphite-surface);
+  background: var(--graphite-list);
 }
 .app-shell
   :is(
@@ -260,6 +329,86 @@ body:has(.app-shell) :is(.surface-floating, [data-sonner-toaster]) {
 .app-shell
   :is(.thread-reader, .reader-scroll, .draft-editor, .draft-review-scroll) {
   background: var(--graphite-reading);
+}
+/* A wider, quieter reading column keeps the message ahead of its metadata. */
+.app-shell .reader-scroll {
+  padding: 22px 24px;
+  box-shadow: inset 1px 0 0 var(--graphite-specular);
+}
+.app-shell .reader-scroll
+  > :where(.reader-subject, .reader-contact, .reader-intelligence, .reader-email) {
+  max-width: 76ch;
+}
+.app-shell .reader-subject {
+  font-size: 20px;
+  font-weight: 500;
+  line-height: 1.4;
+  letter-spacing: -0.4px;
+}
+.app-shell .reader-contact {
+  margin-top: 14px;
+  padding-bottom: 12px;
+}
+.app-shell .reader-contact summary {
+  gap: 8px;
+}
+.app-shell .reader-contact summary > span:nth-child(2) {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 2px 10px;
+}
+.app-shell .reader-contact summary small {
+  margin-top: 0;
+}
+.app-shell .reader-contact summary .avatar {
+  width: 24px;
+  height: 24px;
+  font-size: 10px;
+}
+.app-shell .reader-contact > div {
+  padding: 10px 0 0 32px;
+}
+.app-shell .reader-intelligence {
+  padding-block: 12px;
+}
+.app-shell .reader-intelligence > span {
+  text-transform: none;
+  letter-spacing: 0;
+}
+.app-shell .reader-intelligence p {
+  margin-top: 4px;
+  line-height: 1.65;
+}
+.app-shell .reader-email {
+  padding-block: 20px;
+}
+.app-shell .reader-email-header .avatar {
+  width: 26px;
+  height: 26px;
+  font-size: 10px;
+}
+.app-shell .reader-email-header :is(strong, small) {
+  line-height: 1.4;
+}
+.app-shell .reader-email-header small {
+  margin-top: 2px;
+}
+.app-shell .reader-email-header time {
+  white-space: nowrap;
+}
+.app-shell .reader-email-body {
+  margin-top: 14px;
+  line-height: 1.75;
+}
+.app-shell .reader-email > .flex {
+  margin-top: 14px;
+  align-items: center;
+  gap: 10px 18px;
+}
+.app-shell .reader-email > .flex > span {
+  flex-basis: auto;
+  margin-left: auto;
 }
 .app-shell :is(.reader-tools, .reader-footer, .draft-review-footer) {
   background: var(--graphite-surface);
@@ -455,6 +604,23 @@ body:has(.app-shell) .assistant-sheet textarea.form-input:focus-visible {
   }
 }
 @media (max-width: 767px) {
+  .app-shell .reader-scroll {
+    padding: 20px 18px;
+  }
+  .app-shell .reader-subject {
+    font-size: 19px;
+  }
+  .app-shell .reader-email > .flex > span {
+    flex-basis: 100%;
+    margin-left: 0;
+  }
+  .app-shell .queue-clear {
+    grid-template-columns: 26px minmax(0, 1fr);
+    align-items: start;
+  }
+  .app-shell .queue-clear-action {
+    grid-column: 2;
+  }
   .app-shell .topbar-search {
     background: transparent;
   }

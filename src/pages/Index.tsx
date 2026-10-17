@@ -195,7 +195,7 @@ export default function Overview() {
         </>
       ) : (
         <>
-          <div className="metric-strip">
+          <div className="metric-strip overview-metrics">
             {[
               {
                 label: "Follow-ups due",
@@ -222,7 +222,12 @@ export default function Overview() {
                 foot: "No contact in 5+ days",
               },
             ].map((m) => (
-              <Link key={m.label} to={m.to} className="group">
+              <Link
+                key={m.label}
+                to={m.to}
+                className="group"
+                data-has-work={m.value > 0}
+              >
                 <div className="metric-label">
                   {m.label}
                   <ArrowUpRight
@@ -237,92 +242,98 @@ export default function Overview() {
           </div>
           <div className="overview-columns">
             <div>
-              <div className="section-heading">
-                <div>
-                  <h2>Up next</h2>
-                  <p>Prioritized work, connected to your conversations.</p>
-                </div>
-                <button
-                  className="icon-button"
-                  aria-label="Refresh next steps"
-                  onClick={() => queue.refetch()}
-                >
-                  <RefreshCw
-                    size={12}
-                    className={queue.isFetching ? "animate-spin" : ""}
-                  />
-                </button>
-              </div>
-              {queue.isPending ? (
-                <LoadingState message="Loading your next steps..." />
-              ) : queue.error ? (
-                <p className="text-xs text-muted-foreground py-5">
-                  Next steps couldn't load.{" "}
+              <section
+                className="overview-next"
+                data-has-work={tasks.length > 0}
+                aria-label="Next steps"
+              >
+                <div className="section-heading">
+                  <div>
+                    <h2>Up next</h2>
+                    <p>Prioritized work, connected to your conversations.</p>
+                  </div>
                   <button
-                    className="text-primary"
+                    className="icon-button"
+                    aria-label="Refresh next steps"
                     onClick={() => queue.refetch()}
                   >
-                    Try again
+                    <RefreshCw
+                      size={12}
+                      className={queue.isFetching ? "animate-spin" : ""}
+                    />
                   </button>
-                </p>
-              ) : tasks.length ? (
-                <ul className="work-list">
-                  {tasks.slice(0, 7).map((task) => (
-                    <li key={task.id}>
-                      <span className="avatar mt-0.5">
-                        {task.type === "followup" ? (
-                          <Clock size={13} />
-                        ) : (
-                          <FileText size={13} />
-                        )}
-                      </span>
-                      <div className="flex-1">
-                        <h3>{task.title}</h3>
-                        <p>{task.description}</p>
-                        <Link
-                          to={
-                            task.emailId
-                              ? `/drafts?draft=${task.emailId}`
-                              : task.leadId
-                                ? `/leads?lead=${task.leadId}`
-                                : task.threadId
-                                  ? `/inbox?thread=${task.threadId}`
-                                  : "/inbox"
-                          }
-                          className="section-link mt-2"
-                        >
-                          {task.type === "followup"
-                            ? "Review lead"
-                            : "Review draft"}
-                          <ArrowRight size={11} />
-                        </Link>
-                      </div>
-                      <span className="text-[11px] text-muted-foreground capitalize mt-1">
-                        {task.priority}
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <div className="queue-clear">
-                  <span className="queue-clear-icon" aria-hidden="true">
-                    <Check size={16} />
-                  </span>
-                  <div>
-                    <p className="text-sm">Nothing waiting on you right now.</p>
-                    <p className="text-xs text-muted-foreground mt-2">
-                      Review your pipeline or pick up a conversation in the
-                      inbox.
-                    </p>
-                    <Link to="/inbox" className="section-link mt-4">
+                </div>
+                {queue.isPending ? (
+                  <LoadingState message="Loading your next steps..." />
+                ) : queue.error ? (
+                  <p className="text-xs text-muted-foreground py-5">
+                    Next steps couldn't load.{" "}
+                    <button
+                      className="text-primary"
+                      onClick={() => queue.refetch()}
+                    >
+                      Try again
+                    </button>
+                  </p>
+                ) : tasks.length ? (
+                  <ul className="work-list">
+                    {tasks.slice(0, 7).map((task) => (
+                      <li key={task.id}>
+                        <span className="avatar mt-0.5">
+                          {task.type === "followup" ? (
+                            <Clock size={13} />
+                          ) : (
+                            <FileText size={13} />
+                          )}
+                        </span>
+                        <div className="flex-1">
+                          <h3>{task.title}</h3>
+                          <p>{task.description}</p>
+                          <Link
+                            to={
+                              task.emailId
+                                ? `/drafts?draft=${task.emailId}`
+                                : task.leadId
+                                  ? `/leads?lead=${task.leadId}`
+                                  : task.threadId
+                                    ? `/inbox?thread=${task.threadId}`
+                                    : "/inbox"
+                            }
+                            className="section-link mt-2"
+                          >
+                            {task.type === "followup"
+                              ? "Review lead"
+                              : "Review draft"}
+                            <ArrowRight size={11} />
+                          </Link>
+                        </div>
+                        <span className="text-[11px] text-muted-foreground capitalize mt-1">
+                          {task.priority}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <div className="queue-clear">
+                    <span className="queue-clear-icon" aria-hidden="true">
+                      <Check size={16} />
+                    </span>
+                    <div>
+                      <p className="text-sm">Nothing waiting on you right now.</p>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Review your pipeline or pick up a conversation in the
+                        inbox.
+                      </p>
+                    </div>
+                    <Link to="/inbox" className="section-link queue-clear-action">
                       Open inbox
                       <ArrowRight size={12} />
                     </Link>
                   </div>
-                </div>
-              )}
+                )}
+              </section>
               {recent.length > 0 && (
-                <section className="mt-10">
+                <section className="overview-recent mt-10">
                   <div className="section-heading">
                     <h2>Recent conversations</h2>
                     <Link to="/inbox" className="section-link">
