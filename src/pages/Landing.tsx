@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import ConversationVisual from "@/components/marketing/ConversationVisual";
+import InteractiveEmailDemo from "@/components/marketing/InteractiveEmailDemo";
+import "@/components/marketing/email-demo.css";
 import SignalChapter from "@/components/marketing/SignalChapter";
 import { useLandingMotion } from "@/hooks/use-landing-motion";
 import { Link, Navigate } from "react-router-dom";
@@ -11,8 +13,6 @@ import {
   Inbox,
   FileText,
   Users,
-  Search,
-  Send,
   CheckCheck,
   Clock,
   Menu,
@@ -57,209 +57,6 @@ const steps = [
     icon: CheckCheck,
   },
 ];
-function DemoWorkspace({
-  stage,
-  setStage,
-  compact = false,
-}: {
-  stage: number;
-  setStage: (stage: number) => void;
-  compact?: boolean;
-}) {
-  const [edited, setEdited] = useState(false);
-  const [reply, setReply] = useState(
-    "Hi Maya, thanks for the detail. The new product launch sounds like a great fit. Would Tuesday at 10 work for a short call?",
-  );
-  return (
-    <div className={`story-workspace ${compact ? "compact" : ""}`}>
-      <div className="story-chrome">
-        <div className="flex gap-1.5">
-          <i />
-          <i />
-          <i />
-        </div>
-        <span>inboxiq / workspace</span>
-        <span>Sample workspace</span>
-      </div>
-      <div className="story-body">
-        <aside className="story-sidebar">
-          <Brand />
-          <div className="story-nav active">
-            <Inbox size={13} />
-            Inbox<span>3</span>
-          </div>
-          <div className="story-nav">
-            <Users size={13} />
-            Leads
-          </div>
-          <div className="story-nav">
-            <FileText size={13} />
-            Drafts
-          </div>
-          <div className="story-nav footer">
-            <span className="story-avatar">JT</span>Jordan's workspace
-          </div>
-        </aside>
-        <div className="story-message-list">
-          <div className="story-list-heading">
-            Inbox <Search size={12} />
-          </div>
-          {[
-            {
-              name: "Maya Patel",
-              subject: "A new product, a bigger launch",
-              time: "Now",
-              body: "We're looking for a partner to help...",
-            },
-            {
-              name: "Oliver Chen",
-              subject: "Re: A quick introduction",
-              time: "12m",
-              body: "Thanks for getting back to me.",
-            },
-            {
-              name: "Elena Ruiz",
-              subject: "Picking up where we left off",
-              time: "1h",
-              body: "A few thoughts ahead of our call.",
-            },
-          ].map((m, i) => (
-            <div
-              key={m.name}
-              className={`story-message ${i === 0 ? "selected" : ""}`}
-            >
-              <div>
-                <strong>{m.name}</strong>
-                <time>{m.time}</time>
-              </div>
-              <p>{m.subject}</p>
-              <small>{m.body}</small>
-            </div>
-          ))}
-        </div>
-        <div className="story-reader">
-          <div className="story-reader-toolbar">
-            <span>{stage > 0 ? "Sales inquiry" : "Conversation"}</span>
-            <div>
-              <Clock size={12} />
-              <span className="story-separator" />
-              <ArrowUpRight size={13} />
-            </div>
-          </div>
-          <div className="story-reader-content">
-            <div className="story-email-subject">
-              A new product,
-              <br />a bigger launch.
-            </div>
-            <div className="story-sender">
-              <span className="story-avatar">MP</span>
-              <div>
-                <strong>Maya Patel</strong>
-                <small>
-                  maya@example.com <span>to you</span>
-                </small>
-              </div>
-              <span>10:24 AM</span>
-            </div>
-            <div className="story-email-text">
-              <p>Hi Jordan,</p>
-              <p>
-                We're launching a new product next quarter and looking for a
-                design partner. I liked what you did with the last project.
-              </p>
-              <p>Could we find a time to talk through scope and timelines?</p>
-              <p>Maya</p>
-            </div>
-            {stage > 0 && (
-              <div className="story-context">
-                <div className="story-context-title">
-                  <span className="story-signal" />
-                  Project inquiry <span>Lead identified</span>
-                </div>
-                <p>
-                  Clear project intent. A specific timeline. Ready for a
-                  conversation.
-                </p>
-              </div>
-            )}
-            {stage === 0 && (
-              <button className="story-action" onClick={() => setStage(1)}>
-                See the opportunity <ArrowRight size={12} />
-              </button>
-            )}
-            {stage === 1 && (
-              <button className="story-action" onClick={() => setStage(2)}>
-                Review a suggested reply <ArrowRight size={12} />
-              </button>
-            )}
-            {stage === 2 && (
-              <div className="story-reply">
-                <div className="story-context-title">
-                  <FileText size={12} />
-                  Suggested reply<span>Not sent</span>
-                </div>
-                <label
-                  htmlFor={compact ? "story-reply-small" : "story-reply"}
-                  className="sr-only"
-                >
-                  Edit sample response
-                </label>
-                <textarea
-                  id={compact ? "story-reply-small" : "story-reply"}
-                  value={reply}
-                  onChange={(e) => {
-                    setReply(e.target.value);
-                    setEdited(true);
-                  }}
-                />
-                <div className="flex items-center justify-between">
-                  <small>
-                    {edited
-                      ? "Your edit is saved in this demo"
-                      : "Editable. Always reviewed by you."}
-                  </small>
-                  <button className="story-action" onClick={() => setStage(3)}>
-                    Mark reviewed <Check size={11} />
-                  </button>
-                </div>
-              </div>
-            )}
-            {stage === 3 && (
-              <div className="story-followup">
-                <Clock size={14} />
-                <div>
-                  <strong>Next step: confirm the conversation</strong>
-                  <p>
-                    Follow-up connected to Maya's lead. Nothing sends
-                    automatically.
-                  </p>
-                </div>
-                <button
-                  onClick={() => setStage(4)}
-                  aria-label="Complete sample workflow"
-                >
-                  <ArrowRight size={13} />
-                </button>
-              </div>
-            )}
-            {stage === 4 && (
-              <div className="story-followup complete">
-                <CheckCheck size={15} />
-                <div>
-                  <strong>An opportunity, ready to move forward.</strong>
-                  <p>From a message to a clear next step.</p>
-                </div>
-                <button onClick={() => setStage(0)} className="text-[9px]">
-                  Replay
-                </button>
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
 function Lifecycle({ active }: { active: number }) {
   return (
     <div
@@ -301,6 +98,16 @@ export default function Landing() {
   const [feature, setFeature] = useState(0);
   const panels = useRef<HTMLDivElement>(null);
   useEffect(() => {
+    if (!nav) return;
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key !== "Escape") return;
+      setNav(false);
+      root.current?.querySelector<HTMLButtonElement>(".marketing-menu")?.focus();
+    };
+    document.addEventListener("keydown", closeOnEscape);
+    return () => document.removeEventListener("keydown", closeOnEscape);
+  }, [nav]);
+  useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((e) => {
@@ -326,12 +133,12 @@ export default function Landing() {
           <Link to="/" aria-label="InboxIQ home">
             <Brand />
           </Link>
-          <nav className={nav ? "open" : ""} aria-label="Main navigation">
+          <nav id="landing-navigation" className={nav ? "open" : ""} aria-label="Main navigation">
             <a href="#product" onClick={() => setNav(false)}>
               Product
             </a>
             <a href="#workflow" onClick={() => setNav(false)}>
-              Workflow
+              The workflow
             </a>
             <a href="#principles" onClick={() => setNav(false)}>
               Our approach
@@ -347,6 +154,7 @@ export default function Landing() {
               className="marketing-menu"
               onClick={() => setNav(!nav)}
               aria-expanded={nav}
+              aria-controls="landing-navigation"
               aria-label={nav ? "Close navigation" : "Open navigation"}
             >
               {nav ? <X size={18} /> : <Menu size={18} />}
@@ -434,52 +242,8 @@ export default function Landing() {
           </div>
         </section>
         <SignalChapter />
-        <section className="product-reveal marketing-container" id="product">
-          <div className="product-reveal-head">
-            <span className="chapter-label">
-              03 &mdash; A WORKSPACE WITH INTENT
-            </span>
-            <h2 className="reveal-line">
-              The big picture.
-              <br />
-              <span>Down to the detail.</span>
-            </h2>
-            <p>
-              All the context. One considered workspace.
-              <br />
-              Explore a conversation, from first message to next move.
-            </p>
-          </div>
-          <div className="marketing-demo-layout" id="product">
-            <div>
-              <DemoWorkspace stage={stage} setStage={setStage} />
-              <div className="marketing-demo-caption">
-                <span>
-                  <span className="marketing-small-dot" />
-                  Interactive demonstration
-                </span>
-                <span>Fictional sample data. No emails are sent.</span>
-              </div>
-            </div>
-            <div className="marketing-stage-list">
-              <span className="marketing-eyebrow">A CLEARER NEXT STEP</span>
-              {steps.map((s, i) => (
-                <button
-                  key={s.name}
-                  className={stage === i ? "active" : ""}
-                  onClick={() => setStage(i)}
-                  aria-pressed={stage === i}
-                >
-                  <span>{String(i + 1).padStart(2, "0")}</span>
-                  <div>
-                    <h2>{s.label}</h2>
-                    {stage === i && <p>{s.detail}</p>}
-                  </div>
-                  <ArrowUpRight size={12} />
-                </button>
-              ))}
-            </div>
-          </div>
+        <section className="product-reveal marketing-container" id="product" aria-label="Try InboxIQ">
+          <InteractiveEmailDemo />
         </section>
         <section
           className="marketing-container marketing-before-after"

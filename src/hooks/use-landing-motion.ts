@@ -33,7 +33,7 @@ export function useLandingMotion(root: RefObject<HTMLElement>) {
           ),
         );
         gsap.fromTo(
-          ".product-reveal .story-workspace",
+          ".product-reveal .signal-demo-window",
           {
             y: 70,
             rotateX: 5,
