@@ -2935,3 +2935,24 @@
 }
 
 @media(max-width:700px){.cinematic .marketing-header-actions>a:first-child{display:inline-flex;font-size:10px;}}
+
+/* Keep headline and copy in document flow so wide/short viewports cannot collide. */
+.cinema-hero{display:flex;flex-direction:column;height:auto;min-height:100svh;max-height:none;padding-bottom:25px;}
+.hero-type{position:relative;top:auto;left:auto;width:90%;margin-top:clamp(56px,9svh,110px);flex-shrink:0;}
+.hero-aside{position:relative;left:auto;bottom:auto;margin-top:40px;margin-bottom:48px;flex-shrink:0;}
+.hero-baseline{position:relative;bottom:auto;left:auto;right:auto;margin-top:auto;flex-shrink:0;}
+@media(max-width:700px){
+ .cinema-hero{min-height:850px;padding-bottom:24px;}
+ .hero-type{top:auto;left:auto;width:100%;margin-top:64px;}
+ .conversation-visual{top:305px;height:300px;}
+ .hero-aside{left:auto;bottom:auto;margin-top:300px;margin-bottom:40px;}
+ .hero-baseline{left:auto;right:auto;bottom:auto;}
+}
+
+@media(max-width:700px){
+ .hero-topline{order:0;}
+ .hero-type{order:1;margin-top:48px;}
+ .conversation-visual{position:relative;order:2;top:auto;right:auto;width:112%;height:270px;align-self:center;flex-shrink:0;margin-top:10px;}
+ .hero-aside{order:3;margin-top:12px;}
+ .hero-baseline{order:4;}
+}
