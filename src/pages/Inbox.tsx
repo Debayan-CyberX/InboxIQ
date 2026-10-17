@@ -29,6 +29,10 @@ import EmailThreadDetailPanel, {
 import EmailComposeDialog from "@/components/dashboard/EmailComposeDialog";
 import { formatDistanceToNow } from "date-fns";
 import { toast } from "sonner";
+import {
+  emailConnectionsApi,
+  gmailHistoryCursor,
+} from "@/lib/api/email-connections";
 export default function Inbox() {
   const query = useThreads();
   const { data: connections = [] } = useConnections();
@@ -43,13 +47,67 @@ export default function Inbox() {
   const [selected, setSelected] = useState(params.get("thread"));
   const [checked, setChecked] = useState<string[]>([]);
   const [compose, setCompose] = useState(false);
-  const threads: ThreadWithContact[] = useMemo(() => query.data || [], [query.data]);
+  const [syncing, setSyncing] = useState(false);
+  const [, setSyncVersion] = useState(0);
+  const gmailConnected = params.get("gmailConnected");
+  useEffect(() => {
+    if (!gmailConnected || !id) return;
+    setParams(
+      (previous) => {
+        const next = new URLSearchParams(previous);
+        next.delete("gmailConnected");
+        return next;
+      },
+      { replace: true },
+    );
+    setSyncing(true);
+    const notification = toast.loading(
+      "Gmail connected. Importing your conversations...",
+    );
+    void emailConnectionsApi
+      .sync(gmailConnected)
+      .then(
+        (result) => toast.success(result.message, { id: notification }),
+        (error: Error) => toast.error(error.message, { id: notification }),
+      )
+      .finally(() => setSyncing(false));
+  }, [gmailConnected, id, setParams]);
+  const olderConnection = connections.find(
+    (connection) =>
+      connection.provider === "gmail" &&
+      connection.is_active &&
+      gmailHistoryCursor(connection.id),
+  );
+  async function loadOlder() {
+    if (!olderConnection) return;
+    setSyncing(true);
+    try {
+      const result = await emailConnectionsApi.sync(
+        olderConnection.id,
+        gmailHistoryCursor(olderConnection.id),
+      );
+      toast.success(result.message);
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : "Import failed. Try again.",
+      );
+    } finally {
+      setSyncing(false);
+    }
+  }
+  const threads: ThreadWithContact[] = useMemo(
+    () => query.data || [],
+    [query.data],
+  );
   useEffect(() => {
     setSelected(params.get("thread"));
   }, [params]);
   const { refetch } = query;
   useEffect(() => {
-    const update = () => refetch();
+    const update = () => {
+      void refetch();
+      setSyncVersion((version) => version + 1);
+    };
     window.addEventListener("emailSyncCompleted", update);
     return () => window.removeEventListener("emailSyncCompleted", update);
   }, [refetch]);
@@ -95,6 +153,16 @@ export default function Inbox() {
         title="Inbox"
         description="Conversations, with the context to move them forward."
       >
+        {olderConnection && (
+          <Button
+            size="sm"
+            variant="outline"
+            disabled={syncing}
+            onClick={loadOlder}
+          >
+            {syncing ? "Importing..." : "Load older conversations"}
+          </Button>
+        )}
         <button
           className="icon-button"
           aria-label="Refresh conversations"

@@ -1,55 +1,50 @@
 // API service for Emails and Email Threads
 import { supabase } from "@/lib/supabase";
-import type { Email, EmailThread, InsertEmail, UpdateEmail, InsertEmailThread, UpdateEmailThread } from "@/types/database";
+import type {
+  Email,
+  EmailThread,
+  InsertEmail,
+  UpdateEmail,
+  InsertEmailThread,
+  UpdateEmailThread,
+} from "@/types/database";
 import { getApiBase } from "./base-url";
 
 export const emailsApi = {
   // Get all email threads for the current user
-  async getThreads(betterAuthUserId: string, status?: "active" | "archived" | "closed") {
-    if (!supabase) {
-      throw new Error("Supabase client not initialized");
-    }
-
-    // Use database function that accepts Better Auth TEXT ID
-    const { data, error } = await supabase.rpc("get_user_email_threads", {
-      p_better_auth_id: betterAuthUserId,
-      p_status: status || null,
-    });
-
-    if (error) {
-      console.error("Error fetching email threads:", error);
-      throw new Error(`Failed to fetch email threads: ${error.message}`);
-    }
-
-    return data || [];
+  async getThreads(
+    betterAuthUserId: string,
+    status?: "active" | "archived" | "closed",
+  ) {
+    const params = new URLSearchParams(status ? { status } : {});
+    const response = await fetch(
+      `${getApiBase()}/api/email-threads?${params}`,
+      { credentials: "include" },
+    );
+    const result = await response.json();
+    if (!response.ok)
+      throw new Error(result.error || "Could not load conversations.");
+    return result.threads as (EmailThread & {
+      lead_company?: string;
+      lead_contact_name?: string;
+      lead_email?: string;
+      is_read?: boolean;
+    })[];
   },
 
   // Get emails for a specific thread
-  async getThreadEmails(threadId: string, betterAuthUserId: string): Promise<Email[]> {
-    if (!supabase) {
-      throw new Error("Supabase client not initialized");
-    }
-
-    // Get user UUID first
-    const { getUserIdFromBetterAuth } = await import("./utils");
-    const userUuid = await getUserIdFromBetterAuth(betterAuthUserId);
-    
-    if (!userUuid) {
-      throw new Error("User not found in database");
-    }
-
-    // Use database function
-    const { data, error } = await supabase.rpc("get_thread_emails", {
-      p_thread_id: threadId,
-      p_user_id: userUuid,
-    });
-
-    if (error) {
-      console.error("Error fetching thread emails:", error);
-      throw new Error(`Failed to fetch emails: ${error.message}`);
-    }
-
-    return data || [];
+  async getThreadEmails(
+    threadId: string,
+    betterAuthUserId: string,
+  ): Promise<Email[]> {
+    const response = await fetch(
+      `${getApiBase()}/api/email-threads/${encodeURIComponent(threadId)}/emails`,
+      { credentials: "include" },
+    );
+    const result = await response.json();
+    if (!response.ok)
+      throw new Error(result.error || "Could not load messages.");
+    return result.emails || [];
   },
 
   // Get all emails (drafts)
@@ -85,8 +80,14 @@ export const emailsApi = {
     });
 
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({ error: "Unknown error" }));
-      throw new Error(errorData.message || errorData.error || `Failed to create email: ${response.statusText}`);
+      const errorData = await response
+        .json()
+        .catch(() => ({ error: "Unknown error" }));
+      throw new Error(
+        errorData.message ||
+          errorData.error ||
+          `Failed to create email: ${response.statusText}`,
+      );
     }
 
     const result = await response.json();
@@ -94,7 +95,11 @@ export const emailsApi = {
   },
 
   // Update an email (uses backend endpoint to bypass RLS)
-  async update(emailId: string, betterAuthUserId: string, updates: UpdateEmail): Promise<Email> {
+  async update(
+    emailId: string,
+    betterAuthUserId: string,
+    updates: UpdateEmail,
+  ): Promise<Email> {
     const authServerUrl = getApiBase();
 
     const response = await fetch(`${authServerUrl}/api/emails/${emailId}`, {
@@ -107,8 +112,14 @@ export const emailsApi = {
     });
 
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({ error: "Unknown error" }));
-      throw new Error(errorData.message || errorData.error || `Failed to update email: ${response.statusText}`);
+      const errorData = await response
+        .json()
+        .catch(() => ({ error: "Unknown error" }));
+      throw new Error(
+        errorData.message ||
+          errorData.error ||
+          `Failed to update email: ${response.statusText}`,
+      );
     }
 
     const result = await response.json();
@@ -124,7 +135,7 @@ export const emailsApi = {
     // Get user UUID
     const { getUserIdFromBetterAuth } = await import("./utils");
     const userUuid = await getUserIdFromBetterAuth(betterAuthUserId);
-    
+
     if (!userUuid) {
       throw new Error("User not found in database");
     }
@@ -141,15 +152,24 @@ export const emailsApi = {
     });
 
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({ error: "Unknown error" }));
-      throw new Error(errorData.message || errorData.error || `Failed to delete email: ${response.statusText}`);
+      const errorData = await response
+        .json()
+        .catch(() => ({ error: "Unknown error" }));
+      throw new Error(
+        errorData.message ||
+          errorData.error ||
+          `Failed to delete email: ${response.statusText}`,
+      );
     }
 
     // No return value needed for delete
   },
 
   // Archive a thread
-  async archiveThread(threadId: string, betterAuthUserId: string): Promise<void> {
+  async archiveThread(
+    threadId: string,
+    betterAuthUserId: string,
+  ): Promise<void> {
     if (!supabase) {
       throw new Error("Supabase client not initialized");
     }
@@ -157,7 +177,7 @@ export const emailsApi = {
     // Get user UUID
     const { getUserIdFromBetterAuth } = await import("./utils");
     const userUuid = await getUserIdFromBetterAuth(betterAuthUserId);
-    
+
     if (!userUuid) {
       throw new Error("User not found in database");
     }
@@ -183,7 +203,7 @@ export const emailsApi = {
     // Convert Better Auth ID to UUID
     const { getUserIdFromBetterAuth } = await import("./utils");
     const userUuid = await getUserIdFromBetterAuth(betterAuthUserId);
-    
+
     if (!userUuid) {
       throw new Error("User not found in database");
     }
@@ -192,7 +212,9 @@ export const emailsApi = {
       .from("emails")
       .select("*")
       .eq("user_id", userUuid)
-      .or(`subject.ilike.%${query}%,body_text.ilike.%${query}%,from_email.ilike.%${query}%,to_email.ilike.%${query}%`)
+      .or(
+        `subject.ilike.%${query}%,body_text.ilike.%${query}%,from_email.ilike.%${query}%,to_email.ilike.%${query}%`,
+      )
       .order("created_at", { ascending: false });
 
     if (error) {
@@ -213,16 +235,16 @@ export const emailsApi = {
       body?: string;
       fromEmail?: string;
       fromName?: string;
-    }
+    },
   ): Promise<{ success: boolean; messageId?: string }> {
     // Get email details from database if emailId is provided
     let emailData: Email | null = null;
-    
+
     if (emailId) {
       // Get user UUID
       const { getUserIdFromBetterAuth } = await import("./utils");
       const userUuid = await getUserIdFromBetterAuth(betterAuthUserId);
-      
+
       if (!userUuid) {
         throw new Error("User not found in database");
       }
@@ -237,26 +259,35 @@ export const emailsApi = {
           .maybeSingle();
 
         if (error) {
-          console.warn("Error fetching email (will continue with provided options):", error);
+          console.warn(
+            "Error fetching email (will continue with provided options):",
+            error,
+          );
         } else if (data) {
           emailData = data;
         }
         // If data is null, that's okay - we'll use the provided options
       } catch (fetchErr) {
         // If fetch fails, that's okay - we'll use the provided options
-        console.warn("Could not fetch email from database (will use provided options):", fetchErr);
+        console.warn(
+          "Could not fetch email from database (will use provided options):",
+          fetchErr,
+        );
       }
     }
 
     // Use provided options or email data from database
     const to = options?.to || emailData?.to_email;
     const subject = options?.subject || emailData?.subject || "";
-    const body = options?.body || emailData?.body_html || emailData?.body_text || "";
+    const body =
+      options?.body || emailData?.body_html || emailData?.body_text || "";
     const fromEmail = options?.fromEmail;
     const fromName = options?.fromName;
 
     if (!to || !subject || !body) {
-      throw new Error("Missing required email fields: to, subject, and body are required");
+      throw new Error(
+        "Missing required email fields: to, subject, and body are required",
+      );
     }
 
     // Get auth server URL (production or development)
@@ -280,25 +311,36 @@ export const emailsApi = {
     });
 
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({ error: "Unknown error" }));
-      
+      const errorData = await response
+        .json()
+        .catch(() => ({ error: "Unknown error" }));
+
       // Handle specific error cases with helpful messages
-      let errorMessage = errorData.message || errorData.error || `Failed to send email: ${response.statusText}`;
-      
+      let errorMessage =
+        errorData.message ||
+        errorData.error ||
+        `Failed to send email: ${response.statusText}`;
+
       if (response.status === 500) {
-        if (errorMessage.includes("Cannot find package 'resend'") || errorMessage.includes("resend")) {
-          errorMessage = "Email service not configured. The 'resend' package needs to be installed on the server. Please run 'npm install' in the server directory.";
+        if (
+          errorMessage.includes("Cannot find package 'resend'") ||
+          errorMessage.includes("resend")
+        ) {
+          errorMessage =
+            "Email service not configured. The 'resend' package needs to be installed on the server. Please run 'npm install' in the server directory.";
         } else if (errorMessage.includes("RESEND_API_KEY")) {
-          errorMessage = "Email service not configured. Please set RESEND_API_KEY environment variable on the server.";
+          errorMessage =
+            "Email service not configured. Please set RESEND_API_KEY environment variable on the server.";
         } else {
           errorMessage = `Server error: ${errorMessage}. Please check server logs.`;
         }
       } else if (response.status === 503) {
-        errorMessage = "Email service not available. Please configure RESEND_API_KEY on the server.";
+        errorMessage =
+          "Email service not available. Please configure RESEND_API_KEY on the server.";
       } else if (response.status === 400) {
         errorMessage = `Invalid request: ${errorMessage}`;
       }
-      
+
       throw new Error(errorMessage);
     }
 
@@ -314,7 +356,10 @@ export const emailsApi = {
       } catch (error) {
         // Don't throw - email was sent successfully, just status update failed
         // This is expected if the email doesn't exist in the database
-        console.warn("Could not update email status (email may not exist in database):", error);
+        console.warn(
+          "Could not update email status (email may not exist in database):",
+          error,
+        );
       }
     }
 
@@ -322,7 +367,9 @@ export const emailsApi = {
   },
 
   // Create test drafts for development/testing
-  async createTestDrafts(betterAuthUserId: string): Promise<{ success: boolean; count: number }> {
+  async createTestDrafts(
+    betterAuthUserId: string,
+  ): Promise<{ success: boolean; count: number }> {
     if (!supabase) {
       throw new Error("Supabase client not initialized");
     }
@@ -337,12 +384,14 @@ export const emailsApi = {
       throw new Error(`Failed to create test drafts: ${error.message}`);
     }
 
-    const result = data as unknown as { created_count: number; draft_ids: string[] } | null;
-    
+    const result = data as unknown as {
+      created_count: number;
+      draft_ids: string[];
+    } | null;
+
     return {
       success: true,
       count: result?.created_count || 0,
     };
   },
 };
-

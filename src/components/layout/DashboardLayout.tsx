@@ -10,7 +10,9 @@ import { X } from "lucide-react";
 import Sidebar from "./Sidebar";
 import Header from "./Header";
 import BottomNav from "./BottomNav";
+import { useGmailSync } from "@/hooks/use-gmail-sync";
 export default function DashboardLayout({ children }: { children: ReactNode }) {
+  useGmailSync();
   const [collapsed, setCollapsed] = useState(
     () => localStorage.getItem("inboxiq:sidebar") === "collapsed",
   );

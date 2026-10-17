@@ -1,7 +1,4 @@
-// API service for Email Connections
-import { supabase } from "@/lib/supabase";
 import { getApiBase } from "./base-url";
-
 export interface EmailConnection {
   id: string;
   user_id: string;
@@ -16,7 +13,6 @@ export interface EmailConnection {
   created_at: string;
   updated_at: string;
 }
-
 export interface ConnectEmailRequest {
   provider: "gmail" | "outlook" | "imap";
   email: string;
@@ -24,225 +20,113 @@ export interface ConnectEmailRequest {
   refreshToken?: string;
   expiresIn?: number;
 }
-
+export interface EmailSyncResult {
+  success: boolean;
+  message: string;
+  threadsSynced?: number;
+  emailsSynced?: number;
+  nextPageToken?: string | null;
+}
+async function request<T>(path: string, init?: RequestInit): Promise<T> {
+  const response = await fetch(`${getApiBase()}${path}`, {
+    ...init,
+    credentials: "include",
+    headers: { "Content-Type": "application/json", ...init?.headers },
+  });
+  const result = await response
+    .json()
+    .catch(() => ({ error: "Email service returned an invalid response." }));
+  if (!response.ok)
+    throw new Error(result.message || result.error || "Email request failed.");
+  return result as T;
+}
+const syncing = new Map<string, Promise<EmailSyncResult>>();
+const cursors = new Map<string, string>();
+export function gmailHistoryCursor(connectionId: string) {
+  return cursors.get(connectionId);
+}
 export const emailConnectionsApi = {
-  // Get all email connections for the current user
-  async getAll(betterAuthUserId: string): Promise<EmailConnection[]> {
-    if (!supabase) {
-      throw new Error("Supabase client not initialized");
-    }
-
-    // Use database function that accepts Better Auth TEXT ID
-    const { data, error } = await supabase.rpc("get_user_email_connections", {
-      p_better_auth_id: betterAuthUserId,
-    });
-
-    if (error) {
-      console.error("Error fetching email connections:", error);
-      throw new Error(`Failed to fetch email connections: ${error.message}`);
-    }
-
-    return (data || []) as EmailConnection[];
+  async getAll(_betterAuthUserId: string): Promise<EmailConnection[]> {
+    return (
+      await request<{ connections: EmailConnection[] }>(
+        "/api/email-connections",
+      )
+    ).connections;
   },
-
-  // Get OAuth URL for a provider
   async getOAuthUrl(
     provider: "gmail" | "outlook",
     userId: string,
-    redirectUri?: string
+    redirectUri?: string,
   ): Promise<{ authUrl: string }> {
-    const authServerUrl = getApiBase();
-
     const params = new URLSearchParams({
       userId,
-      ...(redirectUri && { redirectUri }),
+      ...(redirectUri ? { redirectUri } : {}),
     });
-
-    const response = await fetch(`${authServerUrl}/api/email-connections/oauth/${provider}?${params}`, {
-      method: "GET",
-      credentials: "include",
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({ error: "Unknown error" }));
-      throw new Error(errorData.message || errorData.error || `Failed to get OAuth URL: ${response.statusText}`);
-    }
-
-    const result = await response.json();
-    return { authUrl: result.authUrl };
+    return request(`/api/email-connections/oauth/${provider}?${params}`);
   },
-
-  // Connect an email account
   async connect(
-    betterAuthUserId: string,
-    connection: ConnectEmailRequest
+    _id: string,
+    _connection: ConnectEmailRequest,
   ): Promise<EmailConnection> {
-    const authServerUrl = getApiBase();
-
-    // Get user UUID
-    const { getUserIdFromBetterAuth } = await import("./utils");
-    const userUuid = await getUserIdFromBetterAuth(betterAuthUserId);
-    
-    if (!userUuid) {
-      throw new Error("User not found in database");
-    }
-
-    const response = await fetch(`${authServerUrl}/api/email-connections/connect`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      credentials: "include",
-      body: JSON.stringify({
-        ...connection,
-        userId: userUuid,
-      }),
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({ error: "Unknown error" }));
-      throw new Error(errorData.message || errorData.error || `Failed to connect email: ${response.statusText}`);
-    }
-
-    const result = await response.json();
-
-    // Now store in database
-    if (!supabase) {
-      throw new Error("Supabase client not initialized");
-    }
-
-    const { data, error } = await supabase
-      .from("email_connections")
-      .insert({
-        user_id: userUuid,
-        provider: connection.provider,
-        email: connection.email,
-        display_name: connection.email.split("@")[0],
-        access_token: connection.accessToken || "mock_token", // In production, encrypt this
-        refresh_token: connection.refreshToken || null,
-        token_expires_at: connection.expiresIn
-          ? new Date(Date.now() + connection.expiresIn * 1000).toISOString()
-          : null,
-        is_active: true,
-        sync_enabled: true,
-      })
-      .select()
-      .single();
-
-    if (error) {
-      console.error("Error storing email connection:", error);
-      throw new Error(`Failed to store email connection: ${error.message}`);
-    }
-
-    return {
-      id: data.id,
-      user_id: data.user_id,
-      provider: data.provider,
-      email: data.email,
-      display_name: data.display_name,
-      is_active: data.is_active,
-      last_sync_at: data.last_sync_at,
-      sync_enabled: data.sync_enabled,
-      sync_frequency: data.sync_frequency,
-      error_message: data.error_message,
-      created_at: data.created_at,
-      updated_at: data.updated_at,
-    };
+    throw new Error(
+      "Connect your account through your provider's secure sign-in flow.",
+    );
   },
-
-  // Disconnect an email account
-  async disconnect(connectionId: string, betterAuthUserId: string): Promise<void> {
-    if (!supabase) {
-      throw new Error("Supabase client not initialized");
-    }
-
-    // Get user UUID
-    const { getUserIdFromBetterAuth } = await import("./utils");
-    const userUuid = await getUserIdFromBetterAuth(betterAuthUserId);
-    
-    if (!userUuid) {
-      throw new Error("User not found in database");
-    }
-
-    const { error } = await supabase
-      .from("email_connections")
-      .update({ is_active: false })
-      .eq("id", connectionId)
-      .eq("user_id", userUuid);
-
-    if (error) {
-      console.error("Error disconnecting email:", error);
-      throw new Error(`Failed to disconnect email: ${error.message}`);
-    }
+  async disconnect(connectionId: string, _id: string): Promise<void> {
+    await request(
+      `/api/email-connections/${encodeURIComponent(connectionId)}`,
+      { method: "PATCH", body: JSON.stringify({ is_active: false }) },
+    );
   },
-
-  // Delete an email connection
-  async delete(connectionId: string, betterAuthUserId: string): Promise<void> {
-    if (!supabase) {
-      throw new Error("Supabase client not initialized");
-    }
-
-    // Get user UUID
-    const { getUserIdFromBetterAuth } = await import("./utils");
-    const userUuid = await getUserIdFromBetterAuth(betterAuthUserId);
-    
-    if (!userUuid) {
-      throw new Error("User not found in database");
-    }
-
-    const { error } = await supabase
-      .from("email_connections")
-      .delete()
-      .eq("id", connectionId)
-      .eq("user_id", userUuid);
-
-    if (error) {
-      console.error("Error deleting email connection:", error);
-      throw new Error(`Failed to delete email connection: ${error.message}`);
-    }
+  async delete(connectionId: string, _id: string): Promise<void> {
+    await request(
+      `/api/email-connections/${encodeURIComponent(connectionId)}`,
+      { method: "DELETE" },
+    );
   },
-
-  // Sync emails from a connected account
-  async sync(connectionId: string): Promise<{ success: boolean; message: string; threadsSynced?: number }> {
-    const authServerUrl = getApiBase();
-
-    // For Gmail, use the new /gmail/sync endpoint
-    const response = await fetch(`${authServerUrl}/gmail/sync`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      credentials: "include",
-    });
-
-    if (!response.ok) {
-      // If Gmail sync fails, try the old endpoint as fallback
-      const fallbackResponse = await fetch(`${authServerUrl}/api/email-connections/${connectionId}/sync`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        credentials: "include",
-      });
-
-      if (!fallbackResponse.ok) {
-        const errorData = await fallbackResponse.json().catch(() => ({ error: "Unknown error" }));
-        throw new Error(errorData.message || errorData.error || `Failed to sync emails: ${fallbackResponse.statusText}`);
+  sync(
+    connectionId: string,
+    pageToken?: string,
+    maxPages = 4,
+  ): Promise<EmailSyncResult> {
+    const running = syncing.get(connectionId);
+    if (running) return running;
+    const work = (async () => {
+      let next = pageToken;
+      let threadsSynced = 0,
+        emailsSynced = 0;
+      for (let page = 0; page < Math.max(1, Math.min(maxPages, 4)); page++) {
+        const result = await request<EmailSyncResult>(
+          `/api/email-connections/${encodeURIComponent(connectionId)}/sync`,
+          {
+            method: "POST",
+            body: JSON.stringify({
+              connectionId,
+              ...(next ? { pageToken: next } : {}),
+            }),
+          },
+        );
+        threadsSynced += result.threadsSynced || 0;
+        emailsSynced += result.emailsSynced || 0;
+        next = result.nextPageToken || undefined;
+        if (pageToken || maxPages > 1) {
+          if (next) cursors.set(connectionId, next);
+          else cursors.delete(connectionId);
+        }
+        if (!next) break;
       }
-
-      const fallbackResult = await fallbackResponse.json();
       return {
-        success: fallbackResult.success,
-        message: fallbackResult.message || "Email sync initiated",
+        success: true,
+        threadsSynced,
+        emailsSynced,
+        nextPageToken: next || null,
+        message: `Synced ${threadsSynced} conversations and imported ${emailsSynced} new messages.`,
       };
-    }
-
-    const result = await response.json();
-    return {
-      success: result.success,
-      message: result.message || "Gmail sync completed",
-      threadsSynced: result.threadsSynced,
-    };
+    })().finally(() => {
+      syncing.delete(connectionId);
+      window.dispatchEvent(new CustomEvent("emailSyncCompleted"));
+    });
+    syncing.set(connectionId, work);
+    return work;
   },
 };
-
