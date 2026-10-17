@@ -52,7 +52,9 @@ export function ConversationFallback({
           gradientUnits="userSpaceOnUse"
         >
           <stop stopColor="#fff" />
-          <stop offset=".25" stopColor="#8b9ba8" />
+          <stop offset=".16" stopColor="#00ecff" />
+          <stop offset=".22" stopColor="#4300ff" />
+          <stop offset=".3" stopColor="#8b9ba8" />
           <stop offset=".45" stopColor="#121a20" />
           <stop offset=".8" stopColor="#161e25" />
           <stop offset="1" stopColor="#dce6e9" />
