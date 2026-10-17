@@ -1,394 +1,334 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
 import {
   ArrowDownToLine,
   ArrowUpRight,
-  Inbox,
-  Mail,
-  Users,
-  Sparkles,
   ArrowRight,
+  BarChart3,
+  Info,
 } from "lucide-react";
 import DashboardLayout from "@/components/layout/DashboardLayout";
+import { PageHeader, EmptyState, StatusLabel } from "@/components/WorkspaceUI";
 import { Button } from "@/components/ui/button";
 import { LoadingState } from "@/components/LoadingState";
 import { ErrorState } from "@/components/ErrorState";
+import { useLeads } from "@/hooks/use-workspace-data";
 import { useUserId } from "@/hooks/useUserId";
-import { analyticsApi, leadsApi } from "@/lib/api";
-import type { Lead } from "@/types/database";
+import { analyticsApi } from "@/lib/api";
+import { leadBuckets, csvRows } from "@/lib/workspace-model";
 type Range = 7 | 30 | 90;
-const stages = [
-  { key: "hot" as const, label: "High intent", color: "#d6aa95" },
-  { key: "warm" as const, label: "In conversation", color: "#c6af81" },
-  { key: "cold" as const, label: "Room to reconnect", color: "#b29bd6" },
-];
+const stages = ["hot", "warm", "cold"] as const;
 export default function Analytics() {
-  const userId = useUserId();
+  const id = useUserId();
+  const leadsQuery = useLeads();
   const [range, setRange] = useState<Range>(30);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<Error | null>(null);
-  const [leads, setLeads] = useState<Lead[]>([]);
-  const [email, setEmail] = useState({ sent: 0, received: 0 });
-  useEffect(() => {
-    let current = true;
-    if (!userId) {
-      setLoading(false);
-      return;
-    }
-    setLoading(true);
-    setError(null);
-    Promise.all([
-      leadsApi.getAll(userId),
-      analyticsApi.getEmailStats(userId, range),
-    ])
-      .then(([relationships, activity]) => {
-        if (current) {
-          setLeads(relationships);
-          setEmail({ sent: activity.sent, received: activity.received });
-        }
-      })
-      .catch((e) => {
-        if (current)
-          setError(
-            e instanceof Error ? e : new Error("Could not load analytics."),
-          );
-      })
-      .finally(() => {
-        if (current) setLoading(false);
-      });
-    return () => {
-      current = false;
-    };
-  }, [userId, range]);
-  const distribution = stages.map((s) => ({
-    ...s,
-    count: leads.filter((l) => l.status === s.key).length,
+  const activity = useQuery({
+    queryKey: ["analytics", id, range],
+    queryFn: () => analyticsApi.getEmailStats(id!, range),
+    enabled: !!id,
+    staleTime: 30000,
+  });
+  const leads = useMemo(() => leadsQuery.data || [], [leadsQuery.data]);
+  const email = activity.data || { sent: 0, received: 0 };
+  const buckets = useMemo(() => leadBuckets(leads, range), [leads, range]);
+  const totalAdded = buckets.reduce((n, b) => n + b.count, 0);
+  const max = Math.max(1, ...buckets.map((b) => b.count));
+  const dist = stages.map((status) => ({
+    status,
+    n: leads.filter((l) => l.status === status).length,
   }));
-  const trend = useMemo(() => {
-    const now = new Date();
-    now.setHours(23, 59, 59, 999);
-    const width = range / 7;
-    return Array.from({ length: 7 }, (_, i) => {
-      const end = new Date(now.getTime() - (6 - i) * width * 86400000);
-      const start = new Date(end.getTime() - width * 86400000);
-      return {
-        label: end.toLocaleDateString(undefined, {
-          month: "short",
-          day: "numeric",
-        }),
-        count: leads.filter((l) => {
-          const d = new Date(l.created_at);
-          return d > start && d <= end;
-        }).length,
-      };
-    });
-  }, [leads, range]);
-  const added = trend.reduce((sum, b) => sum + b.count, 0);
-  const totalActivity = email.sent + email.received;
-  const max = Math.max(1, ...trend.map((b) => b.count));
-  const pending = leads.filter((l) => l.days_since_contact >= 5);
-  const draftCount = leads.filter((l) => l.has_ai_draft).length;
-  function exportReport() {
-    const rows = [
-      ["Metric", "Value", "Scope"],
+  const empty = leads.length === 0 && email.sent === 0 && email.received === 0;
+  const pending = activity.isPending || leadsQuery.isPending;
+  const failed = activity.error || leadsQuery.error;
+  const due = leads
+    .filter((l) => l.days_since_contact >= 5)
+    .sort((a, b) => b.days_since_contact - a.days_since_contact);
+  function download() {
+    const csv = csvRows([
+      ["Metric", "Value", "Period"],
       ["Emails sent", email.sent, `Last ${range} days`],
       ["Emails received", email.received, `Last ${range} days`],
-      ["New leads", added, `Last ${range} days`],
-      ...distribution.map((s) => [s.label, s.count, "Current pipeline"]),
-    ];
-    const blob = new Blob([rows.map((r) => r.join(",")).join("\n")], {
-      type: "text/csv;charset=utf-8;",
-    });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = `inboxiq-analytics-${range}days.csv`;
-    link.click();
+      ["New leads", totalAdded, `Last ${range} days`],
+      ...dist.map((s) => [s.status, s.n, "Current pipeline"]),
+    ]);
+    const url = URL.createObjectURL(
+      new Blob([csv], { type: "text/csv;charset=utf-8;" }),
+    );
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `inboxiq-analytics-${range}days.csv`;
+    a.click();
     URL.revokeObjectURL(url);
   }
-  if (error)
-    return (
-      <DashboardLayout>
-        <ErrorState
-          error={error}
-          onRetry={() => setRange((r) => (r === 30 ? 7 : 30))}
-        />
-      </DashboardLayout>
-    );
   return (
     <DashboardLayout>
-      <div className="iq-page-heading">
-        <div>
-          <span className="iq-eyebrow">
-            <span className="iq-dot" />
-            THE BIGGER PICTURE
-          </span>
-          <h1>Analytics</h1>
-          <p>Understand the rhythm of your relationships.</p>
+      <PageHeader
+        title="Analytics"
+        description="A clear view of conversation activity and the pipeline it builds."
+      >
+        <div className="segmented" role="group" aria-label="Reporting period">
+          {([7, 30, 90] as Range[]).map((n) => (
+            <button
+              key={n}
+              aria-pressed={n === range}
+              onClick={() => setRange(n)}
+            >
+              {n} days
+            </button>
+          ))}
         </div>
-        <div className="flex gap-3 items-center">
-          <div
-            className="flex p-1 border border-white/[.08] rounded-lg bg-white/[.02]"
-            role="group"
-            aria-label="Reporting period"
-          >
-            {([7, 30, 90] as Range[]).map((n) => (
-              <button
-                key={n}
-                onClick={() => setRange(n)}
-                aria-pressed={range === n}
-                className={`text-[10px] px-3 py-1.5 rounded-md transition-colors ${range === n ? "bg-primary/15 text-primary" : "text-muted-foreground hover:text-foreground"}`}
-              >
-                {n} days
-              </button>
-            ))}
+        <Button
+          variant="outline"
+          size="sm"
+          disabled={pending || !!failed}
+          onClick={download}
+        >
+          <ArrowDownToLine size={12} />
+          Export
+        </Button>
+      </PageHeader>
+      {pending ? (
+        <LoadingState message="Loading analytics..." />
+      ) : failed ? (
+        <ErrorState
+          error={failed}
+          onRetry={() => {
+            activity.refetch();
+            leadsQuery.refetch();
+          }}
+        />
+      ) : empty ? (
+        <>
+          <div className="border-y">
+            <EmptyState
+              icon={BarChart3}
+              title="Your activity will tell the story."
+              description="Sync email and build your pipeline to see actual conversation activity here. No estimates, invented trends, or placeholder growth."
+            >
+              <Button asChild variant="outline" size="sm">
+                <Link to="/inbox">
+                  Open inbox
+                  <ArrowRight size={12} />
+                </Link>
+              </Button>
+            </EmptyState>
           </div>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={exportReport}
-            disabled={loading}
-          >
-            <ArrowDownToLine size={12} />
-            Export
-          </Button>
-        </div>
-      </div>
-      {loading ? (
-        <LoadingState message="Putting your activity into perspective..." />
+          <MetricDefinitions />
+        </>
       ) : (
-        <div className="space-y-5">
-          <div className="grid grid-cols-2 xl:grid-cols-4 gap-3 sm:gap-4">
+        <>
+          <div className="metric-strip">
             {[
               {
                 label: "Emails sent",
                 value: email.sent,
-                icon: Mail,
-                foot: `Over the last ${range} days`,
+                foot: `Synced outbound messages / ${range} days`,
               },
               {
                 label: "Emails received",
                 value: email.received,
-                icon: Inbox,
-                foot: `Over the last ${range} days`,
+                foot: `Synced inbound messages / ${range} days`,
               },
               {
-                label: "New connections",
-                value: added,
-                icon: Users,
-                foot: `Added in the last ${range} days`,
+                label: "New leads",
+                value: totalAdded,
+                foot: `Created in the last ${range} days`,
               },
               {
-                label: "Drafts ready",
-                value: draftCount,
-                icon: Sparkles,
-                foot: "In your current pipeline",
+                label: "Current pipeline",
+                value: leads.length,
+                foot: "All stages / all time",
               },
-            ].map((metric) => (
-              <article key={metric.label} className="iq-metric">
-                <div className="flex items-center justify-between">
-                  <span className="iq-metric-label">{metric.label}</span>
-                  <metric.icon
-                    size={15}
-                    strokeWidth={1.5}
-                    className="text-primary/70"
-                  />
-                </div>
-                <p className="iq-metric-value">{metric.value}</p>
-                <p className="iq-metric-foot">{metric.foot}</p>
-              </article>
+            ].map((m) => (
+              <div key={m.label}>
+                <span className="metric-label">{m.label}</span>
+                <p className="metric-value">{m.value}</p>
+                <p className="metric-foot">{m.foot}</p>
+              </div>
             ))}
           </div>
-          <div className="grid lg:grid-cols-12 gap-5">
-            <section className="card-elevated lg:col-span-8 p-5 sm:p-6">
-              <div className="flex items-start justify-between mb-8">
+          <div className="analytics-grid">
+            <section>
+              <div className="section-heading">
                 <div>
-                  <h2 className="iq-section-heading">A growing circle</h2>
-                  <p className="text-[10px] text-muted-foreground mt-1">
-                    New relationships added over the last {range} days.
-                  </p>
+                  <h2>New relationships</h2>
+                  <p>Leads added during the selected period.</p>
                 </div>
-                <span className="text-[22px] font-medium tracking-tight">
-                  {added}
-                  <span className="text-[9px] text-muted-foreground ml-2 font-normal tracking-normal">
-                    new leads
-                  </span>
+                <span className="text-[11px] text-muted-foreground">
+                  {totalAdded} total
                 </span>
               </div>
-              <div
-                className="relative h-[210px] flex gap-3 sm:gap-5 items-end border-b border-white/[.08] px-2 pb-0"
-                role="img"
-                aria-label={`New leads by reporting interval: ${trend.map((b) => `${b.label}: ${b.count}`).join(", ")}`}
-              >
-                <div className="absolute inset-0 flex flex-col justify-between pointer-events-none pb-0">
-                  {[0, 1, 2, 3].map((n) => (
-                    <div
-                      key={n}
-                      className="border-t border-dashed border-white/[.05] w-full"
-                    />
+              {totalAdded > 0 ? (
+                <div
+                  className="report-chart"
+                  role="img"
+                  aria-label={`New leads: ${buckets.map((b) => `${b.label}: ${b.count}`).join(", ")}`}
+                >
+                  <div className="chart-grid-lines">
+                    {[0, 1, 2, 3].map((n) => (
+                      <i key={n} />
+                    ))}
+                  </div>
+                  {buckets.map((b) => (
+                    <div key={b.start} className="report-bar">
+                      <div className="report-bar-value">{b.count}</div>
+                      <div
+                        className="report-bar-fill"
+                        style={{
+                          height: b.count ? `${(b.count / max) * 75}%` : "1px",
+                        }}
+                        title={`${b.label}: ${b.count} new leads`}
+                      />
+                      <span>{b.label}</span>
+                    </div>
                   ))}
                 </div>
-                {trend.map((b) => (
-                  <div
-                    key={b.label}
-                    className="flex-1 h-full flex items-end relative group"
-                  >
-                    <div
-                      title={`${b.label}: ${b.count} new leads`}
-                      className="w-full bg-[#bda5fb]/60 hover:bg-[#cbb5ff] rounded-t-sm transition-colors relative z-10"
-                      style={{
-                        height: b.count ? `${(b.count / max) * 86}%` : "2px",
-                        opacity: b.count ? 1 : 0.15,
-                      }}
-                    />
-                    <span className="absolute -bottom-7 inset-x-0 text-center text-[8px] text-muted-foreground">
-                      {b.label}
-                    </span>
+              ) : (
+                <div className="analytics-no-period">
+                  No new leads in this reporting period.
+                </div>
+              )}
+              <p className="text-[9px] text-muted-foreground mt-9 border-t pt-4">
+                Each bar covers one of seven equal intervals. Lead counts use
+                their recorded creation time.
+              </p>
+            </section>
+            <section>
+              <div className="section-heading">
+                <div>
+                  <h2>Pipeline composition</h2>
+                  <p>Current status, independent of the date filter.</p>
+                </div>
+                <Link to="/leads" className="section-link">
+                  <ArrowUpRight size={13} />
+                </Link>
+              </div>
+              <div className="pipeline-distribution">
+                {dist.map((s) => (
+                  <div key={s.status}>
+                    <div className="flex items-center justify-between">
+                      <StatusLabel status={s.status} />
+                      <span className="text-[11px]">
+                        {s.n}
+                        <span className="text-muted-foreground ml-3">
+                          {leads.length
+                            ? Math.round((s.n / leads.length) * 100)
+                            : 0}
+                          %
+                        </span>
+                      </span>
+                    </div>
+                    <div className="distribution-track">
+                      <div
+                        style={{
+                          width: `${leads.length ? (s.n / leads.length) * 100 : 0}%`,
+                        }}
+                      />
+                    </div>
                   </div>
                 ))}
               </div>
-              {added === 0 && (
-                <p className="text-[10px] text-muted-foreground text-center mt-12 mb-2">
-                  Your story is just getting started. New connections will
-                  appear here.
+              <div className="border-t mt-7 pt-5">
+                <p className="text-[11px] text-muted-foreground">
+                  Every stage reflects your actual saved leads.
                 </p>
-              )}
-              {added > 0 && (
-                <p className="text-[9px] text-muted-foreground mt-12 mb-2">
-                  Showing new leads by creation date. Each bar covers part of
-                  the selected period.
-                </p>
-              )}
+              </div>
             </section>
-            <section className="card-elevated lg:col-span-4 p-5 sm:p-6">
-              <h2 className="iq-section-heading">Where things stand</h2>
-              <p className="text-[10px] text-muted-foreground mt-1">
-                Your current pipeline, across all stages.
-              </p>
-              <div className="flex items-center justify-center my-7">
-                <div className="w-[125px] h-[125px] rounded-full border-[10px] border-white/[.04] flex items-center justify-center flex-col">
-                  <span className="text-3xl tracking-tight font-medium">
-                    {leads.length}
-                  </span>
-                  <span className="text-[8px] text-muted-foreground mt-1">
-                    relationships
-                  </span>
+            <section>
+              <div className="section-heading">
+                <div>
+                  <h2>Conversation activity</h2>
+                  <p>Synced messages during the selected period.</p>
                 </div>
               </div>
-              <div className="space-y-3">
-                {distribution.map((stage) => (
-                  <div
-                    key={stage.key}
-                    className="flex justify-between items-center text-[10px]"
-                  >
-                    <span className="flex items-center gap-2 text-muted-foreground">
-                      <i
-                        className="w-1.5 h-1.5 rounded-full"
-                        style={{ background: stage.color }}
-                      />
-                      {stage.label}
-                    </span>
-                    <span>
-                      {stage.count}
-                      <span className="text-muted-foreground ml-2">
-                        {leads.length
-                          ? Math.round((stage.count / leads.length) * 100)
-                          : 0}
-                        %
-                      </span>
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </section>
-          </div>
-          <div className="grid lg:grid-cols-2 gap-5">
-            <section className="card-elevated p-5 sm:p-6">
-              <h2 className="iq-section-heading">The flow of conversation</h2>
-              <p className="text-[10px] text-muted-foreground mt-1 mb-7">
-                Sent and received emails in your selected period.
-              </p>
               {[
-                { label: "Sent", value: email.sent, color: "#bda5fb" },
-                { label: "Received", value: email.received, color: "#8bb9aa" },
+                { label: "Sent", n: email.sent },
+                { label: "Received", n: email.received },
               ].map((row) => (
-                <div key={row.label} className="mb-5">
-                  <div className="flex justify-between text-[10px] mb-2">
+                <div key={row.label} className="my-6">
+                  <div className="flex justify-between text-[11px]">
                     <span className="text-muted-foreground">{row.label}</span>
-                    <span>{row.value}</span>
+                    <span>{row.n}</span>
                   </div>
-                  <div className="h-1.5 bg-white/[.03] rounded-full">
+                  <div className="distribution-track">
                     <div
-                      className="h-full rounded-full"
                       style={{
-                        width: `${totalActivity ? (row.value / totalActivity) * 100 : 0}%`,
-                        background: row.color,
+                        width: `${email.sent + email.received ? (row.n / (email.sent + email.received)) * 100 : 0}%`,
                       }}
                     />
                   </div>
                 </div>
               ))}
-              <p className="text-[9px] text-muted-foreground border-t border-white/[.06] pt-4 mt-6">
-                Based on synced email activity. Connect your email to build a
-                clearer picture.
+              <p className="text-[9px] text-muted-foreground border-t pt-4 mt-7">
+                No inferred opens or reply-rate estimates. Counts come from the
+                messages synced to your workspace.
               </p>
             </section>
-            <section className="card-elevated p-5 sm:p-6">
-              <div className="flex items-center justify-between">
+            <section>
+              <div className="section-heading">
                 <div>
-                  <h2 className="iq-section-heading">A moment to reconnect</h2>
-                  <p className="text-[10px] text-muted-foreground mt-1">
-                    Relationships without contact in 5+ days.
-                  </p>
+                  <h2>Room to reconnect</h2>
+                  <p>Relationships without a recorded contact in 5+ days.</p>
                 </div>
-                <Link
-                  to="/leads"
-                  aria-label="View lead pipeline"
-                  className="text-muted-foreground hover:text-primary"
-                >
-                  <ArrowUpRight size={16} />
+                <Link to="/leads?filter=risk" className="section-link">
+                  <ArrowUpRight size={13} />
                 </Link>
               </div>
-              {pending.length ? (
-                <div className="mt-5 divide-y divide-white/[.05]">
-                  {pending.slice(0, 4).map((lead) => (
-                    <div
-                      key={lead.id}
-                      className="py-3 flex justify-between gap-3 text-[10px]"
-                    >
-                      <span className="truncate">
-                        {lead.company || lead.contact_name}
+              {due.length ? (
+                <ul className="work-list">
+                  {due.slice(0, 5).map((l) => (
+                    <li key={l.id}>
+                      <Link
+                        to={`/leads?lead=${l.id}`}
+                        className="text-[11px] flex-1"
+                      >
+                        {l.company || l.contact_name}
+                      </Link>
+                      <span className="text-[10px] text-muted-foreground">
+                        {l.days_since_contact} days
                       </span>
-                      <span className="text-muted-foreground shrink-0">
-                        {lead.days_since_contact} days
-                      </span>
-                    </div>
+                    </li>
                   ))}
-                </div>
+                </ul>
               ) : (
-                <div className="min-h-[155px] flex items-center justify-center text-center">
-                  <div>
-                    <Users size={23} className="text-primary/40 mx-auto mb-3" />
-                    <p className="text-[11px] text-muted-foreground">
-                      No overdue relationships right now.
-                    </p>
-                    <p className="text-[9px] text-muted-foreground/60 mt-2">
-                      A good place to keep the momentum going.
-                    </p>
-                  </div>
+                <div className="analytics-no-period !h-[150px]">
+                  No overdue relationships right now.
                 </div>
               )}
-              <Link
-                to="/leads"
-                className="text-[10px] text-primary flex items-center gap-2 mt-3"
-              >
-                Explore your pipeline
-                <ArrowRight size={12} />
-              </Link>
             </section>
           </div>
-        </div>
+          <MetricDefinitions />
+        </>
       )}
     </DashboardLayout>
+  );
+}
+function MetricDefinitions() {
+  return (
+    <details className="metric-definitions">
+      <summary>
+        <Info size={12} />
+        How these numbers are counted
+      </summary>
+      <div>
+        <p>
+          <strong>Messages:</strong> synced email with a recorded sent or
+          received time in the selected period.
+        </p>
+        <p>
+          <strong>New leads:</strong> saved leads with a creation time in the
+          selected period.
+        </p>
+        <p>
+          <strong>Pipeline:</strong> all saved leads, grouped by current stage.
+          Changing the date filter doesn't change this snapshot.
+        </p>
+        <p>
+          Dates reflect your browser's timezone. Data depends on your email sync
+          and saved pipeline records.
+        </p>
+      </div>
+    </details>
   );
 }

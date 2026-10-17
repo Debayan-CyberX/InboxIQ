@@ -1,25 +1,28 @@
-import { createClient } from '@supabase/supabase-js'
+import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+import type { Database } from "@/types/supabase";
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
 // Make Supabase optional for now - app can run without it
-let supabase: ReturnType<typeof createClient> | null = null
+let supabase: SupabaseClient<Database> | null = null;
 
 if (supabaseUrl && supabaseAnonKey) {
   try {
-    supabase = createClient(supabaseUrl, supabaseAnonKey, {
+    supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
       auth: {
         persistSession: false, // We're using Better Auth for sessions
         autoRefreshToken: false,
       },
-    })
-    console.log('✅ Supabase client initialized')
+    });
+    console.log("✅ Supabase client initialized");
   } catch (error) {
-    console.warn('⚠️ Failed to initialize Supabase:', error)
+    console.warn("⚠️ Failed to initialize Supabase:", error);
   }
 } else {
-  console.warn('⚠️ Supabase environment variables not set - app will run without database connection')
+  console.warn(
+    "⚠️ Supabase environment variables not set - app will run without database connection",
+  );
 }
 
 // Helper function to get authenticated Supabase client
@@ -31,9 +34,9 @@ if (supabaseUrl && supabaseAnonKey) {
 // 3. Use a Postgres function that accepts user_id
 export function getSupabaseClient() {
   if (!supabase) {
-    throw new Error('Supabase client not initialized')
+    throw new Error("Supabase client not initialized");
   }
-  return supabase
+  return supabase;
 }
 
-export { supabase }
+export { supabase };

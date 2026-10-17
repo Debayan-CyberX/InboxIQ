@@ -1,14 +1,22 @@
+import type { gmail_v1 } from "googleapis";
+import type { Lead } from "../src/types/database.js";
 // Express server for Better Auth API routes
 // Run this server alongside your Vite dev server
 import dotenv from "dotenv";
-import express, { Request as ExpressRequest, Response as ExpressResponse } from "express";
+import express, {
+  Request as ExpressRequest,
+  Response as ExpressResponse,
+} from "express";
 import cors from "cors";
 import path from "node:path";
 import { Pool } from "pg";
 import { Resend } from "resend";
 import { auth } from "./auth.js";
 import { detectLeadsFromEmailThreads } from "./lead-detection.js";
-import { generateFollowUpForLead, generateFollowUpText } from "./ai-followup.js";
+import {
+  generateFollowUpForLead,
+  generateFollowUpText,
+} from "./ai-followup.js";
 import { updateAllLeadsContactInfo } from "./update-lead-contact.js";
 import { generateChatResponse } from "./chat.js";
 import { generateAI } from "../src/lib/groq.js";
@@ -19,7 +27,6 @@ type BetterAuthSession = {
     id?: string;
   };
 };
-
 
 // Load .env.local file (dotenv by default loads .env, but we want .env.local)
 dotenv.config({ path: ".env.local" });
@@ -33,24 +40,23 @@ const VITE_PORT = process.env.VITE_PORT || 8081;
 const productionFrontendUrl = "https://inboxiq.debx.co.in";
 const allowedOrigins = [
   // Development URLs
-  
+
   "https://inboxiq.debx.co.in",
-    "http://localhost:8080",
+  "http://localhost:8080",
   "http://localhost:8081",
-    "http://localhost:5173",
-    "http://127.0.0.1:8080",
-    "http://127.0.0.1:8081",
-    "http://127.0.0.1:5173",
-    `http://localhost:${VITE_PORT}`,
+  "http://localhost:5173",
+  "http://127.0.0.1:8080",
+  "http://127.0.0.1:8081",
+  "http://127.0.0.1:5173",
+  `http://localhost:${VITE_PORT}`,
   // Production URLs
   productionFrontendUrl,
   process.env.RENDER_EXTERNAL_URL,
   process.env.BETTER_AUTH_URL,
-  process.env.VITE_APP_URL || process.env.FRONTEND_URL || productionFrontendUrl
+  process.env.VITE_APP_URL || process.env.FRONTEND_URL || productionFrontendUrl,
 ].filter(Boolean);
 
 app.set("trust proxy", 1);
-
 
 app.use(
   cors({
@@ -58,13 +64,9 @@ app.use(
       // Allow server-to-server / curl / Postman
       if (!origin) return callback(null, true);
 
-      if (
-  allowedOrigins.includes(origin) ||
-  origin.endsWith(".vercel.app")
-) {
-  return callback(null, true);
-}
-
+      if (allowedOrigins.includes(origin) || origin.endsWith(".vercel.app")) {
+        return callback(null, true);
+      }
 
       // ❗ DO NOT throw error — allow but log
       console.warn(`⚠️ CORS blocked origin: ${origin}`);
@@ -73,10 +75,9 @@ app.use(
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization", "Cookie"],
-  })
+  }),
 );
 app.options(/.*/, cors());
-
 
 app.use(express.json());
 
@@ -91,10 +92,7 @@ function expressToWebRequest(req: ExpressRequest): Request {
       : "http://localhost:3001");
 
   // 2️⃣ Resolve path safely (IMPORTANT FIX)
-  const path =
-    req.originalUrl ||
-    req.url ||
-    "/api/auth/get-session"; // fallback for internal calls
+  const path = req.originalUrl || req.url || "/api/auth/get-session"; // fallback for internal calls
 
   // 3️⃣ Construct FINAL absolute URL
   const fullUrl = new URL(path, baseURL).toString();
@@ -129,10 +127,7 @@ function expressToWebRequest(req: ExpressRequest): Request {
   for (const [key, value] of Object.entries(req.headers || {})) {
     if (!value) continue;
     if (headers.has(key)) continue;
-    headers.set(
-      key,
-      Array.isArray(value) ? value.join(", ") : String(value)
-    );
+    headers.set(key, Array.isArray(value) ? value.join(", ") : String(value));
   }
 
   // ---- Body handling ----
@@ -158,7 +153,7 @@ function expressToWebRequest(req: ExpressRequest): Request {
 // Convert Web API Response to Express response
 async function webToExpressResponse(
   webResponse: Response,
-  expressRes: ExpressResponse
+  expressRes: ExpressResponse,
 ) {
   expressRes.status(webResponse.status);
 
@@ -195,8 +190,7 @@ app.use("/api/auth", async (req: ExpressRequest, res: ExpressResponse) => {
     if (!res.headersSent) {
       res.status(500).json({
         error: "Internal server error",
-        message:
-          error instanceof Error ? error.message : "Unknown auth error",
+        message: error instanceof Error ? error.message : "Unknown auth error",
       });
     }
   }
@@ -209,11 +203,11 @@ app.get("/health", (req, res) => {
 
 // Test endpoint to verify CORS and connection
 app.get("/api/test", (req, res) => {
-  res.json({ 
-    status: "ok", 
+  res.json({
+    status: "ok",
     message: "Auth server is reachable",
-    origin: req.get('origin') || 'none',
-    timestamp: new Date().toISOString()
+    origin: req.get("origin") || "none",
+    timestamp: new Date().toISOString(),
   });
 });
 
@@ -238,7 +232,7 @@ app.put("/api/emails/:emailId", async (req, res) => {
 
     const betterAuthUserId = sessionData.user.id;
     const databaseUrl = process.env.DATABASE_URL;
-    
+
     if (!databaseUrl) {
       return res.status(500).json({
         error: "Database not configured",
@@ -256,7 +250,7 @@ app.put("/api/emails/:emailId", async (req, res) => {
     // Get user UUID
     const userResult = await pool.query(
       `SELECT public.get_user_uuid_from_better_auth_id($1) AS uuid`,
-      [betterAuthUserId]
+      [betterAuthUserId],
     );
 
     if (!userResult.rows[0]?.uuid) {
@@ -271,12 +265,18 @@ app.put("/api/emails/:emailId", async (req, res) => {
 
     // Build update query dynamically
     const updateFields: string[] = [];
-    const updateValues: any[] = [];
+    const updateValues: unknown[] = [];
     let paramIndex = 1;
 
     const allowedFields = [
-      "subject", "body_text", "body_html", "tone", "status", 
-      "is_ai_draft", "ai_reason", "scheduled_for"
+      "subject",
+      "body_text",
+      "body_html",
+      "tone",
+      "status",
+      "is_ai_draft",
+      "ai_reason",
+      "scheduled_for",
     ];
 
     for (const [key, value] of Object.entries(updates)) {
@@ -351,7 +351,7 @@ app.post("/api/emails", async (req, res) => {
 
     const betterAuthUserId = sessionData.user.id;
     const databaseUrl = process.env.DATABASE_URL;
-    
+
     if (!databaseUrl) {
       return res.status(500).json({
         error: "Database not configured",
@@ -369,7 +369,7 @@ app.post("/api/emails", async (req, res) => {
     // Get user UUID
     const userResult = await pool.query(
       `SELECT public.get_user_uuid_from_better_auth_id($1) AS uuid`,
-      [betterAuthUserId]
+      [betterAuthUserId],
     );
 
     if (!userResult.rows[0]?.uuid) {
@@ -438,9 +438,9 @@ app.post("/api/emails/send", async (req, res) => {
 
     // Validate required fields
     if (!to || !subject || !body) {
-      return res.status(400).json({ 
-        error: "Missing required fields", 
-        required: ["to", "subject", "body"] 
+      return res.status(400).json({
+        error: "Missing required fields",
+        required: ["to", "subject", "body"],
       });
     }
 
@@ -448,9 +448,10 @@ app.post("/api/emails/send", async (req, res) => {
     const resendApiKey = process.env.RESEND_API_KEY;
     if (!resendApiKey) {
       console.warn("⚠️ RESEND_API_KEY not set. Email sending disabled.");
-      return res.status(503).json({ 
+      return res.status(503).json({
         error: "Email service not configured",
-        message: "RESEND_API_KEY environment variable is not set. Please configure Resend API key in your .env.local file."
+        message:
+          "RESEND_API_KEY environment variable is not set. Please configure Resend API key in your .env.local file.",
       });
     }
 
@@ -458,8 +459,10 @@ app.post("/api/emails/send", async (req, res) => {
     const resend = new Resend(resendApiKey);
 
     // Get from email from env or use default
-    const from = fromEmail || process.env.RESEND_FROM_EMAIL || "onboarding@resend.dev";
-    const fromNameValue = fromName || process.env.RESEND_FROM_NAME || "InboxAI Assistant";
+    const from =
+      fromEmail || process.env.RESEND_FROM_EMAIL || "onboarding@resend.dev";
+    const fromNameValue =
+      fromName || process.env.RESEND_FROM_NAME || "InboxAI Assistant";
 
     // Send email via Resend
     const { data, error } = await resend.emails.send({
@@ -467,41 +470,47 @@ app.post("/api/emails/send", async (req, res) => {
       to: Array.isArray(to) ? to : [to],
       subject: subject,
       html: body,
-      text: body.replace(/<[^>]*>/g, ''), // Strip HTML for text version
+      text: body.replace(/<[^>]*>/g, ""), // Strip HTML for text version
     });
 
     if (error) {
       console.error("❌ Resend API error:", error);
-      return res.status(500).json({ 
+      return res.status(500).json({
         error: "Failed to send email",
-        message: error.message || "Unknown error from Resend API"
+        message: error.message || "Unknown error from Resend API",
       });
     }
 
     console.log("✅ Email sent successfully:", data?.id);
-    res.json({ 
-      success: true, 
+    res.json({
+      success: true,
       messageId: data?.id,
-      message: "Email sent successfully"
+      message: "Email sent successfully",
     });
   } catch (error) {
     console.error("❌ Email sending error:", error);
-    
+
     // Provide helpful error message for missing resend package
     let errorMessage = error instanceof Error ? error.message : String(error);
     let statusCode = 500;
-    
-    if (errorMessage.includes("Cannot find package 'resend'") || errorMessage.includes("Cannot find module 'resend'")) {
+
+    if (
+      errorMessage.includes("Cannot find package 'resend'") ||
+      errorMessage.includes("Cannot find module 'resend'")
+    ) {
       statusCode = 503;
-      errorMessage = "Email service package not installed. Please run 'npm install resend' on the server and restart.";
+      errorMessage =
+        "Email service package not installed. Please run 'npm install resend' on the server and restart.";
     } else if (errorMessage.includes("RESEND_API_KEY")) {
       statusCode = 503;
-      errorMessage = "Email service not configured. RESEND_API_KEY environment variable is required.";
+      errorMessage =
+        "Email service not configured. RESEND_API_KEY environment variable is required.";
     }
-    
-    res.status(statusCode).json({ 
-      error: statusCode === 503 ? "Service Unavailable" : "Internal server error",
-      message: errorMessage
+
+    res.status(statusCode).json({
+      error:
+        statusCode === 503 ? "Service Unavailable" : "Internal server error",
+      message: errorMessage,
     });
   }
 });
@@ -526,7 +535,7 @@ app.delete("/api/emails/:emailId", async (req, res) => {
 
     const betterAuthUserId = sessionData.user.id;
     const databaseUrl = process.env.DATABASE_URL;
-    
+
     if (!databaseUrl) {
       return res.status(500).json({
         error: "Database not configured",
@@ -544,7 +553,7 @@ app.delete("/api/emails/:emailId", async (req, res) => {
     // Get user UUID
     const userResult = await pool.query(
       `SELECT public.get_user_uuid_from_better_auth_id($1) AS uuid`,
-      [betterAuthUserId]
+      [betterAuthUserId],
     );
 
     if (!userResult.rows[0]?.uuid) {
@@ -560,7 +569,7 @@ app.delete("/api/emails/:emailId", async (req, res) => {
     // Delete the email
     const deleteResult = await pool.query(
       `DELETE FROM public.emails WHERE id = $1 AND user_id = $2 RETURNING id`,
-      [emailId, userUuid]
+      [emailId, userUuid],
     );
 
     await pool.end();
@@ -588,20 +597,21 @@ app.delete("/api/emails/:emailId", async (req, res) => {
 // Email connection endpoints
 app.post("/api/email-connections/connect", async (req, res) => {
   try {
-    const { provider, email, accessToken, refreshToken, expiresIn, userId } = req.body;
+    const { provider, email, accessToken, refreshToken, expiresIn, userId } =
+      req.body;
 
     // Validate required fields
     if (!provider || !email || !userId) {
-      return res.status(400).json({ 
-        error: "Missing required fields", 
-        required: ["provider", "email", "userId"] 
+      return res.status(400).json({
+        error: "Missing required fields",
+        required: ["provider", "email", "userId"],
       });
     }
 
     // For now, we'll store the connection info
     // In production, you'd validate the OAuth token and store it securely
     // This is a simplified version - enhance with full OAuth flow later
-    
+
     const connectionData = {
       provider,
       email,
@@ -618,17 +628,17 @@ app.post("/api/email-connections/connect", async (req, res) => {
     // 1. Validate the OAuth token with the provider
     // 2. Store encrypted tokens in database
     // 3. Set up sync job
-    
-    res.json({ 
-      success: true, 
+
+    res.json({
+      success: true,
       connection: connectionData,
-      message: "Email connection initiated. Complete OAuth flow in production."
+      message: "Email connection initiated. Complete OAuth flow in production.",
     });
   } catch (error) {
     console.error("❌ Email connection error:", error);
-    res.status(500).json({ 
+    res.status(500).json({
       error: "Internal server error",
-      message: error instanceof Error ? error.message : String(error)
+      message: error instanceof Error ? error.message : String(error),
     });
   }
 });
@@ -653,48 +663,67 @@ app.get("/api/email-connections/oauth/:provider", async (req, res) => {
 
     if (provider === "gmail") {
       if (!googleClientId) {
-        return res.status(503).json({ 
+        return res.status(503).json({
           error: "Gmail OAuth not configured",
-          message: "Please set GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET in your .env.local file"
+          message:
+            "Please set GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET in your .env.local file",
         });
       }
 
       // Gmail OAuth URL
-      const scopes = encodeURIComponent("https://www.googleapis.com/auth/gmail.readonly https://www.googleapis.com/auth/gmail.send");
+      const scopes = encodeURIComponent(
+        "https://www.googleapis.com/auth/gmail.readonly https://www.googleapis.com/auth/gmail.send",
+      );
       const productionBackendUrl = "https://api.inboxiq.debx.co.in";
-      const authServerUrl = process.env.BETTER_AUTH_URL || process.env.VITE_BETTER_AUTH_URL || 
-        (process.env.NODE_ENV === "production" ? productionBackendUrl : "http://localhost:3001");
+      const authServerUrl =
+        process.env.BETTER_AUTH_URL ||
+        process.env.VITE_BETTER_AUTH_URL ||
+        (process.env.NODE_ENV === "production"
+          ? productionBackendUrl
+          : "http://localhost:3001");
       const redirect = `${authServerUrl}/api/email-connections/callback?provider=gmail`;
       authUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${googleClientId}&redirect_uri=${encodeURIComponent(redirect)}&response_type=code&scope=${scopes}&access_type=offline&prompt=consent&state=${userId}`;
     } else if (provider === "outlook") {
       if (!outlookClientId) {
-        return res.status(503).json({ 
+        return res.status(503).json({
           error: "Outlook OAuth not configured",
-          message: "Please set OUTLOOK_CLIENT_ID and OUTLOOK_CLIENT_SECRET in your .env.local file"
+          message:
+            "Please set OUTLOOK_CLIENT_ID and OUTLOOK_CLIENT_SECRET in your .env.local file",
         });
       }
 
       // Outlook OAuth URL
-      const scopes = encodeURIComponent("https://graph.microsoft.com/Mail.Read https://graph.microsoft.com/Mail.Send offline_access");
+      const scopes = encodeURIComponent(
+        "https://graph.microsoft.com/Mail.Read https://graph.microsoft.com/Mail.Send offline_access",
+      );
       const productionBackendUrl = "https://api.inboxiq.debx.co.in";
-      const authServerUrl = process.env.BETTER_AUTH_URL || process.env.VITE_BETTER_AUTH_URL || 
-        (process.env.NODE_ENV === "production" ? productionBackendUrl : "http://localhost:3001");
+      const authServerUrl =
+        process.env.BETTER_AUTH_URL ||
+        process.env.VITE_BETTER_AUTH_URL ||
+        (process.env.NODE_ENV === "production"
+          ? productionBackendUrl
+          : "http://localhost:3001");
       const redirect = `${authServerUrl}/api/email-connections/callback?provider=outlook`;
       authUrl = `https://login.microsoftonline.com/common/oauth2/v2.0/authorize?client_id=${outlookClientId}&response_type=code&redirect_uri=${encodeURIComponent(redirect)}&response_mode=query&scope=${scopes}&state=${userId}`;
     } else {
-      return res.status(400).json({ error: "Unsupported provider", supported: ["gmail", "outlook"] });
+      return res
+        .status(400)
+        .json({
+          error: "Unsupported provider",
+          supported: ["gmail", "outlook"],
+        });
     }
 
-    res.json({ 
-      success: true, 
+    res.json({
+      success: true,
       authUrl,
-      message: "Redirect user to this URL to authorize"
+      message: "Redirect user to this URL to authorize",
     });
   } catch (error) {
     console.error("❌ OAuth URL generation error:", error);
-    res.status(500).json({ 
+    res.status(500).json({
       error: "Internal server error",
-      message: error instanceof Error ? error.message : String(error)
+      message: error instanceof Error ? error.message : String(error),
     });
   }
 });
@@ -702,12 +731,19 @@ app.get("/api/email-connections/oauth/:provider", async (req, res) => {
 // Handle OAuth callback (GET request from redirect)
 app.get("/api/email-connections/callback", async (req, res) => {
   try {
-    const { code, state, error: oauthError } = req.query;
+    const code = typeof req.query.code === "string" ? req.query.code : "";
+    const state = typeof req.query.state === "string" ? req.query.state : "";
+    const oauthError =
+      typeof req.query.error === "string" ? req.query.error : "";
 
     // Get frontend URL from environment (production or development)
     const productionFrontendUrl = "https://inboxiq.debx.co.in";
-    const frontendUrl = process.env.FRONTEND_URL || process.env.VITE_APP_URL || 
-      (process.env.NODE_ENV === "production" ? productionFrontendUrl : "http://localhost:8081");
+    const frontendUrl =
+      process.env.FRONTEND_URL ||
+      process.env.VITE_APP_URL ||
+      (process.env.NODE_ENV === "production"
+        ? productionFrontendUrl
+        : "http://localhost:8081");
 
     if (oauthError) {
       // Redirect back to settings with error
@@ -726,18 +762,24 @@ app.get("/api/email-connections/callback", async (req, res) => {
     const provider = req.query.provider || "gmail"; // Default to gmail
     const betterAuthUserId = state as string;
 
-    console.log("📧 OAuth callback received:", { provider, code: code.substring(0, 20) + "...", userId: betterAuthUserId });
-
     // Exchange authorization code for tokens
-    let tokenData: any = {};
+    let tokenData: {
+      access_token?: string;
+      refresh_token?: string;
+      expires_in?: number;
+    } = {};
     let userEmail = "";
 
     if (provider === "gmail") {
       const googleClientId = process.env.GOOGLE_CLIENT_ID;
       const googleClientSecret = process.env.GOOGLE_CLIENT_SECRET;
       const productionBackendUrl = "https://api.inboxiq.debx.co.in";
-      const authServerUrl = process.env.BETTER_AUTH_URL || process.env.VITE_BETTER_AUTH_URL || 
-        (process.env.NODE_ENV === "production" ? productionBackendUrl : "http://localhost:3001");
+      const authServerUrl =
+        process.env.BETTER_AUTH_URL ||
+        process.env.VITE_BETTER_AUTH_URL ||
+        (process.env.NODE_ENV === "production"
+          ? productionBackendUrl
+          : "http://localhost:3001");
       const redirectUri = `${authServerUrl}/api/email-connections/callback?provider=gmail`;
 
       if (!googleClientId || !googleClientSecret) {
@@ -776,7 +818,7 @@ app.get("/api/email-connections/callback", async (req, res) => {
         const oauth2Client = new google.auth.OAuth2(
           googleClientId,
           googleClientSecret,
-          redirectUri
+          redirectUri,
         );
         oauth2Client.setCredentials({
           access_token: tokenData.access_token,
@@ -786,20 +828,30 @@ app.get("/api/email-connections/callback", async (req, res) => {
         const gmail = google.gmail({ version: "v1", auth: oauth2Client });
         const profileResponse = await gmail.users.getProfile({ userId: "me" });
         userEmail = profileResponse.data.emailAddress || "";
-        
+
         console.log("📧 Gmail profile fetched:", { email: userEmail });
       } catch (gmailError) {
-        console.error("❌ Failed to fetch Gmail profile, trying userinfo fallback:", gmailError);
+        console.error(
+          "❌ Failed to fetch Gmail profile, trying userinfo fallback:",
+          gmailError,
+        );
         // Fallback to userinfo API
-      const userInfoResponse = await fetch("https://www.googleapis.com/oauth2/v2/userinfo", {
-        headers: {
-          Authorization: `Bearer ${tokenData.access_token}`,
-        },
-      });
+        const userInfoResponse = await fetch(
+          "https://www.googleapis.com/oauth2/v2/userinfo",
+          {
+            headers: {
+              Authorization: `Bearer ${tokenData.access_token}`,
+            },
+          },
+        );
 
-      if (userInfoResponse.ok) {
-        const userInfo = await userInfoResponse.json();
-        userEmail = userInfo.email || "";
+        if (userInfoResponse.ok) {
+          const userInfo = (await userInfoResponse.json()) as {
+            email?: string;
+            mail?: string;
+            userPrincipalName?: string;
+          };
+          userEmail = userInfo.email || "";
         }
       }
 
@@ -809,7 +861,10 @@ app.get("/api/email-connections/callback", async (req, res) => {
     } else if (provider === "outlook") {
       const outlookClientId = process.env.OUTLOOK_CLIENT_ID;
       const outlookClientSecret = process.env.OUTLOOK_CLIENT_SECRET;
-      const authServerUrl = process.env.BETTER_AUTH_URL || process.env.VITE_BETTER_AUTH_URL || "http://localhost:3001";
+      const authServerUrl =
+        process.env.BETTER_AUTH_URL ||
+        process.env.VITE_BETTER_AUTH_URL ||
+        "http://localhost:3001";
       const redirectUri = `${authServerUrl}/api/email-connections/callback?provider=outlook`;
 
       if (!outlookClientId || !outlookClientSecret) {
@@ -819,19 +874,22 @@ app.get("/api/email-connections/callback", async (req, res) => {
       }
 
       // Exchange code for tokens
-      const tokenResponse = await fetch("https://login.microsoftonline.com/common/oauth2/v2.0/token", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/x-www-form-urlencoded",
+      const tokenResponse = await fetch(
+        "https://login.microsoftonline.com/common/oauth2/v2.0/token",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+          },
+          body: new URLSearchParams({
+            code: code as string,
+            client_id: outlookClientId,
+            client_secret: outlookClientSecret,
+            redirect_uri: redirectUri,
+            grant_type: "authorization_code",
+          }),
         },
-        body: new URLSearchParams({
-          code: code as string,
-          client_id: outlookClientId,
-          client_secret: outlookClientSecret,
-          redirect_uri: redirectUri,
-          grant_type: "authorization_code",
-        }),
-      });
+      );
 
       if (!tokenResponse.ok) {
         const errorText = await tokenResponse.text();
@@ -843,14 +901,21 @@ app.get("/api/email-connections/callback", async (req, res) => {
       tokenData = await tokenResponse.json();
 
       // Get user email from Microsoft Graph
-      const userInfoResponse = await fetch("https://graph.microsoft.com/v1.0/me", {
-        headers: {
-          Authorization: `Bearer ${tokenData.access_token}`,
+      const userInfoResponse = await fetch(
+        "https://graph.microsoft.com/v1.0/me",
+        {
+          headers: {
+            Authorization: `Bearer ${tokenData.access_token}`,
+          },
         },
-      });
+      );
 
       if (userInfoResponse.ok) {
-        const userInfo = await userInfoResponse.json();
+        const userInfo = (await userInfoResponse.json()) as {
+          email?: string;
+          mail?: string;
+          userPrincipalName?: string;
+        };
         userEmail = userInfo.mail || userInfo.userPrincipalName || "";
       }
     }
@@ -858,8 +923,9 @@ app.get("/api/email-connections/callback", async (req, res) => {
     // Store connection in database
     // We need to get user UUID from Better Auth ID
     const { Pool } = await import("pg");
-    const databaseUrl = process.env.DATABASE_URL || process.env.SUPABASE_DATABASE_URL;
-    
+    const databaseUrl =
+      process.env.DATABASE_URL || process.env.SUPABASE_DATABASE_URL;
+
     if (!databaseUrl) {
       console.error("❌ DATABASE_URL not configured");
       const redirectUrl = `${frontendUrl}/settings?tab=email&error=${encodeURIComponent("Database not configured")}`;
@@ -869,14 +935,16 @@ app.get("/api/email-connections/callback", async (req, res) => {
 
     const pool = new Pool({
       connectionString: databaseUrl,
-      ssl: databaseUrl.includes("supabase.co") ? { rejectUnauthorized: false } : false,
+      ssl: databaseUrl.includes("supabase.co")
+        ? { rejectUnauthorized: false }
+        : false,
     });
 
     try {
       // Get user UUID from Better Auth ID using the database function
       const userResult = await pool.query(
         `SELECT public.get_user_uuid_from_better_auth_id($1) as uuid`,
-        [betterAuthUserId]
+        [betterAuthUserId],
       );
 
       if (!userResult.rows[0]?.uuid) {
@@ -901,11 +969,11 @@ app.get("/api/email-connections/callback", async (req, res) => {
       // Insert or update email connection
       await pool.query(
         `INSERT INTO public.email_connections (
-          user_id, provider, email, display_name, 
+          user_id, provider, email, display_name,
           access_token, refresh_token, token_expires_at,
           is_active, sync_enabled, last_sync_at
         ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, NOW())
-        ON CONFLICT (user_id, email, provider) 
+        ON CONFLICT (user_id, email, provider)
         DO UPDATE SET
           access_token = EXCLUDED.access_token,
           refresh_token = EXCLUDED.refresh_token,
@@ -924,10 +992,14 @@ app.get("/api/email-connections/callback", async (req, res) => {
           expiresAt,
           true,
           true,
-        ]
+        ],
       );
 
-      console.log("✅ Email connection saved:", { provider, email: userEmail, userId: userUuid });
+      console.log("✅ Email connection saved:", {
+        provider,
+        email: userEmail,
+        userId: userUuid,
+      });
 
       // Redirect back to settings with success
       const redirectUrl = `${frontendUrl}/dashboard?emailConnected=${provider}`;
@@ -943,7 +1015,10 @@ app.get("/api/email-connections/callback", async (req, res) => {
     }
   } catch (error) {
     console.error("❌ OAuth callback error:", error);
-    const frontendUrl = process.env.FRONTEND_URL || process.env.VITE_APP_URL || "http://localhost:8081";
+    const frontendUrl =
+      process.env.FRONTEND_URL ||
+      process.env.VITE_APP_URL ||
+      "http://localhost:8081";
     const redirectUrl = `${frontendUrl}/settings?tab=email&error=${encodeURIComponent(error instanceof Error ? error.message : "Unknown error")}`;
     console.log("🔀 Redirecting to:", redirectUrl);
     return res.redirect(redirectUrl);
@@ -952,7 +1027,7 @@ app.get("/api/email-connections/callback", async (req, res) => {
 
 // Helper: get session safely (skip OPTIONS)
 async function getSessionFromRequest(
-  req: ExpressRequest
+  req: ExpressRequest,
 ): Promise<BetterAuthSession | null> {
   if (req.method === "OPTIONS") {
     return null;
@@ -972,7 +1047,7 @@ async function getSessionFromRequest(
       "Cookie",
       Array.isArray(req.headers.cookie)
         ? req.headers.cookie.join("; ")
-        : req.headers.cookie
+        : req.headers.cookie,
     );
   }
   // Copy origin for CORS validation
@@ -981,7 +1056,7 @@ async function getSessionFromRequest(
       "Origin",
       Array.isArray(req.headers.origin)
         ? req.headers.origin[0]
-        : req.headers.origin
+        : req.headers.origin,
     );
   }
   // Copy user-agent
@@ -990,7 +1065,7 @@ async function getSessionFromRequest(
       "User-Agent",
       Array.isArray(req.headers["user-agent"])
         ? req.headers["user-agent"][0]
-        : req.headers["user-agent"]
+        : req.headers["user-agent"],
     );
   }
 
@@ -1059,7 +1134,7 @@ app.post("/api/leads/:leadId/generate-followup", async (req, res) => {
 
     const userResult = await pool.query(
       `SELECT public.get_user_uuid_from_better_auth_id($1) AS uuid`,
-      [betterAuthUserId]
+      [betterAuthUserId],
     );
 
     if (!userResult.rows[0]?.uuid) {
@@ -1075,7 +1150,7 @@ app.post("/api/leads/:leadId/generate-followup", async (req, res) => {
     // Get user email from Better Auth user table
     const emailResult = await pool.query(
       `SELECT email FROM public."user" WHERE id = $1 LIMIT 1`,
-      [betterAuthUserId]
+      [betterAuthUserId],
     );
 
     await pool.end();
@@ -1092,14 +1167,20 @@ app.post("/api/leads/:leadId/generate-followup", async (req, res) => {
     console.log(`🤖 Generating follow-up for lead: ${leadId}`);
 
     // Generate follow-up
-    const tone = (req.body?.tone as "professional" | "short" | "confident" | "polite" | "sales-focused") || undefined;
-    
+    const tone =
+      (req.body?.tone as
+        | "professional"
+        | "short"
+        | "confident"
+        | "polite"
+        | "sales-focused") || undefined;
+
     const result = await generateFollowUpForLead(
       leadId,
       userUuid,
       userEmail,
       databaseUrl,
-      tone
+      tone,
     );
 
     return res.json({
@@ -1126,10 +1207,13 @@ app.post("/api/chat", async (req, res) => {
     return res.sendStatus(200);
   }
 
+  const { message, conversationHistory = [] } = req.body;
   try {
-    const { message, conversationHistory = [] } = req.body;
-
-    if (!message || typeof message !== "string" || message.trim().length === 0) {
+    if (
+      !message ||
+      typeof message !== "string" ||
+      message.trim().length === 0
+    ) {
       return res.status(400).json({
         error: "Invalid message",
         message: "Message is required and must be a non-empty string",
@@ -1138,9 +1222,12 @@ app.post("/api/chat", async (req, res) => {
 
     // Get session (optional for chat, but good for tracking)
     const sessionData = await getSessionFromRequest(req).catch(() => null);
-    
+
     // Generate response using the chat function
-    const cleanResponse = await generateChatResponse(message, conversationHistory);
+    const cleanResponse = await generateChatResponse(
+      message,
+      conversationHistory,
+    );
 
     return res.json({
       success: true,
@@ -1148,13 +1235,16 @@ app.post("/api/chat", async (req, res) => {
     });
   } catch (error) {
     console.error("❌ Chat error:", error);
-    
+
     // Import fallback function
     const { generateChatResponse } = await import("./chat.js");
-    
+
     // Try to get a fallback response
     try {
-      const fallbackResponse = await generateChatResponse(message, conversationHistory);
+      const fallbackResponse = await generateChatResponse(
+        message,
+        conversationHistory,
+      );
       return res.json({
         success: true,
         response: fallbackResponse,
@@ -1164,7 +1254,8 @@ app.post("/api/chat", async (req, res) => {
       return res.status(500).json({
         error: "Chat failed",
         message: error instanceof Error ? error.message : "Unknown error",
-        response: "I apologize, but I'm having trouble connecting to the AI service right now. Please try again in a moment, or check your connection.",
+        response:
+          "I apologize, but I'm having trouble connecting to the AI service right now. Please try again in a moment, or check your connection.",
       });
     }
   }
@@ -1193,7 +1284,7 @@ app.post("/api/leads/:leadId/generate-followup-text", async (req, res) => {
 
     const betterAuthUserId = sessionData.user.id;
     const databaseUrl = process.env.DATABASE_URL;
-    
+
     if (!databaseUrl) {
       return res.status(500).json({
         error: "Database not configured",
@@ -1210,7 +1301,7 @@ app.post("/api/leads/:leadId/generate-followup-text", async (req, res) => {
 
     const userResult = await pool.query(
       `SELECT public.get_user_uuid_from_better_auth_id($1) AS uuid`,
-      [betterAuthUserId]
+      [betterAuthUserId],
     );
 
     if (!userResult.rows[0]?.uuid) {
@@ -1224,13 +1315,19 @@ app.post("/api/leads/:leadId/generate-followup-text", async (req, res) => {
     const userUuid = userResult.rows[0].uuid;
     await pool.end();
 
-    const tone = (req.body?.tone as "professional" | "short" | "confident" | "polite" | "sales-focused") || undefined;
-    
+    const tone =
+      (req.body?.tone as
+        | "professional"
+        | "short"
+        | "confident"
+        | "polite"
+        | "sales-focused") || undefined;
+
     const result = await generateFollowUpText(
       leadId,
       userUuid,
       databaseUrl,
-      tone
+      tone,
     );
 
     return res.json({
@@ -1280,7 +1377,7 @@ app.get("/api/action-queue", async (req, res) => {
 
     const userResult = await pool.query(
       `SELECT public.get_user_uuid_from_better_auth_id($1) AS uuid`,
-      [betterAuthUserId]
+      [betterAuthUserId],
     );
 
     if (!userResult.rows[0]?.uuid) {
@@ -1306,7 +1403,7 @@ app.get("/api/action-queue", async (req, res) => {
     // Only include leads that don't have any sent emails to avoid duplicate follow-ups
     const followUpLeadsResult = await pool.query(
       `
-      SELECT 
+      SELECT
         l.id,
         l.company,
         l.contact_name,
@@ -1318,10 +1415,10 @@ app.get("/api/action-queue", async (req, res) => {
         AND l.days_since_contact >= 3
         -- Exclude leads that already have a sent email (user has already followed up)
         AND NOT EXISTS (
-          SELECT 1 
+          SELECT 1
           FROM public.email_threads et
           JOIN public.emails e ON e.thread_id = et.id
-          WHERE et.lead_id = l.id 
+          WHERE et.lead_id = l.id
             AND e.user_id = l.user_id
             AND e.direction IN ('outgoing', 'outbound', 'sent')
             AND e.status = 'sent'
@@ -1329,7 +1426,7 @@ app.get("/api/action-queue", async (req, res) => {
       ORDER BY l.days_since_contact DESC
       LIMIT 5
       `,
-      [userUuid]
+      [userUuid],
     );
 
     // Generate follow-up tasks with AI descriptions
@@ -1339,8 +1436,8 @@ app.get("/api/action-queue", async (req, res) => {
         lead.days_since_contact >= 7
           ? "high"
           : lead.days_since_contact >= 5
-          ? "medium"
-          : "low";
+            ? "medium"
+            : "low";
 
       // Generate AI description for follow-up task
       let description = lead.ai_suggestion;
@@ -1355,12 +1452,16 @@ app.get("/api/action-queue", async (req, res) => {
 Write a brief, professional description explaining why this follow-up is important and what action should be taken. Be specific and actionable.`;
 
           description = await generateAI(aiPrompt, {
-            systemPrompt: "You are a sales productivity assistant that creates clear, actionable task descriptions.",
+            systemPrompt:
+              "You are a sales productivity assistant that creates clear, actionable task descriptions.",
             temperature: 0.7,
             maxTokens: 150,
           });
         } catch (error) {
-          console.error("Error generating AI description for action queue:", error);
+          console.error(
+            "Error generating AI description for action queue:",
+            error,
+          );
           description = `No contact for ${lead.days_since_contact} days. Time to re-engage.`;
         }
       }
@@ -1369,7 +1470,9 @@ Write a brief, professional description explaining why this follow-up is importa
         id: `followup-${lead.id}`,
         type: "followup",
         title: `Follow up with ${lead.contact_name || lead.company}`,
-        description: description || `No contact for ${lead.days_since_contact} days. Time to re-engage.`,
+        description:
+          description ||
+          `No contact for ${lead.days_since_contact} days. Time to re-engage.`,
         leadId: lead.id,
         priority,
       });
@@ -1378,7 +1481,7 @@ Write a brief, professional description explaining why this follow-up is importa
     // Rule 2: Review AI drafts - emails with is_ai_draft = true and status = 'draft'
     const aiDraftsResult = await pool.query(
       `
-      SELECT 
+      SELECT
         e.id,
         e.subject,
         e.body_text,
@@ -1396,7 +1499,7 @@ Write a brief, professional description explaining why this follow-up is importa
       ORDER BY e.created_at DESC
       LIMIT 5
       `,
-      [userUuid]
+      [userUuid],
     );
 
     // Generate review tasks with AI descriptions
@@ -1418,12 +1521,16 @@ Write a brief, professional description explaining why this follow-up is importa
 Write a brief description explaining why this draft should be reviewed and what to look for.`;
 
           description = await generateAI(aiPrompt, {
-            systemPrompt: "You are a sales productivity assistant that creates clear, actionable task descriptions.",
+            systemPrompt:
+              "You are a sales productivity assistant that creates clear, actionable task descriptions.",
             temperature: 0.7,
             maxTokens: 120,
           });
         } catch (error) {
-          console.error("Error generating AI description for review task:", error);
+          console.error(
+            "Error generating AI description for review task:",
+            error,
+          );
           description = "AI-generated draft ready for review";
         }
       }
@@ -1443,7 +1550,7 @@ Write a brief description explaining why this draft should be reviewed and what 
     // This overlaps with review tasks, but we want to prioritize ones without AI flag
     const regularDraftsResult = await pool.query(
       `
-      SELECT 
+      SELECT
         e.id,
         e.subject,
         e.body_text,
@@ -1460,12 +1567,12 @@ Write a brief description explaining why this draft should be reviewed and what 
       ORDER BY e.updated_at DESC
       LIMIT 3
       `,
-      [userUuid]
+      [userUuid],
     );
 
     // Generate send tasks (avoid duplicates with review tasks)
     const existingEmailIds = new Set(
-      tasks.filter((t) => t.emailId).map((t) => t.emailId)
+      tasks.filter((t) => t.emailId).map((t) => t.emailId),
     );
 
     for (const draft of regularDraftsResult.rows) {
@@ -1524,11 +1631,17 @@ app.post("/api/insights/generate", async (req, res) => {
     }
 
     // Analyze data for AI context
-    const hotLeads = leads.filter((l: any) => l.status === "hot");
-    const atRiskLeads = leads.filter((l: any) => l.days_since_contact >= 5 && l.status !== "cold");
-    const leadsNeedingFollowUp = leads.filter((l: any) => l.days_since_contact >= 3);
-    const leadsWithDrafts = leads.filter((l: any) => l.has_ai_draft);
-    const highPriorityTasks = (actionQueueTasks || []).filter((t: any) => t.priority === "high");
+    const hotLeads = leads.filter((l: Lead) => l.status === "hot");
+    const atRiskLeads = leads.filter(
+      (l: Lead) => l.days_since_contact >= 5 && l.status !== "cold",
+    );
+    const leadsNeedingFollowUp = leads.filter(
+      (l: Lead) => l.days_since_contact >= 3,
+    );
+    const leadsWithDrafts = leads.filter((l: Lead) => l.has_ai_draft);
+    const highPriorityTasks = (actionQueueTasks || []).filter(
+      (t: { priority: string }) => t.priority === "high",
+    );
 
     // Build context for AI
     const contextSummary = `
@@ -1565,17 +1678,23 @@ Write a professional, insightful summary that:
 Output format: Just the insight text, no markdown, no bullet points.`;
 
     let insightText: string;
-    const highlights: Array<{ type: "hot" | "risk" | "opportunity"; text: string }> = [];
+    const highlights: Array<{
+      type: "hot" | "risk" | "opportunity";
+      text: string;
+    }> = [];
 
     try {
       insightText = await generateAI(insightPrompt, {
-        systemPrompt: "You are a sales analytics assistant that provides clear, actionable insights from sales pipeline data.",
+        systemPrompt:
+          "You are a sales analytics assistant that provides clear, actionable insights from sales pipeline data.",
         temperature: 0.7,
         maxTokens: 250,
       });
 
       // Clean response
-      insightText = insightText.trim().replace(/^(Insight|Summary|Analysis):\s*/i, "");
+      insightText = insightText
+        .trim()
+        .replace(/^(Insight|Summary|Analysis):\s*/i, "");
 
       if (!insightText) {
         throw new Error("Empty AI response");
@@ -1584,29 +1703,50 @@ Output format: Just the insight text, no markdown, no bullet points.`;
       console.error("Error generating AI insight:", error);
       // Fallback to rule-based logic
       if (hotLeads.length > 0) {
-        insightText = `You have ${hotLeads.length} hot lead${hotLeads.length > 1 ? 's' : ''} that need immediate attention. This is an excellent opportunity to close deals - prioritize responses today.`;
-        highlights.push({ type: "hot", text: `${hotLeads.length} hot leads ready to convert` });
+        insightText = `You have ${hotLeads.length} hot lead${hotLeads.length > 1 ? "s" : ""} that need immediate attention. This is an excellent opportunity to close deals - prioritize responses today.`;
+        highlights.push({
+          type: "hot",
+          text: `${hotLeads.length} hot leads ready to convert`,
+        });
       } else if (atRiskLeads.length > 0) {
-        insightText = `⚠️ ${atRiskLeads.length} lead${atRiskLeads.length > 1 ? 's are' : ' is'} at risk of going cold. These contacts haven't been reached in 5+ days - immediate follow-up is critical to maintain momentum.`;
-        highlights.push({ type: "risk", text: `${atRiskLeads.length} lead${atRiskLeads.length > 1 ? 's' : ''} at risk` });
+        insightText = `⚠️ ${atRiskLeads.length} lead${atRiskLeads.length > 1 ? "s are" : " is"} at risk of going cold. These contacts haven't been reached in 5+ days - immediate follow-up is critical to maintain momentum.`;
+        highlights.push({
+          type: "risk",
+          text: `${atRiskLeads.length} lead${atRiskLeads.length > 1 ? "s" : ""} at risk`,
+        });
       } else if (leadsNeedingFollowUp.length > 0) {
-        insightText = `${leadsNeedingFollowUp.length} lead${leadsNeedingFollowUp.length > 1 ? 's need' : ' needs'} follow-up. Following up within 3 days significantly increases response rates. Review your action queue to prioritize.`;
-        highlights.push({ type: "opportunity", text: `${leadsNeedingFollowUp.length} follow-up${leadsNeedingFollowUp.length > 1 ? 's' : ''} due` });
+        insightText = `${leadsNeedingFollowUp.length} lead${leadsNeedingFollowUp.length > 1 ? "s need" : " needs"} follow-up. Following up within 3 days significantly increases response rates. Review your action queue to prioritize.`;
+        highlights.push({
+          type: "opportunity",
+          text: `${leadsNeedingFollowUp.length} follow-up${leadsNeedingFollowUp.length > 1 ? "s" : ""} due`,
+        });
       } else {
-        insightText = `You're managing ${leads.length} lead${leads.length > 1 ? 's' : ''} across your pipeline. Keep the momentum going with consistent follow-ups and personalized outreach.`;
-        highlights.push({ type: "opportunity", text: `${leads.length} active lead${leads.length > 1 ? 's' : ''}` });
+        insightText = `You're managing ${leads.length} lead${leads.length > 1 ? "s" : ""} across your pipeline. Keep the momentum going with consistent follow-ups and personalized outreach.`;
+        highlights.push({
+          type: "opportunity",
+          text: `${leads.length} active lead${leads.length > 1 ? "s" : ""}`,
+        });
       }
     }
 
     // Generate highlights from data
-    if (hotLeads.length > 0 && !highlights.some(h => h.type === "hot")) {
-      highlights.push({ type: "hot", text: `${hotLeads.length} hot lead${hotLeads.length > 1 ? 's' : ''}` });
+    if (hotLeads.length > 0 && !highlights.some((h) => h.type === "hot")) {
+      highlights.push({
+        type: "hot",
+        text: `${hotLeads.length} hot lead${hotLeads.length > 1 ? "s" : ""}`,
+      });
     }
-    if (atRiskLeads.length > 0 && !highlights.some(h => h.type === "risk")) {
-      highlights.push({ type: "risk", text: `${atRiskLeads.length} lead${atRiskLeads.length > 1 ? 's' : ''} at risk` });
+    if (atRiskLeads.length > 0 && !highlights.some((h) => h.type === "risk")) {
+      highlights.push({
+        type: "risk",
+        text: `${atRiskLeads.length} lead${atRiskLeads.length > 1 ? "s" : ""} at risk`,
+      });
     }
     if (leadsNeedingFollowUp.length > 0 && highlights.length < 3) {
-      highlights.push({ type: "opportunity", text: `${leadsNeedingFollowUp.length} follow-up${leadsNeedingFollowUp.length > 1 ? 's' : ''} due` });
+      highlights.push({
+        type: "opportunity",
+        text: `${leadsNeedingFollowUp.length} follow-up${leadsNeedingFollowUp.length > 1 ? "s" : ""} due`,
+      });
     }
 
     return res.json({
@@ -1627,28 +1767,41 @@ app.post("/api/leads/update-contact-info", async (req, res) => {
   try {
     // Get session from Better Auth
     // Create a proper request object with all required fields
-    const authServerUrl = process.env.BETTER_AUTH_URL || process.env.VITE_BETTER_AUTH_URL || `http://localhost:${PORT}`;
+    const authServerUrl =
+      process.env.BETTER_AUTH_URL ||
+      process.env.VITE_BETTER_AUTH_URL ||
+      `http://localhost:${PORT}`;
     const sessionUrl = `${authServerUrl}/api/auth/get-session`;
-    
+
     // Create a minimal request object for session check
     const sessionHeaders = new Headers();
     // Copy cookies from original request
     if (req.headers.cookie) {
-      sessionHeaders.set('Cookie', Array.isArray(req.headers.cookie) ? req.headers.cookie.join('; ') : req.headers.cookie);
+      sessionHeaders.set(
+        "Cookie",
+        Array.isArray(req.headers.cookie)
+          ? req.headers.cookie.join("; ")
+          : req.headers.cookie,
+      );
     }
     // Copy other relevant headers
-    if (req.headers['user-agent']) {
-      sessionHeaders.set('User-Agent', Array.isArray(req.headers['user-agent']) ? req.headers['user-agent'][0] : req.headers['user-agent']);
+    if (req.headers["user-agent"]) {
+      sessionHeaders.set(
+        "User-Agent",
+        Array.isArray(req.headers["user-agent"])
+          ? req.headers["user-agent"][0]
+          : req.headers["user-agent"],
+      );
     }
-    
+
     const sessionRequest = new Request(sessionUrl, {
       method: "GET",
       headers: sessionHeaders,
     });
-    
+
     const sessionRes = await auth.handler(sessionRequest);
-    const sessionData = await sessionRes.json();
-    
+    const sessionData = (await sessionRes.json()) as BetterAuthSession;
+
     if (!sessionData?.user?.id) {
       return res.status(401).json({
         error: "Unauthorized",
@@ -1669,12 +1822,14 @@ app.post("/api/leads/update-contact-info", async (req, res) => {
     // Get user UUID from Better Auth ID using the database function
     const pool = new Pool({
       connectionString: databaseUrl,
-      ssl: databaseUrl.includes("supabase.co") ? { rejectUnauthorized: false } : false,
+      ssl: databaseUrl.includes("supabase.co")
+        ? { rejectUnauthorized: false }
+        : false,
     });
 
     const userResult = await pool.query(
       `SELECT public.get_user_uuid_from_better_auth_id($1) as uuid`,
-      [betterAuthUserId]
+      [betterAuthUserId],
     );
 
     await pool.end();
@@ -1693,14 +1848,16 @@ app.post("/api/leads/update-contact-info", async (req, res) => {
     // Use SQL function directly for better reliability
     const updatePool = new Pool({
       connectionString: databaseUrl,
-      ssl: databaseUrl.includes("supabase.co") ? { rejectUnauthorized: false } : false,
+      ssl: databaseUrl.includes("supabase.co")
+        ? { rejectUnauthorized: false }
+        : false,
     });
 
     try {
       // Get all leads for this user
       const leadsResult = await updatePool.query(
         `SELECT id FROM public.leads WHERE user_id = $1`,
-        [userUuid]
+        [userUuid],
       );
 
       const leads = leadsResult.rows;
@@ -1712,30 +1869,34 @@ app.post("/api/leads/update-contact-info", async (req, res) => {
         try {
           await updatePool.query(
             `SELECT public.update_lead_contact_info($1, $2)`,
-            [lead.id, userUuid]
+            [lead.id, userUuid],
           );
-          
+
           // Verify the update by checking the calculated value
           const checkResult = await updatePool.query(
-            `SELECT days_since_contact, last_contact_at 
-             FROM public.leads 
+            `SELECT days_since_contact, last_contact_at
+             FROM public.leads
              WHERE id = $1 AND user_id = $2`,
-            [lead.id, userUuid]
+            [lead.id, userUuid],
           );
-          
+
           if (checkResult.rows.length > 0) {
             const days = checkResult.rows[0].days_since_contact;
             const lastContact = checkResult.rows[0].last_contact_at;
-            console.log(`  ✓ Lead ${lead.id}: ${days} days since contact (last: ${lastContact})`);
+            console.log(
+              `  ✓ Lead ${lead.id}: ${days} days since contact (last: ${lastContact})`,
+            );
           }
-          
+
           updatedCount++;
         } catch (leadError) {
           console.error(`  ✗ Error updating lead ${lead.id}:`, leadError);
         }
       }
 
-      console.log(`✅ Updated contact info for ${updatedCount}/${leads.length} leads`);
+      console.log(
+        `✅ Updated contact info for ${updatedCount}/${leads.length} leads`,
+      );
 
       res.json({
         success: true,
@@ -1758,29 +1919,45 @@ app.post("/api/leads/detect", async (req, res) => {
   try {
     // Get session from Better Auth
     // Create a proper request object with all required fields
-    const baseUrl = process.env.FRONTEND_URL || process.env.VITE_APP_URL || "http://localhost:8081";
-    const authServerUrl = process.env.BETTER_AUTH_URL || process.env.VITE_BETTER_AUTH_URL || `http://localhost:${PORT}`;
+    const baseUrl =
+      process.env.FRONTEND_URL ||
+      process.env.VITE_APP_URL ||
+      "http://localhost:8081";
+    const authServerUrl =
+      process.env.BETTER_AUTH_URL ||
+      process.env.VITE_BETTER_AUTH_URL ||
+      `http://localhost:${PORT}`;
     const sessionUrl = `${authServerUrl}/api/auth/get-session`;
-    
+
     // Create a minimal request object for session check
     const sessionHeaders = new Headers();
     // Copy cookies from original request
     if (req.headers.cookie) {
-      sessionHeaders.set('Cookie', Array.isArray(req.headers.cookie) ? req.headers.cookie.join('; ') : req.headers.cookie);
+      sessionHeaders.set(
+        "Cookie",
+        Array.isArray(req.headers.cookie)
+          ? req.headers.cookie.join("; ")
+          : req.headers.cookie,
+      );
     }
     // Copy other relevant headers
-    if (req.headers['user-agent']) {
-      sessionHeaders.set('User-Agent', Array.isArray(req.headers['user-agent']) ? req.headers['user-agent'][0] : req.headers['user-agent']);
+    if (req.headers["user-agent"]) {
+      sessionHeaders.set(
+        "User-Agent",
+        Array.isArray(req.headers["user-agent"])
+          ? req.headers["user-agent"][0]
+          : req.headers["user-agent"],
+      );
     }
-    
+
     const sessionRequest = new Request(sessionUrl, {
       method: "GET",
       headers: sessionHeaders,
     });
-    
+
     const sessionRes = await auth.handler(sessionRequest);
-    const sessionData = await sessionRes.json();
-    
+    const sessionData = (await sessionRes.json()) as BetterAuthSession;
+
     if (!sessionData?.user?.id) {
       return res.status(401).json({
         error: "Unauthorized",
@@ -1801,12 +1978,14 @@ app.post("/api/leads/detect", async (req, res) => {
     // Get user UUID from Better Auth ID using the database function
     const pool = new Pool({
       connectionString: databaseUrl,
-      ssl: databaseUrl.includes("supabase.co") ? { rejectUnauthorized: false } : false,
+      ssl: databaseUrl.includes("supabase.co")
+        ? { rejectUnauthorized: false }
+        : false,
     });
 
     const userResult = await pool.query(
       `SELECT public.get_user_uuid_from_better_auth_id($1) as uuid`,
-      [betterAuthUserId]
+      [betterAuthUserId],
     );
 
     if (!userResult.rows[0]?.uuid) {
@@ -1822,7 +2001,7 @@ app.post("/api/leads/detect", async (req, res) => {
     // Get user email from Better Auth user table
     const emailResult = await pool.query(
       `SELECT email FROM public."user" WHERE id = $1 LIMIT 1`,
-      [betterAuthUserId]
+      [betterAuthUserId],
     );
 
     await pool.end();
@@ -1839,7 +2018,11 @@ app.post("/api/leads/detect", async (req, res) => {
     console.log(`🔍 Starting lead detection for user: ${userEmail}`);
 
     // Run lead detection
-    const result = await detectLeadsFromEmailThreads(userUuid, userEmail, databaseUrl);
+    const result = await detectLeadsFromEmailThreads(
+      userUuid,
+      userEmail,
+      databaseUrl,
+    );
 
     res.json({
       success: true,
@@ -1858,7 +2041,8 @@ app.post("/api/leads/detect", async (req, res) => {
 // Gmail sync endpoint - Minimal implementation
 app.post("/gmail/sync", async (req, res) => {
   try {
-    const databaseUrl = process.env.DATABASE_URL || process.env.SUPABASE_DATABASE_URL;
+    const databaseUrl =
+      process.env.DATABASE_URL || process.env.SUPABASE_DATABASE_URL;
 
     if (!databaseUrl) {
       return res.status(500).json({
@@ -1869,19 +2053,22 @@ app.post("/gmail/sync", async (req, res) => {
 
     // Get user session from Better Auth
     const webRequest = await expressToWebRequest(req);
-    
+
     // Use Better Auth's session endpoint
-    const sessionRequest = new Request(`${req.protocol}://${req.get('host')}/api/auth/get-session`, {
-      method: "GET",
-      headers: webRequest.headers,
-    });
-    
+    const sessionRequest = new Request(
+      `${req.protocol}://${req.get("host")}/api/auth/get-session`,
+      {
+        method: "GET",
+        headers: webRequest.headers,
+      },
+    );
+
     const sessionResponse = await auth.handler(sessionRequest);
     let betterAuthUserId: string | null = null;
-    
+
     if (sessionResponse.ok) {
       try {
-        const sessionData = await sessionResponse.json();
+        const sessionData = (await sessionResponse.json()) as BetterAuthSession;
         if (sessionData?.user?.id) {
           betterAuthUserId = sessionData.user.id;
         }
@@ -1889,7 +2076,7 @@ app.post("/gmail/sync", async (req, res) => {
         // Session response might not be JSON
       }
     }
-    
+
     if (!betterAuthUserId) {
       return res.status(401).json({
         error: "Unauthorized",
@@ -1900,14 +2087,16 @@ app.post("/gmail/sync", async (req, res) => {
     const { Pool } = await import("pg");
     const pool = new Pool({
       connectionString: databaseUrl,
-      ssl: databaseUrl.includes("supabase.co") ? { rejectUnauthorized: false } : false,
+      ssl: databaseUrl.includes("supabase.co")
+        ? { rejectUnauthorized: false }
+        : false,
     });
 
     try {
       // Get user UUID from Better Auth ID
       const userResult = await pool.query(
         `SELECT public.get_user_uuid_from_better_auth_id($1) as uuid`,
-        [betterAuthUserId]
+        [betterAuthUserId],
       );
 
       if (!userResult.rows[0]?.uuid) {
@@ -1926,13 +2115,14 @@ app.post("/gmail/sync", async (req, res) => {
          WHERE user_id = $1 AND provider = 'gmail' AND is_active = true
          ORDER BY created_at DESC
          LIMIT 1`,
-        [userUuid]
+        [userUuid],
       );
 
       if (connectionResult.rows.length === 0) {
         return res.status(404).json({
           error: "Gmail connection not found",
-          message: "No active Gmail connection found. Please connect your Gmail account first.",
+          message:
+            "No active Gmail connection found. Please connect your Gmail account first.",
         });
       }
 
@@ -1941,7 +2131,8 @@ app.post("/gmail/sync", async (req, res) => {
       if (!connection.access_token) {
         return res.status(400).json({
           error: "No access token",
-          message: "Gmail access token is missing. Please reconnect your Gmail account.",
+          message:
+            "Gmail access token is missing. Please reconnect your Gmail account.",
         });
       }
 
@@ -1949,11 +2140,14 @@ app.post("/gmail/sync", async (req, res) => {
       const { google } = await import("googleapis");
       const googleClientId = process.env.GOOGLE_CLIENT_ID;
       const googleClientSecret = process.env.GOOGLE_CLIENT_SECRET;
-      const authServerUrl = process.env.BACKEND_URL ||process.env.BETTER_AUTH_URL ||"http://localhost:3001";
+      const authServerUrl =
+        process.env.BACKEND_URL ||
+        process.env.BETTER_AUTH_URL ||
+        "http://localhost:3001";
       const params = new URLSearchParams({
-           provider: "gmail",
-          flowName: "GeneralOAuthFlow",
-});
+        provider: "gmail",
+        flowName: "GeneralOAuthFlow",
+      });
       const redirectUri = `${authServerUrl}/api/email-connections/callback?${params.toString()}`;
       if (!googleClientId || !googleClientSecret) {
         return res.status(500).json({
@@ -1965,7 +2159,7 @@ app.post("/gmail/sync", async (req, res) => {
       const oauth2Client = new google.auth.OAuth2(
         googleClientId,
         googleClientSecret,
-        redirectUri
+        redirectUri,
       );
 
       oauth2Client.setCredentials({
@@ -1984,15 +2178,22 @@ app.post("/gmail/sync", async (req, res) => {
         // Removed q filter to get all threads
       });
 
-      console.log("📧 Gmail API threads.list response:", JSON.stringify({
-        resultSizeEstimate: threadsResponse.data.resultSizeEstimate,
-        threadsCount: threadsResponse.data.threads?.length || 0,
-        hasThreads: !!threadsResponse.data.threads,
-      }, null, 2));
+      console.log(
+        "📧 Gmail API threads.list response:",
+        JSON.stringify(
+          {
+            resultSizeEstimate: threadsResponse.data.resultSizeEstimate,
+            threadsCount: threadsResponse.data.threads?.length || 0,
+            hasThreads: !!threadsResponse.data.threads,
+          },
+          null,
+          2,
+        ),
+      );
 
       const threads = threadsResponse.data.threads || [];
       console.log(`📧 Found ${threads.length} threads from Gmail API`);
-      
+
       let threadsSynced = 0;
 
       // Process each thread
@@ -2014,9 +2215,9 @@ app.post("/gmail/sync", async (req, res) => {
 
           const threadData = threadResponse.data;
           const messages = threadData.messages || [];
-          
+
           console.log(`📧 Thread ${thread.id} has ${messages.length} messages`);
-          
+
           if (messages.length === 0) {
             console.warn(`⚠️ Thread ${thread.id} has no messages, skipping`);
             continue;
@@ -2028,7 +2229,9 @@ app.post("/gmail/sync", async (req, res) => {
 
           // Extract headers
           const getHeader = (name: string) => {
-            const header = headers.find((h) => h.name?.toLowerCase() === name.toLowerCase());
+            const header = headers.find(
+              (h) => h.name?.toLowerCase() === name.toLowerCase(),
+            );
             return header?.value || "";
           };
 
@@ -2048,147 +2251,164 @@ app.post("/gmail/sync", async (req, res) => {
           const extractName = (header: string) => {
             const match = header.match(/^(.+?)\s*<(.+)>/);
             if (match) {
-              return match[1].trim().replace(/['"]/g, '');
+              return match[1].trim().replace(/['"]/g, "");
             }
             // If no name, try to extract from email
             const emailMatch = header.match(/<(.+)>/);
             if (emailMatch) {
               const email = emailMatch[1];
-              return email.split("@")[0].replace(/[._]/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+              return email
+                .split("@")[0]
+                .replace(/[._]/g, " ")
+                .replace(/\b\w/g, (l) => l.toUpperCase());
             }
             return null;
           };
 
           const senderEmail = fromHeader ? extractEmail(fromHeader) : "";
-const senderName = fromHeader ? extractName(fromHeader) : null;
-const toEmail = toHeader ? extractEmail(toHeader) : "";
-const threadId = thread.id || "";
-const lastMessageTimestamp = dateHeader
-  ? new Date(dateHeader)
-  : new Date(parseInt(latestMessage.internalDate || "0"));
+          const senderName = fromHeader ? extractName(fromHeader) : null;
+          const toEmail = toHeader ? extractEmail(toHeader) : "";
+          const threadId = thread.id || "";
+          const lastMessageTimestamp = dateHeader
+            ? new Date(dateHeader)
+            : new Date(parseInt(latestMessage.internalDate || "0"));
 
-// Get user's email from connection
-const userEmail = connection.email || "";
+          // Get user's email from connection
+          const userEmail = connection.email || "";
 
-// ✅ FIX 1: declare leadId ONCE here (thread scope)
-let leadId: string | null = null;
+          // ✅ FIX 1: declare leadId ONCE here (thread scope)
+          let leadId: string | null = null;
 
-// Check if thread already exists
-const existingThread = await pool.query(
-  `SELECT id FROM public.email_threads 
+          // Check if thread already exists
+          const existingThread = await pool.query(
+            `SELECT id FROM public.email_threads
    WHERE user_id = $1 AND thread_identifier = $2
    LIMIT 1`,
-  [userUuid, threadId]
-);
+            [userUuid, threadId],
+          );
 
-let emailThreadId: string;
+          let emailThreadId: string;
 
-if (existingThread.rows.length > 0) {
-  emailThreadId = existingThread.rows[0].id;
+          if (existingThread.rows.length > 0) {
+            emailThreadId = existingThread.rows[0].id;
 
-  // Update thread updated_at
-  await pool.query(
-    `UPDATE public.email_threads 
+            // Update thread updated_at
+            await pool.query(
+              `UPDATE public.email_threads
      SET updated_at = $1
      WHERE id = $2`,
-    [lastMessageTimestamp, emailThreadId]
-  );
-} else {
-  // ❌ FIX 2: REMOVED "let leadId" from here
+              [lastMessageTimestamp, emailThreadId],
+            );
+          } else {
+            // ❌ FIX 2: REMOVED "let leadId" from here
 
-  if (senderEmail) {
-    const leadResult = await pool.query(
-      `SELECT id, contact_name FROM public.leads 
-       WHERE user_id = $1 AND email = $2 
+            if (senderEmail) {
+              const leadResult = await pool.query(
+                `SELECT id, contact_name FROM public.leads
+       WHERE user_id = $1 AND email = $2
        LIMIT 1`,
-      [userUuid, senderEmail]
-    );
+                [userUuid, senderEmail],
+              );
 
-    if (leadResult.rows.length > 0) {
-      leadId = leadResult.rows[0].id;
+              if (leadResult.rows.length > 0) {
+                leadId = leadResult.rows[0].id;
 
-      // Update lead name if better name exists
-      if (
-        senderName &&
-        (!leadResult.rows[0].contact_name ||
-          leadResult.rows[0].contact_name === "Unknown")
-      ) {
-        await pool.query(
-          `UPDATE public.leads 
+                // Update lead name if better name exists
+                if (
+                  senderName &&
+                  (!leadResult.rows[0].contact_name ||
+                    leadResult.rows[0].contact_name === "Unknown")
+                ) {
+                  await pool.query(
+                    `UPDATE public.leads
            SET contact_name = $1, updated_at = NOW()
            WHERE id = $2`,
-          [senderName, leadId]
-        );
-      }
-    } else if (senderName) {
-      const newLeadResult = await pool.query(
-        `INSERT INTO public.leads (
+                    [senderName, leadId],
+                  );
+                }
+              } else if (senderName) {
+                const newLeadResult = await pool.query(
+                  `INSERT INTO public.leads (
           user_id, email, contact_name, company, status, created_at, updated_at
         ) VALUES ($1, $2, $3, $4, 'warm', NOW(), NOW())
         RETURNING id`,
-        [userUuid, senderEmail, senderName, senderEmail.split("@")[1] || ""]
-      );
+                  [
+                    userUuid,
+                    senderEmail,
+                    senderName,
+                    senderEmail.split("@")[1] || "",
+                  ],
+                );
 
-      if (newLeadResult.rows.length > 0) {
-        leadId = newLeadResult.rows[0].id;
-      }
-    }
-  }
+                if (newLeadResult.rows.length > 0) {
+                  leadId = newLeadResult.rows[0].id;
+                }
+              }
+            }
 
-  // Create new thread
-  const threadResult = await pool.query(
-    `INSERT INTO public.email_threads (
+            // Create new thread
+            const threadResult = await pool.query(
+              `INSERT INTO public.email_threads (
       user_id, lead_id, subject, thread_identifier, status, created_at, updated_at
     ) VALUES ($1, $2, $3, $4, 'active', $5, $5)
     RETURNING id`,
-    [userUuid, leadId, subject, threadId, lastMessageTimestamp]
-  );
+              [userUuid, leadId, subject, threadId, lastMessageTimestamp],
+            );
 
-  emailThreadId = threadResult.rows[0].id;
-}
-
+            emailThreadId = threadResult.rows[0].id;
+          }
 
           // Process all messages in the thread and create email records
           // Ensure we save at least the latest message (first in array)
           let emailsInThread = 0;
           let latestMessageSaved = false;
-          
+
           for (let msgIndex = 0; msgIndex < messages.length; msgIndex++) {
             const message = messages[msgIndex];
             try {
               const msgHeaders = message.payload?.headers || [];
               const getMsgHeader = (name: string) => {
-                const header = msgHeaders.find((h) => h.name?.toLowerCase() === name.toLowerCase());
+                const header = msgHeaders.find(
+                  (h) => h.name?.toLowerCase() === name.toLowerCase(),
+                );
                 return header?.value || "";
               };
 
               const msgFromHeader = getMsgHeader("From");
               const msgToHeader = getMsgHeader("To");
               const msgDateHeader = getMsgHeader("Date");
-              const msgMessageId = getMsgHeader("Message-ID") || message.id || "";
-              
-              const msgFromEmail = msgFromHeader ? extractEmail(msgFromHeader) : "";
-              const msgFromName = msgFromHeader ? extractName(msgFromHeader) : null;
-              const msgToEmail = msgToHeader ? extractEmail(msgToHeader) : "";
-              const msgDate = msgDateHeader ? new Date(msgDateHeader) : new Date(parseInt(message.internalDate || "0"));
-              const msgSnippet = message.snippet || "";
-              
-              // Determine direction
-              const direction = msgFromEmail.toLowerCase() === userEmail.toLowerCase() ? "outbound" : "inbound";
-              const status =
-                direction === "outbound"
-                 ? "sent"
-                 : "sent";
+              const msgMessageId =
+                getMsgHeader("Message-ID") || message.id || "";
 
-              
+              const msgFromEmail = msgFromHeader
+                ? extractEmail(msgFromHeader)
+                : "";
+              const msgFromName = msgFromHeader
+                ? extractName(msgFromHeader)
+                : null;
+              const msgToEmail = msgToHeader ? extractEmail(msgToHeader) : "";
+              const msgDate = msgDateHeader
+                ? new Date(msgDateHeader)
+                : new Date(parseInt(message.internalDate || "0"));
+              const msgSnippet = message.snippet || "";
+
+              // Determine direction
+              const direction =
+                msgFromEmail.toLowerCase() === userEmail.toLowerCase()
+                  ? "outbound"
+                  : "inbound";
+              const status = direction === "outbound" ? "sent" : "sent";
+
               // Extract email body
               let bodyText = "";
               let bodyHtml = "";
-              
-              const extractBody = (part: any): void => {
+
+              const extractBody = (part: gmail_v1.Schema$MessagePart): void => {
                 if (part.body?.data) {
                   try {
-                    const data = Buffer.from(part.body.data, "base64").toString("utf-8");
+                    const data = Buffer.from(part.body.data, "base64").toString(
+                      "utf-8",
+                    );
                     if (part.mimeType === "text/plain") {
                       bodyText = data;
                     } else if (part.mimeType === "text/html") {
@@ -2198,35 +2418,38 @@ if (existingThread.rows.length > 0) {
                     console.warn(`⚠️ Error decoding body part: ${err}`);
                   }
                 }
-                
+
                 if (part.parts) {
-                  part.parts.forEach((subPart: any) => extractBody(subPart));
+                  part.parts.forEach((subPart: gmail_v1.Schema$MessagePart) =>
+                    extractBody(subPart),
+                  );
                 }
               };
-              
+
               if (message.payload) {
                 extractBody(message.payload);
               }
-              
+
               // Use snippet if no body found - always save at least snippet
               const emailBody = bodyHtml || bodyText || msgSnippet || "";
-              
+
               // Check if email already exists
               const existingEmail = await pool.query(
-                `SELECT id FROM public.emails 
-                 WHERE user_id = $1 AND thread_id = $2 
+                `SELECT id FROM public.emails
+                 WHERE user_id = $1 AND thread_id = $2
                  AND external_email_id = $3
                  LIMIT 1`,
-                [userUuid, emailThreadId, message.id]
+                [userUuid, emailThreadId, message.id],
               );
-              
+
               // Always save at least one message per thread, even if body is empty (use snippet)
               if (existingEmail.rows.length === 0) {
                 // Insert email record with both body_text and body_html
                 // Store snippet in body_text if no text body found
-                const finalBodyText = bodyText || (msgSnippet && !bodyHtml ? msgSnippet : null);
+                const finalBodyText =
+                  bodyText || (msgSnippet && !bodyHtml ? msgSnippet : null);
                 const finalBodyHtml = bodyHtml || null;
-                
+
                 // Save email first (without AI data) - don't block sync on AI
                 let savedEmailId: string;
                 try {
@@ -2258,12 +2481,20 @@ if (existingThread.rows.length > 0) {
                       null, // ai_category - will be updated by AI
                       null, // ai_confidence - will be updated by AI
                       null, // ai_reason - will be updated by AI
-                    ]
+                    ],
                   );
                   savedEmailId = insertResult.rows[0].id;
-                } catch (insertError: any) {
+                } catch (insertError: unknown) {
+                  const insertErrorInfo = insertError as {
+                    message?: string;
+                    code?: string;
+                  };
                   // If AI columns don't exist, insert without them
-                  if (insertError.message?.includes("ai_category") || insertError.message?.includes("column") || insertError.code === "42703") {
+                  if (
+                    insertErrorInfo.message?.includes("ai_category") ||
+                    insertErrorInfo.message?.includes("column") ||
+                    insertErrorInfo.code === "42703"
+                  ) {
                     const insertResult = await pool.query(
                       `INSERT INTO public.emails (
                         thread_id, user_id, lead_id,
@@ -2280,42 +2511,49 @@ if (existingThread.rows.length > 0) {
                         msgFromEmail,
                         msgToEmail,
                         subject,
-                        finalBodyText ? finalBodyText.substring(0, 50000) : null,
-                        finalBodyHtml ? finalBodyHtml.substring(0, 100000) : null,
+                        finalBodyText
+                          ? finalBodyText.substring(0, 50000)
+                          : null,
+                        finalBodyHtml
+                          ? finalBodyHtml.substring(0, 100000)
+                          : null,
                         status,
                         direction === "outbound" ? msgDate : null,
                         direction === "inbound" ? msgDate : null,
                         message.id || null,
-                      ]
+                      ],
                     );
                     savedEmailId = insertResult.rows[0].id;
                   } else {
                     throw insertError; // Re-throw if it's a different error
                   }
                 }
-                
+
                 emailsInThread++;
                 if (msgIndex === 0) latestMessageSaved = true;
-                console.log(`  📧 Inserted email: ${msgFromName || msgFromEmail} (${msgFromEmail}) → ${msgToEmail} (${direction})`);
-                
+                console.log(
+                  `  📧 Inserted email: ${msgFromName || msgFromEmail} (${msgFromEmail}) → ${msgToEmail} (${direction})`,
+                );
+
                 // Run AI classification AFTER email is saved (non-blocking)
                 // Only classify incoming emails
-                if ((direction === "inbound" || direction === "incoming") && savedEmailId) {
+                if (direction === "inbound" && savedEmailId) {
                   // Fire-and-forget: run AI classification asynchronously, don't block sync
                   (async () => {
                     try {
-                      const classificationResult = await classifyEmailWithAICombined({
-                        from: msgFromEmail,
-                        to: msgToEmail,
-                        subject: subject,
-                        body: finalBodyText || msgSnippet || "",
-                        direction: direction,
-                      });
-                      
+                      const classificationResult =
+                        await classifyEmailWithAICombined({
+                          from: msgFromEmail,
+                          to: msgToEmail,
+                          subject: subject,
+                          body: finalBodyText || msgSnippet || "",
+                          direction: direction,
+                        });
+
                       // Update email record with AI classification results
                       try {
                         await pool.query(
-                          `UPDATE public.emails 
+                          `UPDATE public.emails
                            SET ai_category = $1, ai_confidence = $2, ai_reason = $3, updated_at = NOW()
                            WHERE id = $4`,
                           [
@@ -2323,52 +2561,85 @@ if (existingThread.rows.length > 0) {
                             classificationResult.classification.confidence,
                             classificationResult.classification.reason,
                             savedEmailId,
-                          ]
+                          ],
                         );
-                        console.log(`  🤖 AI Classification updated: ${classificationResult.classification.category} (confidence: ${(classificationResult.classification.confidence * 100).toFixed(0)}%)`);
-                      } catch (updateError: any) {
+                        console.log(
+                          `  🤖 AI Classification updated: ${classificationResult.classification.category} (confidence: ${(classificationResult.classification.confidence * 100).toFixed(0)}%)`,
+                        );
+                      } catch (updateError: unknown) {
+                        const updateErrorInfo = updateError as {
+                          message?: string;
+                          code?: string;
+                        };
                         // Columns might not exist - log and continue
-                        if (updateError.message?.includes("ai_category") || updateError.code === "42703") {
-                          console.warn(`  ⚠️ AI classification columns not found, skipping update`);
+                        if (
+                          updateErrorInfo.message?.includes("ai_category") ||
+                          updateErrorInfo.code === "42703"
+                        ) {
+                          console.warn(
+                            `  ⚠️ AI classification columns not found, skipping update`,
+                          );
                         } else {
-                          console.warn(`  ⚠️ Failed to update AI classification:`, updateError);
+                          console.warn(
+                            `  ⚠️ Failed to update AI classification:`,
+                            updateError,
+                          );
                         }
                       }
                     } catch (aiError) {
                       // Don't block email sync if AI fails - log and continue silently
-                      console.warn(`  ⚠️ AI classification failed (non-blocking):`, aiError instanceof Error ? aiError.message : aiError);
+                      console.warn(
+                        `  ⚠️ AI classification failed (non-blocking):`,
+                        aiError instanceof Error ? aiError.message : aiError,
+                      );
                     }
                   })();
                 }
               }
             } catch (emailError) {
-              console.error(`❌ Error processing email in thread ${thread.id}:`, emailError);
+              console.error(
+                `❌ Error processing email in thread ${thread.id}:`,
+                emailError,
+              );
               // Continue with next email
             }
           }
-          
+
           // Ensure at least the latest message is saved (fallback if all messages failed)
           if (emailsInThread === 0 && messages.length > 0) {
             try {
               const latestMsg = messages[0];
               const latestHeaders = latestMsg.payload?.headers || [];
               const getLatestHeader = (name: string) => {
-                const header = latestHeaders.find((h) => h.name?.toLowerCase() === name.toLowerCase());
+                const header = latestHeaders.find(
+                  (h) => h.name?.toLowerCase() === name.toLowerCase(),
+                );
                 return header?.value || "";
               };
-              
+
               const latestFromHeader = getLatestHeader("From");
               const latestToHeader = getLatestHeader("To");
               const latestDateHeader = getLatestHeader("Date");
-              const latestFromEmail = latestFromHeader ? extractEmail(latestFromHeader) : senderEmail;
-              const latestFromName = latestFromHeader ? extractName(latestFromHeader) : senderName;
-              const latestToEmail = latestToHeader ? extractEmail(latestToHeader) : toEmail;
-              const latestDate = latestDateHeader ? new Date(latestDateHeader) : lastMessageTimestamp;
-              const latestDirection = latestFromEmail.toLowerCase() === userEmail.toLowerCase() ? "outbound" : "inbound";
+              const latestFromEmail = latestFromHeader
+                ? extractEmail(latestFromHeader)
+                : senderEmail;
+              const latestFromName = latestFromHeader
+                ? extractName(latestFromHeader)
+                : senderName;
+              const latestToEmail = latestToHeader
+                ? extractEmail(latestToHeader)
+                : toEmail;
+              const latestDate = latestDateHeader
+                ? new Date(latestDateHeader)
+                : lastMessageTimestamp;
+              const latestDirection =
+                latestFromEmail.toLowerCase() === userEmail.toLowerCase()
+                  ? "outbound"
+                  : "inbound";
               const latestSnippet = latestMsg.snippet || snippet || "";
-              const latestStatus =latestDirection === "outbound"? "sent": "sent";
+              const latestStatus =
+                latestDirection === "outbound" ? "sent" : "sent";
 
-              
               // Save with snippet as body_text
               await pool.query(
                 `INSERT INTO public.emails (
@@ -2391,19 +2662,26 @@ if (existingThread.rows.length > 0) {
                   latestDirection === "outbound" ? latestDate : null,
                   latestDirection === "inbound" ? latestDate : null,
                   latestMsg.id || null,
-                ]
+                ],
               );
               emailsInThread++;
-              console.log(`  📧 Saved fallback email with snippet: ${latestFromName || latestFromEmail} (${latestFromEmail})`);
+              console.log(
+                `  📧 Saved fallback email with snippet: ${latestFromName || latestFromEmail} (${latestFromEmail})`,
+              );
             } catch (fallbackError) {
               console.error(`❌ Error saving fallback email:`, fallbackError);
             }
           }
 
           threadsSynced++;
-          console.log(`✅ Thread ${thread.id} synced successfully: ${emailsInThread} emails (${threadsSynced}/${threads.length})`);
+          console.log(
+            `✅ Thread ${thread.id} synced successfully: ${emailsInThread} emails (${threadsSynced}/${threads.length})`,
+          );
         } catch (threadError) {
-          console.error(`❌ Error processing thread ${thread.id}:`, threadError);
+          console.error(
+            `❌ Error processing thread ${thread.id}:`,
+            threadError,
+          );
           if (threadError instanceof Error) {
             console.error(`   Error message: ${threadError.message}`);
             console.error(`   Error stack: ${threadError.stack}`);
@@ -2412,14 +2690,16 @@ if (existingThread.rows.length > 0) {
         }
       }
 
-      console.log(`📊 Sync summary: ${threadsSynced} threads synced out of ${threads.length} fetched`);
+      console.log(
+        `📊 Sync summary: ${threadsSynced} threads synced out of ${threads.length} fetched`,
+      );
 
       // Update last_sync_at
       await pool.query(
-        `UPDATE public.email_connections 
+        `UPDATE public.email_connections
          SET last_sync_at = NOW(), error_message = NULL
          WHERE id = $1`,
-        [connection.id]
+        [connection.id],
       );
 
       // Update all leads' contact info after sync (to recalculate days_since_contact based on outgoing emails)
@@ -2454,7 +2734,8 @@ if (existingThread.rows.length > 0) {
 app.post("/api/email-connections/:connectionId/sync", async (req, res) => {
   try {
     const { connectionId } = req.params;
-    const databaseUrl = process.env.DATABASE_URL || process.env.SUPABASE_DATABASE_URL;
+    const databaseUrl =
+      process.env.DATABASE_URL || process.env.SUPABASE_DATABASE_URL;
 
     if (!databaseUrl) {
       return res.status(500).json({
@@ -2466,7 +2747,9 @@ app.post("/api/email-connections/:connectionId/sync", async (req, res) => {
     const { Pool } = await import("pg");
     const pool = new Pool({
       connectionString: databaseUrl,
-      ssl: databaseUrl.includes("supabase.co") ? { rejectUnauthorized: false } : false,
+      ssl: databaseUrl.includes("supabase.co")
+        ? { rejectUnauthorized: false }
+        : false,
     });
 
     try {
@@ -2475,7 +2758,7 @@ app.post("/api/email-connections/:connectionId/sync", async (req, res) => {
         `SELECT id, user_id, provider, email, access_token, refresh_token, metadata
          FROM public.email_connections
          WHERE id = $1 AND is_active = true`,
-        [connectionId]
+        [connectionId],
       );
 
       if (connectionResult.rows.length === 0) {
@@ -2492,30 +2775,37 @@ app.post("/api/email-connections/:connectionId/sync", async (req, res) => {
         // Get user's Better Auth ID from the connection's user_id
         const userResult = await pool.query(
           `SELECT better_auth_id FROM public.users WHERE id = $1 LIMIT 1`,
-          [connection.user_id]
+          [connection.user_id],
         );
 
         if (userResult.rows.length > 0) {
           // Forward to /gmail/sync endpoint
-          const forwardReq = { ...req, body: { userId: userResult.rows[0].better_auth_id } };
+          const forwardReq = {
+            ...req,
+            body: { userId: userResult.rows[0].better_auth_id },
+          };
           return app._router.handle(forwardReq, res);
         }
       }
 
       // For other providers, use the existing sync function
       const { syncEmailConnection } = await import("./email-sync.js");
-      
-      console.log(`📧 Starting email sync for: ${connection.email} (${connection.provider})`);
+
+      console.log(
+        `📧 Starting email sync for: ${connection.email} (${connection.provider})`,
+      );
 
       const syncResult = await syncEmailConnection(connectionId, databaseUrl);
 
       if (syncResult.success) {
-        console.log(`✅ Email sync completed: ${syncResult.emailsSynced} emails synced`);
-      res.json({
-        success: true,
+        console.log(
+          `✅ Email sync completed: ${syncResult.emailsSynced} emails synced`,
+        );
+        res.json({
+          success: true,
           message: `Email sync completed successfully`,
-        provider: connection.provider,
-        email: connection.email,
+          provider: connection.provider,
+          email: connection.email,
           emailsSynced: syncResult.emailsSynced,
         });
       } else {
@@ -2556,7 +2846,7 @@ app.get("/api/emails/thread/:threadId", async (req, res) => {
         "Cookie",
         Array.isArray(req.headers.cookie)
           ? req.headers.cookie.join("; ")
-          : req.headers.cookie
+          : req.headers.cookie,
       );
     }
 
@@ -2565,11 +2855,11 @@ app.get("/api/emails/thread/:threadId", async (req, res) => {
       {
         method: "GET",
         headers: sessionHeaders,
-      }
+      },
     );
 
     const sessionRes = await auth.handler(sessionRequest);
-    const sessionData = await sessionRes.json();
+    const sessionData = (await sessionRes.json()) as BetterAuthSession;
 
     if (!sessionData?.user?.id) {
       return res.status(401).json({ error: "Unauthorized" });
@@ -2596,7 +2886,7 @@ app.get("/api/emails/thread/:threadId", async (req, res) => {
       // Convert Better Auth ID → internal user UUID
       const userResult = await pool.query(
         `SELECT public.get_user_uuid_from_better_auth_id($1) AS uuid`,
-        [betterAuthUserId]
+        [betterAuthUserId],
       );
 
       const userUuid = userResult.rows[0]?.uuid;
@@ -2607,7 +2897,7 @@ app.get("/api/emails/thread/:threadId", async (req, res) => {
 
       // ---- Fetch emails for this thread ----
       const emailsResult = await pool.query(
-  `
+        `
   SELECT
     e.id,
     e.direction,
@@ -2626,8 +2916,8 @@ app.get("/api/emails/thread/:threadId", async (req, res) => {
     AND t.thread_identifier = $2
   ORDER BY COALESCE(e.received_at, e.sent_at, e.created_at) ASC
   `,
-  [userUuid, threadId]
-);
+        [userUuid, threadId],
+      );
 
       res.json({
         success: true,
@@ -2654,14 +2944,24 @@ app.use(["/api", "/gmail"], (_req, res) => {
 if (process.env.NODE_ENV === "production") {
   const frontendDirectory = path.resolve(process.cwd(), "dist");
   app.use(express.static(frontendDirectory));
-  app.get(/.*/, (_req, res) => res.sendFile(path.join(frontendDirectory, "index.html")));
+  app.get(/.*/, (_req, res) =>
+    res.sendFile(path.join(frontendDirectory, "index.html")),
+  );
 }
 
 app.listen(PORT, "0.0.0.0", () => {
   console.log(`\n✅ Better Auth server running on http://localhost:${PORT}`);
   console.log(`📡 Auth API available at http://localhost:${PORT}/api/auth`);
-  console.log(`📧 Email API available at http://localhost:${PORT}/api/emails/send`);
-  console.log(`🔗 Email Connections API available at http://localhost:${PORT}/api/email-connections`);
-  console.log(`🔄 Email Sync API available at http://localhost:${PORT}/api/email-connections/:id/sync`);
-  console.log(`🔗 Make sure VITE_BETTER_AUTH_URL=http://localhost:${PORT} in your .env.local\n`);
+  console.log(
+    `📧 Email API available at http://localhost:${PORT}/api/emails/send`,
+  );
+  console.log(
+    `🔗 Email Connections API available at http://localhost:${PORT}/api/email-connections`,
+  );
+  console.log(
+    `🔄 Email Sync API available at http://localhost:${PORT}/api/email-connections/:id/sync`,
+  );
+  console.log(
+    `🔗 Make sure VITE_BETTER_AUTH_URL=http://localhost:${PORT} in your .env.local\n`,
+  );
 });

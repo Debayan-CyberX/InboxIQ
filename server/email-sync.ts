@@ -1,6 +1,8 @@
+import { Readable } from "node:stream";
+import type { gmail_v1 } from "googleapis";
 // Email Sync Service
 import { Pool } from "pg";
-import * as Imap from "imap";
+import Imap from "imap";
 import { simpleParser } from "mailparser";
 import { google } from "googleapis";
 
@@ -11,7 +13,7 @@ interface EmailConnection {
   email: string;
   access_token?: string;
   refresh_token?: string;
-  metadata?: any;
+  metadata?: { password?: string; imapServer?: string };
 }
 
 interface SyncResult {
@@ -25,11 +27,13 @@ interface SyncResult {
 ====================================================== */
 export async function syncImapEmails(
   connection: EmailConnection,
-  databaseUrl: string
+  databaseUrl: string,
 ): Promise<SyncResult> {
   const pool = new Pool({
     connectionString: databaseUrl,
-    ssl: databaseUrl.includes("supabase.co") ? { rejectUnauthorized: false } : false,
+    ssl: databaseUrl.includes("supabase.co")
+      ? { rejectUnauthorized: false }
+      : false,
   });
 
   let emailsSynced = 0;
@@ -47,9 +51,9 @@ export async function syncImapEmails(
       imap.openBox("INBOX", false, async () => {
         const fetch = imap.seq.fetch("1:*", { bodies: "" });
 
-        fetch.on("message", msg => {
-          msg.on("body", async stream => {
-            const parsed = await simpleParser(stream);
+        fetch.on("message", (msg) => {
+          msg.on("body", async (stream) => {
+            const parsed = await simpleParser(Readable.from(stream));
             const from = parsed.from?.value[0];
             if (!from?.address) return;
 
@@ -57,7 +61,7 @@ export async function syncImapEmails(
             let leadId: string | null = null;
             const leadRes = await pool.query(
               `SELECT id FROM public.leads WHERE user_id=$1 AND email=$2 LIMIT 1`,
-              [connection.user_id, from.address]
+              [connection.user_id, from.address],
             );
             if (leadRes.rows.length) leadId = leadRes.rows[0].id;
 
@@ -67,7 +71,7 @@ export async function syncImapEmails(
                (user_id, lead_id, subject, status, created_at, updated_at)
                VALUES ($1,$2,$3,'active',NOW(),NOW())
                RETURNING id`,
-              [connection.user_id, leadId, parsed.subject || "(No Subject)"]
+              [connection.user_id, leadId, parsed.subject || "(No Subject)"],
             );
 
             await pool.query(
@@ -82,8 +86,8 @@ export async function syncImapEmails(
                 connection.email,
                 parsed.subject,
                 parsed.text,
-                parsed.date || new Date()
-              ]
+                parsed.date || new Date(),
+              ],
             );
 
             emailsSynced++;
@@ -108,11 +112,13 @@ export async function syncImapEmails(
 ====================================================== */
 export async function syncGmailEmails(
   connection: EmailConnection,
-  databaseUrl: string
+  databaseUrl: string,
 ): Promise<SyncResult> {
   const pool = new Pool({
     connectionString: databaseUrl,
-    ssl: databaseUrl.includes("supabase.co") ? { rejectUnauthorized: false } : false,
+    ssl: databaseUrl.includes("supabase.co")
+      ? { rejectUnauthorized: false }
+      : false,
   });
 
   let emailsSynced = 0;
@@ -121,7 +127,7 @@ export async function syncGmailEmails(
     const oauth = new google.auth.OAuth2(
       process.env.GOOGLE_CLIENT_ID,
       process.env.GOOGLE_CLIENT_SECRET,
-      `${process.env.BETTER_AUTH_URL}/api/email-connections/callback`
+      `${process.env.BETTER_AUTH_URL}/api/email-connections/callback`,
     );
 
     oauth.setCredentials({
@@ -148,18 +154,17 @@ export async function syncGmailEmails(
 
       const headers = messages[0].payload?.headers || [];
       const get = (n: string) =>
-        headers.find(h => h.name?.toLowerCase() === n)?.value || "";
+        headers.find((h) => h.name?.toLowerCase() === n)?.value || "";
 
       const fromHeader = get("from");
       const subject = get("subject") || "(No Subject)";
-      const senderEmail =
-        fromHeader.match(/<(.+)>/)?.[1] || fromHeader;
+      const senderEmail = fromHeader.match(/<(.+)>/)?.[1] || fromHeader;
 
       /* ✅ leadId DEFINED ONCE PER THREAD */
       let leadId: string | null = null;
       const leadRes = await pool.query(
         `SELECT id FROM public.leads WHERE user_id=$1 AND email=$2 LIMIT 1`,
-        [connection.user_id, senderEmail]
+        [connection.user_id, senderEmail],
       );
       if (leadRes.rows.length) leadId = leadRes.rows[0].id;
 
@@ -168,7 +173,7 @@ export async function syncGmailEmails(
          (user_id,lead_id,subject,thread_identifier,status,created_at,updated_at)
          VALUES ($1,$2,$3,$4,'active',NOW(),NOW())
          RETURNING id`,
-        [connection.user_id, leadId, subject, t.id]
+        [connection.user_id, leadId, subject, t.id],
       );
 
       const emailThreadId = threadRes.rows[0].id;
@@ -177,7 +182,7 @@ export async function syncGmailEmails(
         let bodyText = "";
         let bodyHtml = "";
 
-        const extract = (p: any) => {
+        const extract = (p: gmail_v1.Schema$MessagePart) => {
           if (p.body?.data) {
             const d = Buffer.from(p.body.data, "base64").toString();
             if (p.mimeType === "text/plain") bodyText = d;
@@ -204,7 +209,7 @@ export async function syncGmailEmails(
             bodyHtml || null,
             new Date(parseInt(msg.internalDate || "0")),
             msg.id,
-          ]
+          ],
         );
 
         emailsSynced++;
@@ -221,11 +226,13 @@ export async function syncGmailEmails(
 
 export async function syncEmailConnection(
   connectionId: string,
-  databaseUrl: string
+  databaseUrl: string,
 ): Promise<SyncResult> {
   const pool = new Pool({
     connectionString: databaseUrl,
-    ssl: databaseUrl.includes("supabase.co") ? { rejectUnauthorized: false } : false,
+    ssl: databaseUrl.includes("supabase.co")
+      ? { rejectUnauthorized: false }
+      : false,
   });
 
   try {
@@ -234,7 +241,7 @@ export async function syncEmailConnection(
       `SELECT id, user_id, provider, email, access_token, refresh_token, metadata
        FROM public.email_connections
        WHERE id = $1 AND is_active = true`,
-      [connectionId]
+      [connectionId],
     );
 
     if (result.rows.length === 0) {
@@ -253,7 +260,9 @@ export async function syncEmailConnection(
         syncResult = await syncGmailEmails(connection, databaseUrl);
         break;
       case "outlook":
-        syncResult = await syncOutlookEmails(connection, databaseUrl);
+        throw new Error(
+          "Outlook synchronization is not available in this workspace.",
+        );
         break;
       default:
         throw new Error(`Unsupported provider: ${connection.provider}`);
@@ -262,17 +271,17 @@ export async function syncEmailConnection(
     // Update sync status
     if (syncResult.success) {
       await pool.query(
-        `UPDATE public.email_connections 
+        `UPDATE public.email_connections
          SET last_sync_at = NOW(), error_message = NULL
          WHERE id = $1`,
-        [connectionId]
+        [connectionId],
       );
     } else {
       await pool.query(
-        `UPDATE public.email_connections 
+        `UPDATE public.email_connections
          SET error_message = $1
          WHERE id = $2`,
-        [syncResult.error || "Sync failed", connectionId]
+        [syncResult.error || "Sync failed", connectionId],
       );
     }
 
@@ -283,5 +292,3 @@ export async function syncEmailConnection(
     throw error;
   }
 }
-
-

@@ -1,85 +1,79 @@
-import { ReactNode, useEffect, useRef, useState } from "react";
-import { Link, useLocation } from "react-router-dom";
-import { ChevronRight, Menu, X } from "lucide-react";
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type ReactNode,
+} from "react";
+import { useLocation } from "react-router-dom";
+import { X } from "lucide-react";
 import Sidebar from "./Sidebar";
 import Header from "./Header";
 import BottomNav from "./BottomNav";
-import Brand from "@/components/Brand";
-const pageNames: Record<string, string> = {
-  "/dashboard": "Overview",
-  "/inbox": "Inbox",
-  "/leads": "Lead pipeline",
-  "/drafts": "Drafts",
-  "/analytics": "Analytics",
-  "/settings": "Settings",
-};
 export default function DashboardLayout({ children }: { children: ReactNode }) {
-  const [mobileOpen, setMobileOpen] = useState(false);
-  const location = useLocation();
-  const drawer = useRef<HTMLDialogElement>(null);
+  const [collapsed, setCollapsed] = useState(
+    () => localStorage.getItem("inboxiq:sidebar") === "collapsed",
+  );
+  const [mobile, setMobile] = useState(false);
+  const dialog = useRef<HTMLDialogElement>(null);
+  const { pathname } = useLocation();
+  const collapse = useCallback(
+    () =>
+      setCollapsed((v) => {
+        localStorage.setItem("inboxiq:sidebar", v ? "expanded" : "collapsed");
+        return !v;
+      }),
+    [],
+  );
   useEffect(() => {
-    setMobileOpen(false);
+    setMobile(false);
     window.scrollTo(0, 0);
-  }, [location.pathname]);
+  }, [pathname]);
   useEffect(() => {
-    const dialog = drawer.current;
-    if (mobileOpen) {
-      dialog?.showModal();
+    if (mobile) {
+      dialog.current?.showModal();
       document.body.style.overflow = "hidden";
     } else {
-      dialog?.close();
+      dialog.current?.close();
       document.body.style.overflow = "";
     }
     return () => {
       document.body.style.overflow = "";
     };
-  }, [mobileOpen]);
+  }, [mobile]);
   return (
-    <div className={`iq-shell iq-route-${location.pathname.slice(1)}`}>
-      <aside className="iq-sidebar-wrap">
-        <Sidebar />
+    <div className={`app-shell ${collapsed ? "is-collapsed" : ""}`}>
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[100] bg-card p-2"
+      >
+        Skip to workspace
+      </a>
+      <aside className="app-sidebar-wrap">
+        <Sidebar collapsed={collapsed} onCollapse={collapse} />
       </aside>
       <dialog
-        ref={drawer}
-        onCancel={() => setMobileOpen(false)}
+        ref={dialog}
+        onCancel={() => setMobile(false)}
         onClick={(e) => {
-          if (e.target === e.currentTarget) setMobileOpen(false);
+          if (e.currentTarget === e.target) setMobile(false);
         }}
-        className="fixed m-0 h-dvh max-h-none w-[280px] max-w-[85vw] bg-transparent p-0 border-0 backdrop:bg-black/70"
         aria-label="Navigation menu"
+        className="fixed m-0 h-dvh max-h-none w-[270px] max-w-[85vw] p-0 border-0 bg-card backdrop:bg-black/50"
       >
         <button
-          className="absolute right-3 top-5 z-10 p-2 text-muted-foreground"
-          onClick={() => setMobileOpen(false)}
           aria-label="Close menu"
+          className="icon-button absolute right-2 top-4"
+          onClick={() => setMobile(false)}
         >
-          <X size={18} />
+          <X size={16} />
         </button>
         <Sidebar />
       </dialog>
-      <div className="iq-workspace">
-        <Header
-          mobileNavigation={
-            <div className="iq-mobile-bar">
-              <button
-                aria-label="Open menu"
-                onClick={() => setMobileOpen(true)}
-              >
-                <Menu size={19} />
-              </button>
-              <Link to="/dashboard">
-                <Brand />
-              </Link>
-            </div>
-          }
-        />
-        <main className="iq-main" id="main-content">
-          <div className="iq-breadcrumb">
-            <span>Workspace</span>
-            <ChevronRight size={10} />
-            <span>{pageNames[location.pathname] || "Overview"}</span>
-          </div>
-          <div className="iq-page-content">{children}</div>
+      <div className="app-workspace">
+        <Header onMenu={() => setMobile(true)} onCollapse={collapse} />
+        <main id="main-content" className="app-main">
+          {children}
         </main>
       </div>
       <BottomNav />

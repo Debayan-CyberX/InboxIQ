@@ -4,7 +4,10 @@ import type { Action, InsertAction, UpdateAction } from "@/types/database";
 
 export const actionsApi = {
   // Get all actions for the current user
-  async getAll(betterAuthUserId: string, status?: "pending" | "in_progress" | "completed" | "cancelled"): Promise<Action[]> {
+  async getAll(
+    betterAuthUserId: string,
+    status?: "pending" | "in_progress" | "completed" | "cancelled",
+  ): Promise<Action[]> {
     if (!supabase) {
       throw new Error("Supabase client not initialized");
     }
@@ -24,7 +27,10 @@ export const actionsApi = {
   },
 
   // Get a single action by ID
-  async getById(actionId: string, betterAuthUserId: string): Promise<Action | null> {
+  async getById(
+    actionId: string,
+    betterAuthUserId: string,
+  ): Promise<Action | null> {
     if (!supabase) {
       throw new Error("Supabase client not initialized");
     }
@@ -32,18 +38,20 @@ export const actionsApi = {
     // Get user UUID
     const { getUserIdFromBetterAuth } = await import("./utils");
     const userUuid = await getUserIdFromBetterAuth(betterAuthUserId);
-    
+
     if (!userUuid) {
       return null;
     }
 
     const { data, error } = await supabase
       .from("actions")
-      .select(`
+      .select(
+        `
         *,
         lead:leads(*),
         email_draft:emails!email_draft_id(*)
-      `)
+      `,
+      )
       .eq("id", actionId)
       .eq("user_id", userUuid)
       .single();
@@ -60,7 +68,10 @@ export const actionsApi = {
   },
 
   // Create a new action
-  async create(action: InsertAction, betterAuthUserId: string): Promise<Action> {
+  async create(
+    action: InsertAction,
+    betterAuthUserId: string,
+  ): Promise<Action> {
     if (!supabase) {
       throw new Error("Supabase client not initialized");
     }
@@ -68,7 +79,7 @@ export const actionsApi = {
     // Get user UUID
     const { getUserIdFromBetterAuth } = await import("./utils");
     const userUuid = await getUserIdFromBetterAuth(betterAuthUserId);
-    
+
     if (!userUuid) {
       throw new Error("User not found in database");
     }
@@ -93,7 +104,11 @@ export const actionsApi = {
   },
 
   // Update an action
-  async update(actionId: string, betterAuthUserId: string, updates: UpdateAction): Promise<Action> {
+  async update(
+    actionId: string,
+    betterAuthUserId: string,
+    updates: UpdateAction,
+  ): Promise<Action> {
     if (!supabase) {
       throw new Error("Supabase client not initialized");
     }
@@ -101,7 +116,7 @@ export const actionsApi = {
     // Get user UUID
     const { getUserIdFromBetterAuth } = await import("./utils");
     const userUuid = await getUserIdFromBetterAuth(betterAuthUserId);
-    
+
     if (!userUuid) {
       throw new Error("User not found in database");
     }
@@ -146,7 +161,7 @@ export const actionsApi = {
     // Get user UUID
     const { getUserIdFromBetterAuth } = await import("./utils");
     const userUuid = await getUserIdFromBetterAuth(betterAuthUserId);
-    
+
     if (!userUuid) {
       throw new Error("User not found in database");
     }
@@ -163,4 +178,3 @@ export const actionsApi = {
     }
   },
 };
-

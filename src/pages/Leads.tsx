@@ -1,846 +1,645 @@
-import { Link } from "react-router-dom";
-import { useState, useMemo, useEffect } from "react";
-import { motion } from "framer-motion";
-import { 
-  Users, 
-  Search, 
-  Filter, 
-  Plus, 
-  MoreVertical,
-  Mail,
-  Phone,
-  Globe,
-  Calendar,
-  TrendingUp,
-  TrendingDown,
-  Flame,
-  ThermometerSun,
-  Snowflake,
-  Sparkles,
-  ChevronDown,
-  ChevronUp,
-  Edit,
+import { useEffect, useMemo, useState } from "react";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { useQueryClient } from "@tanstack/react-query";
+import {
+  Search,
+  List,
+  Columns3,
+  Users,
+  ArrowUpRight,
+  RefreshCw,
   Trash2,
-  Archive,
-  Mail as MailIcon
+  Mail,
+  FileText,
+  Clock,
+  ArrowRight,
 } from "lucide-react";
 import DashboardLayout from "@/components/layout/DashboardLayout";
+import {
+  PageHeader,
+  EmptyState,
+  ContactAvatar,
+  StatusLabel,
+  ConfirmAction,
+} from "@/components/WorkspaceUI";
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
-import { leadsApi } from "@/lib/api";
-import { useUserId } from "@/hooks/useUserId";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetDescription,
+} from "@/components/ui/sheet";
 import { LoadingState } from "@/components/LoadingState";
 import { ErrorState } from "@/components/ErrorState";
-import type { Lead } from "@/types/database";
+import { useLeads } from "@/hooks/use-workspace-data";
+import { useUserId } from "@/hooks/useUserId";
+import { leadsApi } from "@/lib/api";
+import type { Lead, LeadStatus, UpdateLead } from "@/types/database";
 import { toast } from "sonner";
-import { getApiBase } from "@/lib/api/base-url";
-
-type StatusFilter = "all" | "hot" | "warm" | "cold";
-type SortOption = "recent" | "name" | "company" | "status" | "days";
-
-const Leads = () => {
-  const userId = useUserId();
-  const [leads, setLeads] = useState<Lead[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<Error | null>(null);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
-  const [sortBy, setSortBy] = useState<SortOption>("recent");
-  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
-  const [selectedLeads, setSelectedLeads] = useState<Set<string>>(new Set());
-  const [generatingLeadId, setGeneratingLeadId] = useState<string | null>(null);
-  const [stats, setStats] = useState({
-    total: 0,
-    hot: 0,
-    warm: 0,
-    cold: 0,
-    needsFollowUp: 0,
-    hasDrafts: 0,
-  });
-
-  // Fetch leads from API
+import { errorMessage } from "@/lib/format";
+import EmailComposeDialog from "@/components/dashboard/EmailComposeDialog";
+const stages: LeadStatus[] = ["hot", "warm", "cold"];
+export default function Leads() {
+  const query = useLeads();
+  const id = useUserId();
+  const client = useQueryClient();
+  const navigate = useNavigate();
+  const [params, setParams] = useSearchParams();
+  const [search, setSearch] = useState("");
+  const [stage, setStage] = useState("all");
+  const [sort, setSort] = useState("recent");
+  const [view, setView] = useState<"table" | "board">("table");
+  const [selected, setSelected] = useState<string[]>([]);
+  const [busy, setBusy] = useState<string | null>(null);
+  const [compose, setCompose] = useState<Lead | null>(null);
+  const [detecting, setDetecting] = useState(false);
+  const leads = useMemo(() => query.data || [], [query.data]);
+  const lead = leads.find((l) => l.id === params.get("lead"));
+  const [attention, setAttention] = useState(params.get("filter") || "all");
   useEffect(() => {
-    if (!userId) {
-      setLoading(false);
-      return;
-    }
-
-    async function fetchLeads() {
-      try {
-        setLoading(true);
-        setError(null);
-        
-        // Update contact info first to ensure accurate days_since_contact
-        // This recalculates based on outgoing emails only
-        try {
-          const authServerUrl = getApiBase();
-          await fetch(`${authServerUrl}/api/leads/update-contact-info`, {
-            method: "POST",
-            credentials: "include",
-          });
-        } catch (updateError) {
-          // Silently fail - leads will still load with existing values
-          console.warn("Failed to update contact info:", updateError);
-        }
-        
-        // Fetch leads with filters
-        const status = statusFilter !== "all" ? statusFilter : undefined;
-        const search = searchQuery.trim() || undefined;
-        const fetchedLeads = await leadsApi.getAll(userId, status, search);
-        setLeads(fetchedLeads);
-
-        // Fetch statistics
-        const statistics = await leadsApi.getStatistics(userId);
-        setStats({
-          total: Number(statistics.total_leads) || 0,
-          hot: Number(statistics.hot_leads) || 0,
-          warm: Number(statistics.warm_leads) || 0,
-          cold: Number(statistics.cold_leads) || 0,
-          needsFollowUp: Number(statistics.needs_follow_up) || 0,
-          hasDrafts: fetchedLeads.filter(l => l.has_ai_draft).length,
-        });
-      } catch (err) {
-        console.error("Error fetching leads:", err);
-        setError(err instanceof Error ? err : new Error("Failed to load leads"));
-        toast.error("Failed to load leads", {
-          description: err instanceof Error ? err.message : "Unknown error",
-        });
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    fetchLeads();
-  }, [userId, statusFilter, searchQuery]);
-
-  // Filter and sort leads (client-side sorting for now)
-  const filteredAndSortedLeads = useMemo(() => {
-    let filtered = [...leads];
-
-    // Apply sorting
-    filtered.sort((a, b) => {
-      let comparison = 0;
-      switch (sortBy) {
-        case "name":
-          comparison = a.contact_name.localeCompare(b.contact_name);
-          break;
-        case "company":
-          comparison = a.company.localeCompare(b.company);
-          break;
-        case "status":
-          const statusOrder = { hot: 1, warm: 2, cold: 3 };
-          comparison = statusOrder[a.status] - statusOrder[b.status];
-          break;
-        case "days":
-          comparison = (a.days_since_contact || 0) - (b.days_since_contact || 0);
-          break;
-        case "recent":
-        default:
-          comparison = (b.days_since_contact || 0) - (a.days_since_contact || 0);
-          break;
-      }
-      return sortOrder === "asc" ? comparison : -comparison;
-    });
-
-    return filtered;
-  }, [leads, sortBy, sortOrder]);
-
-  const handleSelectLead = (leadId: string) => {
-    setSelectedLeads(prev => {
-      const newSet = new Set(prev);
-      if (newSet.has(leadId)) {
-        newSet.delete(leadId);
-      } else {
-        newSet.add(leadId);
-      }
-      return newSet;
-    });
-  };
-
-  const handleSelectAll = () => {
-    if (selectedLeads.size === filteredAndSortedLeads.length) {
-      setSelectedLeads(new Set());
-    } else {
-      setSelectedLeads(new Set(filteredAndSortedLeads.map(l => l.id)));
-    }
-  };
-
-  const handleDelete = async (leadId: string) => {
-    if (!userId) return;
-    
-    try {
-      await leadsApi.delete(leadId, userId);
-      setLeads(prev => prev.filter(l => l.id !== leadId));
-      toast.success("Lead deleted successfully");
-    } catch (err) {
-      toast.error("Failed to delete lead", {
-        description: err instanceof Error ? err.message : "Unknown error",
-      });
-    }
-  };
-
-  const handleBulkDelete = async () => {
-    if (!userId || selectedLeads.size === 0) return;
-
-    try {
-      await Promise.all(Array.from(selectedLeads).map(id => leadsApi.delete(id, userId)));
-      setLeads(prev => prev.filter(l => !selectedLeads.has(l.id)));
-      setSelectedLeads(new Set());
-      toast.success(`${selectedLeads.size} leads deleted successfully`);
-    } catch (err) {
-      toast.error("Failed to delete leads", {
-        description: err instanceof Error ? err.message : "Unknown error",
-      });
-    }
-  };
-
-  const handleRetry = () => {
-    setError(null);
-    if (userId) {
-      // Trigger refetch
-      const status = statusFilter !== "all" ? statusFilter : undefined;
-      const search = searchQuery.trim() || undefined;
-      leadsApi.getAll(userId, status, search)
-        .then(setLeads)
-        .catch(err => setError(err instanceof Error ? err : new Error("Failed to load leads")));
-    }
-  };
-
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case "hot":
-        return Flame;
-      case "warm":
-        return ThermometerSun;
-      case "cold":
-        return Snowflake;
-      default:
-        return Users;
-    }
-  };
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "hot":
-        return "text-[#EF4444] border-[#EF4444] bg-[rgba(239,68,68,0.15)]";
-      case "warm":
-        return "text-[#F59E0B] border-[#F59E0B] bg-[rgba(245,158,11,0.15)]";
-      case "cold":
-        return "text-[#22D3EE] border-[#22D3EE] bg-[rgba(34,211,238,0.15)]";
-      default:
-        return "text-muted-foreground border-[rgba(255,255,255,0.12)] bg-[rgba(255,255,255,0.08)]";
-    }
-  };
-
-  // Show loading state
-  if (loading) {
-    return (
-      <DashboardLayout>
-        <LoadingState message="Loading leads..." />
-      </DashboardLayout>
-    );
+    setAttention(params.get("filter") || "all");
+  }, [params]);
+  const filtered = useMemo(
+    () =>
+      leads
+        .filter(
+          (l) =>
+            (stage === "all" || l.status === stage) &&
+            (attention === "all" ||
+              l.days_since_contact >= (attention === "risk" ? 5 : 3)) &&
+            `${l.contact_name} ${l.company} ${l.email}`
+              .toLowerCase()
+              .includes(search.toLowerCase()),
+        )
+        .sort((a, b) =>
+          sort === "company"
+            ? a.company.localeCompare(b.company)
+            : sort === "name"
+              ? a.contact_name.localeCompare(b.contact_name)
+              : sort === "days"
+                ? (b.days_since_contact || 0) - (a.days_since_contact || 0)
+                : sort === "priority"
+                  ? stages.indexOf(a.status) - stages.indexOf(b.status)
+                  : new Date(b.last_contact_at || b.updated_at).getTime() -
+                    new Date(a.last_contact_at || a.updated_at).getTime(),
+        ),
+    [leads, stage, attention, search, sort],
+  );
+  async function refresh() {
+    await client.invalidateQueries({ queryKey: ["leads"] });
   }
-
-  // Show error state
-  if (error) {
-    return (
-      <DashboardLayout>
-        <ErrorState error={error} onRetry={handleRetry} />
-      </DashboardLayout>
+  async function update(leadId: string, updates: UpdateLead) {
+    if (!id) return;
+    const previous = query.data;
+    client.setQueryData(
+      ["leads", id],
+      leads.map((l) => (l.id === leadId ? { ...l, ...updates } : l)),
     );
+    try {
+      await leadsApi.update(leadId, id, updates);
+      await refresh();
+      toast.success("Lead updated");
+    } catch (e) {
+      client.setQueryData(["leads", id], previous);
+      throw e;
+    }
   }
-
+  async function remove(ids: string[]) {
+    if (!id) return;
+    await Promise.all(ids.map((leadId) => leadsApi.delete(leadId, id)));
+    setSelected([]);
+    setParams({}, { replace: true });
+    await refresh();
+    toast.success(`${ids.length} lead${ids.length === 1 ? "" : "s"} deleted`);
+  }
+  async function generate(l: Lead) {
+    if (!id) return;
+    setBusy(l.id);
+    try {
+      await leadsApi.generateFollowUp(l.id, id);
+      await refresh();
+      await client.invalidateQueries({ queryKey: ["drafts"] });
+      toast.success("Draft prepared. Review it before sending.");
+      navigate(`/drafts?lead=${l.id}`);
+    } catch (e) {
+      toast.error(errorMessage(e, "Could not prepare a follow-up."));
+    } finally {
+      setBusy(null);
+    }
+  }
+  function show(l: Lead) {
+    setParams({ ...Object.fromEntries(params), lead: l.id }, { replace: true });
+  }
   return (
     <DashboardLayout>
-      <div className="space-y-4 sm:space-y-6 w-full min-w-0">
-        {/* Header */}
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4 mb-6 sm:mb-8">
-          <div>
-            <div className="iq-page-intro"><span className="iq-eyebrow"><span className="iq-dot"/>RELATIONSHIPS</span><h1>Lead pipeline</h1><p>Turn promising conversations into lasting connections.</p></div>
-            <p className="text-sm sm:text-base text-muted-foreground/90 font-semibold">
-              <span className="text-gradient font-bold text-base sm:text-lg text-glow">{filteredAndSortedLeads.length}</span>{" "}
-              {filteredAndSortedLeads.length === 1 ? "lead" : "leads"}
-              {statusFilter !== "all" && ` • ${statusFilter} leads`}
-            </p>
-          </div>
-          <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto flex-wrap">
-            <Button 
-              variant="outline" 
-              size="sm" 
-              className="gap-1.5 sm:gap-2 text-xs sm:text-sm flex-1 sm:flex-initial"
-              onClick={async () => {
-                if (!userId) return;
-                try {
-                  toast.loading("Detecting leads from email threads...");
-                  const result = await leadsApi.detectLeads(userId);
-                  toast.success(`Lead detection completed!`, {
-                    description: `${result.leadsCreated} leads created, ${result.threadsUpdated} threads updated`,
-                  });
-                  // Refetch leads
-                  const status = statusFilter !== "all" ? statusFilter : undefined;
-                  const search = searchQuery.trim() || undefined;
-                  const fetchedLeads = await leadsApi.getAll(userId, status, search);
-                  setLeads(fetchedLeads);
-                } catch (err) {
-                  toast.error("Failed to detect leads", {
-                    description: err instanceof Error ? err.message : "Unknown error",
-                  });
-                }
-              }}
-            >
-              <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-              <span className="hidden sm:inline">Detect Leads</span>
-              <span className="sm:hidden">Detect</span>
-            </Button>
-            <Button asChild variant="default" size="sm" className="gap-2"><Link to="/inbox"><Mail size={14}/>Open inbox</Link></Button>
-          </div>
-        </div>
-
-        {/* Stats Cards */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4 mb-6 sm:mb-8">
-          <motion.div 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4, delay: 0 }}
-            className="glass-strong p-4 sm:p-5 md:p-6 rounded-xl sm:rounded-2xl hover-lift cursor-pointer group relative overflow-hidden"
-          >
-            <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent pointer-events-none" />
-            <div className="relative">
-              <div className="text-2xl sm:text-3xl md:text-4xl font-bold text-gradient text-glow mb-1 sm:mb-2">{stats.total}</div>
-              <div className="text-xs sm:text-sm text-muted-foreground/80 font-semibold uppercase tracking-wider leading-tight">Total Leads</div>
-            </div>
-          </motion.div>
-          <motion.div 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4, delay: 0.1 }}
-            className="glass-glow-hot p-4 sm:p-5 md:p-6 rounded-xl sm:rounded-2xl border-l-2 sm:border-l-4 border-l-[#EF4444] hover-lift cursor-pointer group relative overflow-hidden"
-          >
-            <div className="absolute inset-0 bg-gradient-to-br from-[rgba(239,68,68,0.1)] to-transparent pointer-events-none" />
-            <div className="relative">
-              <div className="text-2xl sm:text-3xl md:text-4xl font-bold text-gradient-hot text-glow-hot mb-1 sm:mb-2">{stats.hot}</div>
-              <div className="text-xs sm:text-sm text-muted-foreground/80 font-semibold uppercase tracking-wider leading-tight">Hot</div>
-            </div>
-          </motion.div>
-          <motion.div 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4, delay: 0.2 }}
-            className="glass-glow-warm p-4 sm:p-5 md:p-6 rounded-xl sm:rounded-2xl border-l-2 sm:border-l-4 border-l-[#F59E0B] hover-lift cursor-pointer group relative overflow-hidden"
-          >
-            <div className="absolute inset-0 bg-gradient-to-br from-[rgba(245,158,11,0.1)] to-transparent pointer-events-none" />
-            <div className="relative">
-              <div className="text-2xl sm:text-3xl md:text-4xl font-bold text-gradient-warm text-glow-warm mb-1 sm:mb-2">{stats.warm}</div>
-              <div className="text-xs sm:text-sm text-muted-foreground/80 font-semibold uppercase tracking-wider leading-tight">Warm</div>
-            </div>
-          </motion.div>
-          <motion.div 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4, delay: 0.3 }}
-            className="glass-glow-cold p-4 sm:p-5 md:p-6 rounded-xl sm:rounded-2xl border-l-2 sm:border-l-4 border-l-[#22D3EE] hover-lift cursor-pointer group relative overflow-hidden"
-          >
-            <div className="absolute inset-0 bg-gradient-to-br from-[rgba(34,211,238,0.1)] to-transparent pointer-events-none" />
-            <div className="relative">
-              <div className="text-2xl sm:text-3xl md:text-4xl font-bold text-gradient-cold text-glow-cold mb-1 sm:mb-2">{stats.cold}</div>
-              <div className="text-xs sm:text-sm text-muted-foreground/80 font-semibold uppercase tracking-wider leading-tight">Cold</div>
-            </div>
-          </motion.div>
-          <motion.div 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4, delay: 0.4 }}
-            className="glass-strong p-4 sm:p-5 md:p-6 rounded-xl sm:rounded-2xl hover-lift cursor-pointer group relative overflow-hidden"
-          >
-            <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent pointer-events-none" />
-            <div className="relative">
-              <div className="text-2xl sm:text-3xl md:text-4xl font-bold text-gradient text-glow mb-1 sm:mb-2">{stats.needsFollowUp}</div>
-              <div className="text-xs sm:text-sm text-muted-foreground/80 font-semibold uppercase tracking-wider leading-tight">Need Follow-up</div>
-            </div>
-          </motion.div>
-          <motion.div 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4, delay: 0.5 }}
-            className="glass-glow p-4 sm:p-5 md:p-6 rounded-xl sm:rounded-2xl hover-lift cursor-pointer group relative overflow-hidden"
-          >
-            <div className="absolute inset-0 bg-gradient-to-br from-[rgba(124,58,237,0.1)] to-transparent pointer-events-none" />
-            <div className="relative">
-              <div className="text-2xl sm:text-3xl md:text-4xl font-bold text-gradient-primary text-glow-primary mb-1 sm:mb-2">{stats.hasDrafts}</div>
-              <div className="text-xs sm:text-sm text-muted-foreground/80 font-semibold uppercase tracking-wider leading-tight">AI Drafts</div>
-            </div>
-          </motion.div>
-        </div>
-
-        {/* Search and Filters */}
-        <div className="glass-strong p-3 sm:p-4 md:p-6 rounded-xl sm:rounded-2xl mb-4 sm:mb-6">
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4">
-            {/* Search */}
-            <div className="relative flex-1 w-full">
-              <Search className="absolute left-3 sm:left-4 top-1/2 -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 text-muted-foreground/60" />
+      <PageHeader
+        title="Leads"
+        description="The relationships behind your conversations. Keep the next step in view."
+      >
+        <button
+          className="icon-button"
+          onClick={() => query.refetch()}
+          aria-label="Refresh leads"
+        >
+          <RefreshCw
+            size={14}
+            className={query.isFetching ? "animate-spin" : ""}
+          />
+        </button>
+        <Button
+          size="sm"
+          variant="outline"
+          disabled={detecting}
+          onClick={async () => {
+            if (!id) return;
+            setDetecting(true);
+            try {
+              const r = await leadsApi.detectLeads(id);
+              await refresh();
+              toast.success(
+                `${r.leadsCreated} leads identified from your conversations`,
+              );
+            } catch (e) {
+              toast.error(errorMessage(e));
+            } finally {
+              setDetecting(false);
+            }
+          }}
+        >
+          {detecting ? (
+            <RefreshCw size={13} className="animate-spin" />
+          ) : (
+            <Users size={13} />
+          )}
+          Find leads in email
+        </Button>
+        <Button asChild size="sm">
+          <Link to="/inbox">
+            Open inbox
+            <ArrowUpRight size={12} />
+          </Link>
+        </Button>
+      </PageHeader>
+      {query.isPending ? (
+        <LoadingState message="Loading leads..." />
+      ) : query.error ? (
+        <ErrorState error={query.error} onRetry={() => query.refetch()} />
+      ) : (
+        <>
+          <div className="toolbar">
+            <label className="search-field flex-1 max-w-[300px]">
+              <Search size={14} />
               <input
-                type="text"
-                placeholder="Search leads..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full h-10 sm:h-12 pl-9 sm:pl-12 pr-3 sm:pr-4 rounded-lg sm:rounded-xl bg-[rgba(255,255,255,0.06)] backdrop-blur-md border border-[rgba(255,255,255,0.12)] text-sm sm:text-base placeholder:text-muted-foreground/60 focus:outline-none focus:ring-2 focus:ring-[#7C3AED]/50 focus:bg-[rgba(255,255,255,0.08)] focus:border-[rgba(124,58,237,0.3)] transition-all duration-200 font-medium"
+                placeholder="Search people or companies..."
+                aria-label="Search leads"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
               />
-            </div>
-
-            {/* Status Filter */}
-            <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
-              <Button
-                variant={statusFilter === "all" ? "default" : "outline"}
-                size="sm"
-                onClick={() => setStatusFilter("all")}
-                className="font-semibold text-xs sm:text-sm px-2 sm:px-3"
-              >
-                All
-              </Button>
-              <Button
-                variant={statusFilter === "hot" ? "default" : "outline"}
-                size="sm"
-                onClick={() => setStatusFilter("hot")}
-                className={cn(
-                  "font-semibold text-xs sm:text-sm px-2 sm:px-3",
-                  statusFilter === "hot" ? "bg-[rgba(239,68,68,0.15)] text-[#EF4444] border-[#EF4444] hover:bg-[rgba(239,68,68,0.2)]" : ""
-                )}
-              >
-                <Flame className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1 sm:mr-1.5" />
-                Hot
-              </Button>
-              <Button
-                variant={statusFilter === "warm" ? "default" : "outline"}
-                size="sm"
-                onClick={() => setStatusFilter("warm")}
-                className={cn(
-                  "font-semibold text-xs sm:text-sm px-2 sm:px-3",
-                  statusFilter === "warm" ? "bg-[rgba(245,158,11,0.15)] text-[#F59E0B] border-[#F59E0B] hover:bg-[rgba(245,158,11,0.2)]" : ""
-                )}
-              >
-                <ThermometerSun className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1 sm:mr-1.5" />
-                Warm
-              </Button>
-              <Button
-                variant={statusFilter === "cold" ? "default" : "outline"}
-                size="sm"
-                onClick={() => setStatusFilter("cold")}
-                className={cn(
-                  "font-semibold text-xs sm:text-sm px-2 sm:px-3",
-                  statusFilter === "cold" ? "bg-[rgba(34,211,238,0.15)] text-[#22D3EE] border-[#22D3EE] hover:bg-[rgba(34,211,238,0.2)]" : ""
-                )}
-              >
-                <Snowflake className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1 sm:mr-1.5" />
-                Cold
-              </Button>
-            </div>
-
-            {/* Sort */}
-            <div className="flex items-center gap-2">
+            </label>
+            <div className="flex gap-2 flex-wrap items-center">
               <select
-                value={sortBy}
-                onChange={(e) => setSortBy(e.target.value as SortOption)}
-                className="h-10 sm:h-12 px-3 sm:px-4 rounded-lg sm:rounded-xl bg-[rgba(255,255,255,0.06)] backdrop-blur-md border border-[rgba(255,255,255,0.12)] text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-[#7C3AED]/50 focus:bg-[rgba(255,255,255,0.08)] transition-all duration-200 font-medium flex-1 sm:flex-initial"
+                className="compact-select"
+                aria-label="Lead stage"
+                value={stage}
+                onChange={(e) => setStage(e.target.value)}
               >
-                <option value="recent">Recent</option>
-                <option value="name">Name</option>
-                <option value="company">Company</option>
-                <option value="status">Status</option>
-                <option value="days">Days Since Contact</option>
+                <option value="all">All stages</option>
+                <option value="hot">Qualified</option>
+                <option value="warm">In conversation</option>
+                <option value="cold">New</option>
               </select>
-              <Button
-                variant="outline"
-                size="icon"
-                onClick={() => setSortOrder(sortOrder === "asc" ? "desc" : "asc")}
-                className="h-10 w-10 sm:h-12 sm:w-12"
+              <select
+                className="compact-select"
+                aria-label="Lead attention filter"
+                value={attention}
+                onChange={(e) => setAttention(e.target.value)}
               >
-                {sortOrder === "asc" ? <ChevronUp className="w-4 h-4 sm:w-5 sm:h-5" /> : <ChevronDown className="w-4 h-4 sm:w-5 sm:h-5" />}
-              </Button>
-            </div>
-          </div>
-        </div>
-
-        {/* Leads Table/List */}
-        <div className="glass-strong rounded-xl sm:rounded-2xl overflow-hidden">
-          {/* Table Header */}
-          <div className="p-3 sm:p-4 md:p-6 border-b border-[rgba(255,255,255,0.12)] bg-[rgba(255,255,255,0.05)] backdrop-blur-sm hidden sm:block">
-            <div className="flex items-center gap-4 sm:gap-5">
-              <input
-                type="checkbox"
-                checked={selectedLeads.size === filteredAndSortedLeads.length && filteredAndSortedLeads.length > 0}
-                onChange={handleSelectAll}
-                className="w-4 h-4 sm:w-5 sm:h-5 rounded border-[rgba(255,255,255,0.2)] accent-[#7C3AED] cursor-pointer"
-              />
-              <div className="flex-1 grid grid-cols-12 gap-2 sm:gap-4 text-xs font-bold text-muted-foreground/90 uppercase tracking-widest">
-                <div className="col-span-4">Contact</div>
-                <div className="col-span-3">Company</div>
-                <div className="col-span-2">Status</div>
-                <div className="col-span-2">Last Contact</div>
-                <div className="col-span-1 text-right">Actions</div>
+                <option value="all">All relationships</option>
+                <option value="due">Follow-up due</option>
+                <option value="risk">At risk / 5+ days</option>
+              </select>
+              <select
+                className="compact-select"
+                aria-label="Sort leads"
+                value={sort}
+                onChange={(e) => setSort(e.target.value)}
+              >
+                <option value="recent">Latest activity</option>
+                <option value="days">Longest since contact</option>
+                <option value="company">Company A-Z</option>
+                <option value="name">Name A-Z</option>
+                <option value="priority">Stage</option>
+              </select>
+              <div
+                className="segmented"
+                role="group"
+                aria-label="Lead presentation"
+              >
+                <button
+                  onClick={() => setView("table")}
+                  aria-pressed={view === "table"}
+                  aria-label="Table view"
+                >
+                  <List size={13} />
+                </button>
+                <button
+                  onClick={() => setView("board")}
+                  aria-pressed={view === "board"}
+                  aria-label="Board view"
+                >
+                  <Columns3 size={13} />
+                </button>
               </div>
             </div>
           </div>
-
-          {/* Leads List */}
-          <div className="divide-y divide-[rgba(255,255,255,0.08)]">
-            {filteredAndSortedLeads.length === 0 ? (
-              <motion.div 
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.4 }}
-                className="p-16 text-center"
+          <div className="flex justify-between items-center text-[10px] text-muted-foreground mb-4">
+            <span>
+              {filtered.length} of {leads.length} relationships
+            </span>
+            {selected.length > 0 && (
+              <ConfirmAction
+                title={`Delete ${selected.length} selected leads?`}
+                description="These leads will be removed from your pipeline. This cannot be undone."
+                confirmLabel="Delete leads"
+                destructive
+                onConfirm={() => remove(selected)}
               >
-                <div className="relative inline-block mb-6">
-                  <Users className="w-16 h-16 text-muted-foreground/40 mx-auto opacity-50" />
-                  <div className="absolute inset-0 bg-gradient-to-r from-[rgba(124,58,237,0.15)] to-[rgba(34,211,238,0.15)] blur-2xl -z-10" />
-                </div>
-                <p className="text-lg text-muted-foreground/90 font-semibold">
-                  {searchQuery ? "No leads found matching your search" : `No ${statusFilter === "all" ? "" : statusFilter} leads`}
-                </p>
-              </motion.div>
-            ) : (
-              filteredAndSortedLeads.map((lead) => {
-                const StatusIcon = getStatusIcon(lead.status);
-                const statusColor = getStatusColor(lead.status);
-                const isUrgent = (lead.days_since_contact || 0) >= 5;
-
-                return (
-                  <motion.div
-                    key={lead.id}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.3 }}
-                    whileHover={{ x: 4, transition: { duration: 0.2 } }}
-                    onClick={() => {
-                      // Navigate to inbox filtered by this lead's threads
-                      window.location.href = `/inbox?lead=${lead.id}`;
-                    }}
-                    className={cn(
-                      "p-3 sm:p-4 md:p-6 hover:bg-[rgba(255,255,255,0.05)] transition-all duration-200 group cursor-pointer relative border-b border-[rgba(255,255,255,0.08)] last:border-0",
-                      selectedLeads.has(lead.id) && "bg-[rgba(124,58,237,0.1)]"
-                    )}
-                  >
-                    {/* Subtle gradient overlay on hover */}
-                    <div className="absolute inset-0 bg-gradient-to-r from-[rgba(124,58,237,0.05)] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none" />
-                    <div className="relative flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 md:gap-5">
-                      {/* Mobile: Header with checkbox, avatar, name, status */}
-                      <div className="flex items-center gap-3 sm:hidden">
-                        <input
-                          type="checkbox"
-                          checked={selectedLeads.has(lead.id)}
-                          onChange={() => handleSelectLead(lead.id)}
-                          onClick={(e) => e.stopPropagation()}
-                          className="w-4 h-4 rounded border-[rgba(255,255,255,0.2)] accent-[#7C3AED] cursor-pointer shrink-0"
-                        />
-                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#7C3AED] to-[#22D3EE] flex items-center justify-center text-white font-bold text-sm shrink-0 shadow-lg shadow-[#7C3AED]/30">
-                          {lead.contact_name.split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase()}
-                        </div>
-                        <div className="min-w-0 flex-1">
-                          <div className="font-bold text-sm text-foreground truncate mb-0.5">{lead.contact_name}</div>
-                          <div className="text-xs text-muted-foreground/80 truncate">{lead.company}</div>
-                        </div>
-                        <div className={cn(
-                          "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-bold border backdrop-blur-sm",
-                          lead.status === "hot" ? "bg-[rgba(239,68,68,0.15)] text-[#EF4444] border-[#EF4444]" :
-                          lead.status === "warm" ? "bg-[rgba(245,158,11,0.15)] text-[#F59E0B] border-[#F59E0B]" :
-                          lead.status === "cold" ? "bg-[rgba(168,85,247,0.15)] text-[#A855F7] border-[#A855F7]" :
-                          "bg-[rgba(255,255,255,0.08)] text-muted-foreground border-[rgba(255,255,255,0.12)]"
-                        )}>
-                          <StatusIcon className="w-3 h-3" />
-                          <span className="capitalize">{lead.status}</span>
-                        </div>
-                      </div>
-
-                      {/* Desktop: Full layout */}
-                      <input
-                        type="checkbox"
-                        checked={selectedLeads.has(lead.id)}
-                        onChange={() => handleSelectLead(lead.id)}
-                        onClick={(e) => e.stopPropagation()}
-                        className="w-4 h-4 sm:w-5 sm:h-5 rounded border-[rgba(255,255,255,0.2)] accent-[#7C3AED] cursor-pointer shrink-0 hidden sm:block"
-                      />
-                      
-                      {/* Desktop: Grid Layout */}
-                      <div className="hidden sm:grid sm:grid-cols-12 gap-4 md:gap-5 items-center flex-1">
-                        {/* Contact Info */}
-                        <div className="col-span-4 flex items-center gap-4 min-w-0">
-                          <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#7C3AED] to-[#22D3EE] flex items-center justify-center text-white font-bold text-base shrink-0 shadow-lg shadow-[#7C3AED]/30">
-                            {lead.contact_name.split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase()}
-                          </div>
-                          <div className="min-w-0 flex-1">
-                            <div className="font-bold text-base text-foreground truncate mb-1">{lead.contact_name}</div>
-                            <div className="text-sm text-muted-foreground/80 truncate flex items-center gap-2 font-medium">
-                              <Mail className="w-4 h-4 shrink-0" />
-                              <span className="truncate">{lead.email}</span>
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* Company */}
-                        <div className="col-span-3 min-w-0">
-                          <div className="font-semibold text-base text-foreground truncate mb-1">{lead.company}</div>
-                          {lead.last_message && (
-                            <div className="text-sm text-muted-foreground/70 line-clamp-1 truncate italic">
-                              "{lead.last_message}"
-                            </div>
-                          )}
-                        </div>
-
-                        {/* Status */}
-                        <div className="col-span-2">
-                          <div className={cn(
-                            "inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold border backdrop-blur-sm shadow-lg",
-                            lead.status === "hot" ? "bg-[rgba(239,68,68,0.15)] text-gradient-hot text-glow-hot border-[#EF4444] shadow-[0_0_15px_rgba(239,68,68,0.3)]" :
-                            lead.status === "warm" ? "bg-[rgba(245,158,11,0.15)] text-gradient-warm text-glow-warm border-[#F59E0B] shadow-[0_0_15px_rgba(245,158,11,0.3)]" :
-                            lead.status === "cold" ? "bg-[rgba(168,85,247,0.15)] text-gradient-cold text-glow-cold border-[#A855F7] shadow-[0_0_15px_rgba(168,85,247,0.3)]" :
-                            "bg-[rgba(255,255,255,0.08)] text-muted-foreground border-[rgba(255,255,255,0.12)]"
-                          )}>
-                            <StatusIcon className={cn(
-                              "w-4 h-4",
-                              lead.status === "hot" && "drop-shadow-[0_0_8px_rgba(239,68,68,0.6)]",
-                              lead.status === "warm" && "drop-shadow-[0_0_8px_rgba(245,158,11,0.6)]",
-                              lead.status === "cold" && "drop-shadow-[0_0_8px_rgba(168,85,247,0.6)]"
-                            )} />
-                            <span className="capitalize">{lead.status}</span>
-                          </div>
-                        </div>
-
-                        {/* Last Contact */}
-                        <div className="col-span-2">
-                          <div className={cn(
-                            "flex items-center gap-2 text-base font-bold mb-1",
-                            isUrgent ? "text-gradient-hot text-glow-hot" : "text-muted-foreground/90"
-                          )}>
-                            <Calendar className={cn("w-5 h-5 shrink-0", isUrgent && "drop-shadow-[0_0_8px_rgba(239,68,68,0.5)]")} />
-                            <span>{lead.days_since_contact || 0}d ago</span>
-                          </div>
-                          {isUrgent && (
-                            <div className="text-xs font-bold text-gradient-hot text-glow-hot mt-1 uppercase tracking-wide">Needs attention</div>
-                          )}
-                          {lead.metadata?.follow_up_due_at && (
-                            <div className="text-xs text-muted-foreground/60 mt-1 font-medium">
-                              Follow-up: {new Date(lead.metadata.follow_up_due_at).toLocaleDateString()}
-                            </div>
-                          )}
-                        </div>
-
-                        {/* Actions */}
-                        <div className="col-span-1 flex items-center justify-end gap-1.5 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity duration-200">
-                          <button
-                            onClick={async (e) => {
-                              e.stopPropagation();
-                              if (!userId) {
-                                toast.error("User not authenticated");
-                                return;
-                              }
-                              
-                              setGeneratingLeadId(lead.id);
-                              try {
-                                toast.loading("Generating follow-up...", { id: `generate-${lead.id}` });
-                                const draft = await leadsApi.generateFollowUp(lead.id, userId);
-                                toast.success("Follow-up generated!", {
-                                  id: `generate-${lead.id}`,
-                                  description: "Draft saved and ready to review",
-                                });
-                                // Refresh leads to update has_ai_draft flag
-                                const status = statusFilter !== "all" ? statusFilter : undefined;
-                                const search = searchQuery.trim() || undefined;
-                                const fetchedLeads = await leadsApi.getAll(userId, status, search);
-                                setLeads(fetchedLeads);
-                                // Navigate to drafts page to see the new draft
-                                setTimeout(() => {
-                                  window.location.href = "/drafts";
-                                }, 1000);
-                              } catch (err) {
-                                toast.error("Failed to generate follow-up", {
-                                  id: `generate-${lead.id}`,
-                                  description: err instanceof Error ? err.message : "Unknown error",
-                                });
-                              } finally {
-                                setGeneratingLeadId(null);
-                              }
-                            }}
-                            disabled={generatingLeadId === lead.id}
-                            className="p-1.5 sm:p-2 md:p-2.5 rounded-lg sm:rounded-xl hover:bg-[rgba(124,58,237,0.15)] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed hover:scale-110 shadow-lg shadow-[rgba(124,58,237,0.15)] hover:shadow-[rgba(124,58,237,0.25)]"
-                            title={(lead.days_since_contact || 0) < 3 ? "User replied recently (within 3 days)" : generatingLeadId === lead.id ? "Generating..." : "Generate Follow-up"}
-                          >
-                            <Sparkles className={cn(
-                              "w-4 h-4 sm:w-5 sm:h-5", 
-                              generatingLeadId === lead.id 
-                                ? "animate-spin text-[#7C3AED] drop-shadow-[0_0_10px_rgba(124,58,237,0.5)]" 
-                                : "text-[#7C3AED] drop-shadow-[0_0_8px_rgba(124,58,237,0.4)]"
-                            )} />
-                          </button>
-                          {lead.has_ai_draft && (
-                            <button
-                              className="p-1.5 sm:p-2 md:p-2.5 rounded-lg sm:rounded-xl hover:bg-[rgba(124,58,237,0.15)] transition-all duration-200 hover:scale-110 shadow-lg shadow-[rgba(124,58,237,0.15)] hover:shadow-[rgba(124,58,237,0.25)]"
-                              title="AI Draft Ready"
-                            >
-                              <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 text-[#7C3AED] drop-shadow-[0_0_8px_rgba(124,58,237,0.4)]" />
-                            </button>
-                          )}
-                          <button
-                            className="p-1.5 sm:p-2 rounded-lg sm:rounded-xl hover:bg-[rgba(255,255,255,0.08)] transition-all duration-200 hover:scale-110 text-muted-foreground/60 hover:text-foreground hidden sm:block"
-                            title="Send Email"
-                          >
-                            <MailIcon className="w-4 h-4 sm:w-5 sm:h-5" />
-                          </button>
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              if (confirm("Are you sure you want to delete this lead?")) {
-                                handleDelete(lead.id);
-                              }
-                            }}
-                            className="p-1.5 sm:p-2 rounded-lg sm:rounded-xl hover:bg-[rgba(239,68,68,0.1)] transition-all duration-200 hover:scale-110 text-muted-foreground/60 hover:text-[#EF4444]"
-                            title="Delete lead"
-                          >
-                            <Trash2 className="w-4 h-4 sm:w-5 sm:h-5" />
-                          </button>
-                        </div>
-                      </div>
-
-                      {/* Mobile: Additional info row */}
-                      <div className="sm:hidden flex flex-col gap-2 pl-13">
-                        {lead.last_message && (
-                          <div className="text-xs text-muted-foreground/70 line-clamp-1 truncate italic">
-                            "{lead.last_message}"
-                          </div>
-                        )}
-                        {lead.metadata?.follow_up_due_at && (
-                          <div className="text-[10px] text-muted-foreground/60 font-medium">
-                            Follow-up: {new Date(lead.metadata.follow_up_due_at).toLocaleDateString()}
-                          </div>
-                        )}
-                        {/* Mobile: Actions */}
-                        <div className="flex items-center gap-2 mt-2">
-                          <button
-                            onClick={async (e) => {
-                              e.stopPropagation();
-                              if (!userId) {
-                                toast.error("User not authenticated");
-                                return;
-                              }
-                              
-                              setGeneratingLeadId(lead.id);
-                              try {
-                                toast.loading("Generating follow-up...", { id: `generate-${lead.id}` });
-                                const draft = await leadsApi.generateFollowUp(lead.id, userId);
-                                toast.success("Follow-up generated!", {
-                                  id: `generate-${lead.id}`,
-                                  description: "Draft saved and ready to review",
-                                });
-                                // Refresh leads to update has_ai_draft flag
-                                const status = statusFilter !== "all" ? statusFilter : undefined;
-                                const search = searchQuery.trim() || undefined;
-                                const fetchedLeads = await leadsApi.getAll(userId, status, search);
-                                setLeads(fetchedLeads);
-                                // Navigate to drafts page to see the new draft
-                                setTimeout(() => {
-                                  window.location.href = "/drafts";
-                                }, 1000);
-                              } catch (err) {
-                                toast.error("Failed to generate follow-up", {
-                                  id: `generate-${lead.id}`,
-                                  description: err instanceof Error ? err.message : "Unknown error",
-                                });
-                              } finally {
-                                setGeneratingLeadId(null);
-                              }
-                            }}
-                            disabled={generatingLeadId === lead.id}
-                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[rgba(124,58,237,0.15)] hover:bg-[rgba(124,58,237,0.25)] border border-[rgba(124,58,237,0.3)] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-                            title={(lead.days_since_contact || 0) < 3 ? "User replied recently (within 3 days)" : generatingLeadId === lead.id ? "Generating..." : "Generate Follow-up"}
-                          >
-                            <Sparkles className={cn(
-                              "w-3.5 h-3.5", 
-                              generatingLeadId === lead.id 
-                                ? "animate-spin text-[#7C3AED]" 
-                                : "text-[#7C3AED]"
-                            )} />
-                            <span className="text-xs font-semibold text-[#7C3AED]">
-                              {generatingLeadId === lead.id ? "Generating..." : "Generate Follow-up"}
-                            </span>
-                          </button>
-                          {lead.has_ai_draft && (
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                window.location.href = "/drafts";
-                              }}
-                              className="px-3 py-1.5 rounded-lg bg-[rgba(124,58,237,0.15)] border border-[rgba(124,58,237,0.3)] hover:bg-[rgba(124,58,237,0.25)] transition-all"
-                              title="View Draft"
-                            >
-                              <Sparkles className="w-3.5 h-3.5 text-[#7C3AED]" />
-                            </button>
-                          )}
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              if (confirm("Are you sure you want to delete this lead?")) {
-                                handleDelete(lead.id);
-                              }
-                            }}
-                            className="p-1.5 rounded-lg hover:bg-[rgba(239,68,68,0.1)] transition-all text-muted-foreground/60 hover:text-[#EF4444]"
-                            title="Delete lead"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* AI Suggestion */}
-                    {lead.ai_suggestion && (
-                      <div className="mt-3 sm:mt-4 sm:ml-20 flex items-center gap-2 sm:gap-3 p-3 sm:p-4 rounded-lg sm:rounded-xl bg-gradient-to-r from-[rgba(124,58,237,0.15)] to-[rgba(34,211,238,0.1)] border border-[rgba(124,58,237,0.3)] backdrop-blur-sm shadow-lg shadow-[rgba(124,58,237,0.2)]">
-                        <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 text-[#7C3AED] shrink-0 drop-shadow-[0_0_8px_rgba(124,58,237,0.6)]" />
-                        <p className="text-xs sm:text-sm text-gradient-primary font-bold flex-1 leading-relaxed">{lead.ai_suggestion}</p>
-                        {lead.has_ai_draft && (
-                          <Button variant="default" size="sm" className="ml-auto h-7 sm:h-8 text-[10px] sm:text-xs font-bold shadow-lg shadow-[#7C3AED]/30 hover:shadow-[#7C3AED]/50">
-                            View Draft
-                          </Button>
-                        )}
-                      </div>
-                    )}
-                  </motion.div>
-                );
-              })
+                <button className="section-link text-destructive">
+                  <Trash2 size={11} />
+                  Delete {selected.length} selected
+                </button>
+              </ConfirmAction>
             )}
           </div>
-
-          {/* Bulk Actions */}
-          {selectedLeads.size > 0 && (
-            <div className="p-3 sm:p-4 md:p-5 border-t border-[rgba(255,255,255,0.12)] bg-[rgba(255,255,255,0.05)] backdrop-blur-sm flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 sm:gap-4">
-              <div className="text-sm sm:text-base font-semibold text-foreground">
-                {selectedLeads.size} {selectedLeads.size === 1 ? "lead" : "leads"} selected
-              </div>
-              <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
-                <Button variant="outline" size="sm" className="gap-1.5 sm:gap-2 font-semibold text-xs sm:text-sm flex-1 sm:flex-initial">
-                  <MailIcon className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                  <span className="hidden sm:inline">Email Selected</span>
-                  <span className="sm:hidden">Email</span>
+          {filtered.length === 0 ? (
+            <div className="border-y">
+              <EmptyState
+                icon={Users}
+                title={
+                  leads.length
+                    ? "No leads match this view."
+                    : "The next opportunity starts in your inbox."
+                }
+                description={
+                  leads.length
+                    ? "Try another stage, attention filter, or search."
+                    : "Sync your conversations, then use Find leads in email to bring promising inquiries into your pipeline."
+                }
+              >
+                <Button asChild variant="outline" size="sm">
+                  <Link to="/inbox">
+                    Explore conversations
+                    <ArrowRight size={12} />
+                  </Link>
                 </Button>
-                <Button variant="outline" size="sm" className="gap-1.5 sm:gap-2 font-semibold text-xs sm:text-sm flex-1 sm:flex-initial">
-                  <Archive className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                  Archive
-                </Button>
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  className="gap-1.5 sm:gap-2 text-[#EF4444] border-[#EF4444]/30 hover:bg-[rgba(239,68,68,0.1)] hover:border-[#EF4444] font-semibold text-xs sm:text-sm flex-1 sm:flex-initial"
-                  onClick={handleBulkDelete}
-                >
-                  <Trash2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                  Delete
-                </Button>
-              </div>
+              </EmptyState>
+            </div>
+          ) : view === "table" ? (
+            <div className="table-scroll">
+              <table className="data-table">
+                <thead>
+                  <tr>
+                    <th className="w-8">
+                      <input
+                        aria-label="Select all visible leads"
+                        type="checkbox"
+                        checked={
+                          filtered.length > 0 &&
+                          filtered.every((l) => selected.includes(l.id))
+                        }
+                        onChange={(e) =>
+                          setSelected(
+                            e.target.checked ? filtered.map((l) => l.id) : [],
+                          )
+                        }
+                      />
+                    </th>
+                    <th>Contact</th>
+                    <th>Company</th>
+                    <th>Stage</th>
+                    <th>Last interaction</th>
+                    <th>Next action</th>
+                    <th />
+                  </tr>
+                </thead>
+                <tbody>
+                  {filtered.map((l) => (
+                    <tr key={l.id}>
+                      <td>
+                        <input
+                          aria-label={`Select ${l.contact_name}`}
+                          type="checkbox"
+                          checked={selected.includes(l.id)}
+                          onChange={(e) =>
+                            setSelected((s) =>
+                              e.target.checked
+                                ? [...s, l.id]
+                                : s.filter((v) => v !== l.id),
+                            )
+                          }
+                        />
+                      </td>
+                      <td>
+                        <button
+                          className="flex items-center gap-10px text-left"
+                          onClick={() => show(l)}
+                        >
+                          <ContactAvatar name={l.contact_name || l.company} />
+                          <span className="ml-2.5">
+                            <strong className="block text-[11px] font-medium">
+                              {l.contact_name || "Unnamed contact"}
+                            </strong>
+                            <small className="text-[9px] text-muted-foreground">
+                              {l.email}
+                            </small>
+                          </span>
+                        </button>
+                      </td>
+                      <td className="text-[11px]">{l.company || "?"}</td>
+                      <td>
+                        <StatusLabel status={l.status} />
+                      </td>
+                      <td>
+                        <span className="text-[10px] text-muted-foreground">
+                          {l.last_contact_at
+                            ? new Date(l.last_contact_at).toLocaleDateString(
+                                undefined,
+                                { month: "short", day: "numeric" },
+                              )
+                            : "No recorded contact"}
+                        </span>
+                        {l.days_since_contact > 0 && (
+                          <small className="block text-[9px] text-muted-foreground mt-1">
+                            {l.days_since_contact} days ago
+                          </small>
+                        )}
+                      </td>
+                      <td>
+                        {l.has_ai_draft ? (
+                          <Link
+                            className="section-link text-primary"
+                            to={`/drafts?lead=${l.id}`}
+                          >
+                            <FileText size={12} />
+                            Review draft
+                          </Link>
+                        ) : (
+                          <button
+                            className="section-link"
+                            disabled={busy === l.id}
+                            onClick={() => generate(l)}
+                          >
+                            {busy === l.id ? (
+                              <RefreshCw size={12} className="animate-spin" />
+                            ) : (
+                              <Clock size={12} />
+                            )}
+                            Prepare follow-up
+                          </button>
+                        )}
+                      </td>
+                      <td>
+                        <button
+                          className="icon-button"
+                          aria-label={`Open ${l.contact_name}`}
+                          onClick={() => show(l)}
+                        >
+                          <ArrowUpRight size={13} />
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <div className="lead-board">
+              {stages.map((s) => (
+                <section key={s}>
+                  <div className="lead-board-heading">
+                    <StatusLabel status={s} />
+                    <span>{filtered.filter((l) => l.status === s).length}</span>
+                  </div>
+                  {filtered
+                    .filter((l) => l.status === s)
+                    .map((l) => (
+                      <article key={l.id}>
+                        <button
+                          className="w-full text-left"
+                          onClick={() => show(l)}
+                        >
+                          <div className="flex gap-2 items-center">
+                            <ContactAvatar name={l.contact_name || l.company} />
+                            <div>
+                              <h3>{l.company || l.contact_name}</h3>
+                              <p>{l.contact_name}</p>
+                            </div>
+                          </div>
+                          <p className="line-clamp-2 mt-3">
+                            {l.last_message || l.email}
+                          </p>
+                        </button>
+                        <div className="lead-board-footer">
+                          <span>{l.days_since_contact}d since contact</span>
+                          <select
+                            value={l.status}
+                            aria-label={`Stage for ${l.contact_name}`}
+                            onChange={(e) =>
+                              update(l.id, {
+                                status: e.target.value as LeadStatus,
+                              }).catch((err) => toast.error(errorMessage(err)))
+                            }
+                          >
+                            <option value="cold">New</option>
+                            <option value="warm">In conversation</option>
+                            <option value="hot">Qualified</option>
+                          </select>
+                        </div>
+                      </article>
+                    ))}
+                  {!filtered.some((l) => l.status === s) && (
+                    <p className="text-[10px] text-muted-foreground px-3 py-8 text-center">
+                      No leads in this stage.
+                    </p>
+                  )}
+                </section>
+              ))}
             </div>
           )}
-        </div>
-      </div>
+        </>
+      )}
+      <Sheet
+        open={!!lead}
+        onOpenChange={(open) => {
+          if (!open) {
+            const next = new URLSearchParams(params);
+            next.delete("lead");
+            setParams(next, { replace: true });
+          }
+        }}
+      >
+        <SheetContent className="w-full sm:max-w-[470px] overflow-auto">
+          <SheetHeader className="text-left">
+            <SheetTitle className="text-lg">Lead details</SheetTitle>
+            <SheetDescription className="text-xs">
+              Conversation context and the next decision.
+            </SheetDescription>
+          </SheetHeader>
+          {lead && (
+            <LeadDetails
+              key={lead.id}
+              lead={lead}
+              busy={busy === lead.id}
+              onSave={(updates) => update(lead.id, updates)}
+              onGenerate={() => generate(lead)}
+              onCompose={() => setCompose(lead)}
+              onDelete={() => remove([lead.id])}
+            />
+          )}
+        </SheetContent>
+      </Sheet>
+      <EmailComposeDialog
+        isOpen={!!compose}
+        onClose={() => setCompose(null)}
+        mode="new"
+        defaultTo={compose?.email}
+        defaultSubject={
+          compose ? `Following up / ${compose.company}` : undefined
+        }
+      />
     </DashboardLayout>
   );
-};
-
-export default Leads;
-
+}
+function LeadDetails({
+  lead,
+  busy,
+  onSave,
+  onGenerate,
+  onCompose,
+  onDelete,
+}: {
+  lead: Lead;
+  busy: boolean;
+  onSave: (updates: UpdateLead) => Promise<void>;
+  onGenerate: () => void;
+  onCompose: () => void;
+  onDelete: () => Promise<void>;
+}) {
+  const [fields, setFields] = useState({
+    contact_name: lead.contact_name,
+    company: lead.company,
+    email: lead.email,
+    phone: lead.phone || "",
+    website: lead.website || "",
+    status: lead.status,
+  });
+  const [saving, setSaving] = useState(false);
+  return (
+    <div className="mt-7">
+      <form
+        onSubmit={async (e) => {
+          e.preventDefault();
+          setSaving(true);
+          try {
+            await onSave(fields);
+          } catch (err) {
+            toast.error(errorMessage(err));
+          } finally {
+            setSaving(false);
+          }
+        }}
+      >
+        <div className="flex gap-3 items-center mb-6">
+          <ContactAvatar name={lead.contact_name} />
+          <div>
+            <h2 className="text-sm">{lead.contact_name}</h2>
+            <p className="text-[11px] text-muted-foreground mt-1">
+              {lead.company}
+            </p>
+          </div>
+        </div>
+        <div className="space-y-4">
+          {(
+            [
+              { key: "contact_name", label: "Contact name", type: "text" },
+              { key: "company", label: "Company", type: "text" },
+              { key: "email", label: "Email", type: "email" },
+              { key: "phone", label: "Phone", type: "tel" },
+              { key: "website", label: "Website", type: "text" },
+            ] as const
+          ).map((f) => (
+            <label key={f.key} className="form-field">
+              <span>{f.label}</span>
+              <input
+                className="form-input"
+                type={f.type}
+                value={fields[f.key]}
+                required={f.key === "email" || f.key === "contact_name"}
+                onChange={(e) =>
+                  setFields((s) => ({ ...s, [f.key]: e.target.value }))
+                }
+              />
+            </label>
+          ))}
+          <label className="form-field">
+            <span>Stage</span>
+            <select
+              className="form-input"
+              value={fields.status}
+              onChange={(e) =>
+                setFields((s) => ({
+                  ...s,
+                  status: e.target.value as LeadStatus,
+                }))
+              }
+            >
+              <option value="cold">New</option>
+              <option value="warm">In conversation</option>
+              <option value="hot">Qualified</option>
+            </select>
+          </label>
+        </div>
+        <Button className="mt-5" type="submit" size="sm" disabled={saving}>
+          {saving ? "Saving..." : "Save lead"}
+        </Button>
+      </form>
+      <section className="settings-section mt-6">
+        <h2>Conversation context</h2>
+        <p className="text-xs text-muted-foreground whitespace-pre-wrap leading-relaxed mt-3">
+          {lead.last_message || "No message summary is available yet."}
+        </p>
+        {lead.ai_suggestion && (
+          <p className="text-xs leading-relaxed mt-4">{lead.ai_suggestion}</p>
+        )}
+        <Link to={`/inbox?lead=${lead.id}`} className="section-link mt-5">
+          View conversations
+          <ArrowUpRight size={12} />
+        </Link>
+      </section>
+      <div className="flex gap-2 flex-wrap">
+        <Button variant="outline" size="sm" onClick={onCompose}>
+          <Mail size={12} />
+          Compose email
+        </Button>
+        <Button size="sm" disabled={busy} onClick={onGenerate}>
+          {busy ? "Preparing..." : "Prepare follow-up"}
+        </Button>
+      </div>
+      <div className="border-t mt-8 pt-5">
+        <ConfirmAction
+          title="Delete this lead?"
+          description="This removes the lead from your pipeline. This cannot be undone."
+          onConfirm={onDelete}
+          confirmLabel="Delete lead"
+          destructive
+        >
+          <Button variant="ghost" size="sm" className="text-destructive">
+            <Trash2 size={12} />
+            Delete lead
+          </Button>
+        </ConfirmAction>
+      </div>
+    </div>
+  );
+}

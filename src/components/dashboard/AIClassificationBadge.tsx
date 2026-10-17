@@ -1,6 +1,6 @@
 /**
  * AI Classification Badge Component
- * 
+ *
  * Displays an AI category badge with confidence-based styling.
  * Used in email thread rows and email detail views.
  */
@@ -15,7 +15,13 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 
-export type AICategory = "lead" | "follow_up_needed" | "important" | "promo" | "newsletter" | "spam";
+export type AICategory =
+  | "lead"
+  | "follow_up_needed"
+  | "important"
+  | "promo"
+  | "newsletter"
+  | "spam";
 
 interface AIClassificationBadgeProps {
   category: AICategory;
@@ -27,7 +33,13 @@ interface AIClassificationBadgeProps {
 
 const categoryConfig: Record<
   AICategory,
-  { icon: React.ElementType; label: string; color: string; bgColor: string; borderColor: string }
+  {
+    icon: React.ElementType;
+    label: string;
+    color: string;
+    bgColor: string;
+    borderColor: string;
+  }
 > = {
   lead: {
     icon: Brain,
@@ -103,7 +115,7 @@ export function AIClassificationBadge({
         // Confidence-based styling
         isHighConfidence && "border-opacity-40",
         isMediumConfidence && "opacity-80 border-dashed border-opacity-30",
-        isLowConfidence && "opacity-60 border-dotted border-opacity-20"
+        isLowConfidence && "opacity-60 border-dotted border-opacity-20",
       )}
     >
       <Icon className={cn("w-3 h-3", size === "md" && "w-3.5 h-3.5")} />
@@ -122,14 +134,13 @@ export function AIClassificationBadge({
   return (
     <TooltipProvider>
       <Tooltip delayDuration={200}>
-        <TooltipTrigger asChild>
-          {badgeContent}
-        </TooltipTrigger>
+        <TooltipTrigger asChild>{badgeContent}</TooltipTrigger>
         <TooltipContent side="top" className="max-w-xs">
           <p className="text-xs">{tooltipText}</p>
           {isLowConfidence && confidence !== null && (
             <p className="text-xs text-muted-foreground mt-1">
-              Low confidence ({(confidence * 100).toFixed(0)}%) — AI may be unsure
+              Low confidence ({(confidence * 100).toFixed(0)}%) — AI may be
+              unsure
             </p>
           )}
         </TooltipContent>

@@ -8,20 +8,23 @@ interface LandingLoaderProps {
 
 /**
  * InboxIQLoader - Brand-specific loading animation
- * 
+ *
  * Animation Concept: "Signal Ring Scanning"
  * - Central inbox core pulses gently (intelligence at work)
  * - Scanning rings expand outward like radar, detecting email signals
  * - Subtle email particles light up as signals are detected
  * - Motion implies: "Analyzing inbox → detecting signals → preparing insights"
- * 
+ *
  * Visual Identity:
  * - Dark background (#0D0F14) with glassmorphism
  * - Violet (#7C3AED) and cyan (#22D3EE) accents used sparingly
  * - Calm, confident, intelligent motion
  * - No text, no progress bars - pure intentional motion
  */
-const LandingLoader = ({ onComplete, minDuration = 2000 }: LandingLoaderProps) => {
+const LandingLoader = ({
+  onComplete,
+  minDuration = 2000,
+}: LandingLoaderProps) => {
   const [isVisible, setIsVisible] = useState(true);
   const [startTime] = useState(Date.now());
 
@@ -29,7 +32,7 @@ const LandingLoader = ({ onComplete, minDuration = 2000 }: LandingLoaderProps) =
     const checkComplete = () => {
       const elapsed = Date.now() - startTime;
       const remaining = Math.max(0, minDuration - elapsed);
-      
+
       setTimeout(() => {
         setIsVisible(false);
         // Delay onComplete to allow exit animation
@@ -61,9 +64,9 @@ const LandingLoader = ({ onComplete, minDuration = 2000 }: LandingLoaderProps) =
           exit={{ opacity: 0, scale: 1.02 }}
           transition={{ duration: 0.6, ease: [0.4, 0, 0.2, 1] }}
           className="fixed inset-0 z-[9999] flex items-center justify-center overflow-hidden"
-          style={{ 
+          style={{
             pointerEvents: isVisible ? "auto" : "none",
-            backgroundColor: "#0D0F14"
+            backgroundColor: "#0D0F14",
           }}
         >
           {/* Frosted glass overlay */}
@@ -96,11 +99,11 @@ const LandingLoader = ({ onComplete, minDuration = 2000 }: LandingLoaderProps) =
               <motion.div
                 key={ringIndex}
                 className="absolute inset-0 flex items-center justify-center"
-              style={{
-                width: "min(300px, 80vw)",
-                height: "min(300px, 80vw)",
-                margin: "min(-150px, -40vw)",
-              }}
+                style={{
+                  width: "min(300px, 80vw)",
+                  height: "min(300px, 80vw)",
+                  margin: "min(-150px, -40vw)",
+                }}
                 initial={{ scale: 0.3, opacity: 0 }}
                 animate={{
                   scale: [0.3, 1.2, 1.2],
@@ -170,17 +173,20 @@ const LandingLoader = ({ onComplete, minDuration = 2000 }: LandingLoaderProps) =
                 }}
                 className="absolute inset-0 rounded-full"
                 style={{
-                  background: "radial-gradient(circle, rgba(124, 58, 237, 0.4) 0%, rgba(34, 211, 238, 0.2) 50%, transparent 100%)",
+                  background:
+                    "radial-gradient(circle, rgba(124, 58, 237, 0.4) 0%, rgba(34, 211, 238, 0.2) 50%, transparent 100%)",
                   filter: "blur(16px)",
                 }}
               />
-              
+
               {/* Inner core - inbox intelligence */}
               <motion.div
                 className="absolute inset-0 rounded-full"
                 style={{
-                  background: "radial-gradient(circle at 35% 35%, rgba(124, 58, 237, 0.9) 0%, rgba(34, 211, 238, 0.7) 50%, rgba(124, 58, 237, 0.5) 100%)",
-                  boxShadow: "0 0 24px rgba(124, 58, 237, 0.4), inset 0 0 12px rgba(255, 255, 255, 0.08)",
+                  background:
+                    "radial-gradient(circle at 35% 35%, rgba(124, 58, 237, 0.9) 0%, rgba(34, 211, 238, 0.7) 50%, rgba(124, 58, 237, 0.5) 100%)",
+                  boxShadow:
+                    "0 0 24px rgba(124, 58, 237, 0.4), inset 0 0 12px rgba(255, 255, 255, 0.08)",
                 }}
               />
             </motion.div>
@@ -203,7 +209,7 @@ const LandingLoader = ({ onComplete, minDuration = 2000 }: LandingLoaderProps) =
                   transition={{
                     duration: 2.5,
                     repeat: Infinity,
-                    delay: (i * 0.2) + 0.5,
+                    delay: i * 0.2 + 0.5,
                     ease: [0.4, 0, 0.2, 1],
                     times: [0, 0.3, 0.6, 1],
                   }}
@@ -215,7 +221,12 @@ const LandingLoader = ({ onComplete, minDuration = 2000 }: LandingLoaderProps) =
                     marginTop: "-1.5px",
                     x: x,
                     y: y,
-                    background: i % 3 === 0 ? "#7C3AED" : i % 3 === 1 ? "#22D3EE" : "#7C3AED",
+                    background:
+                      i % 3 === 0
+                        ? "#7C3AED"
+                        : i % 3 === 1
+                          ? "#22D3EE"
+                          : "#7C3AED",
                     borderRadius: "50%",
                     boxShadow: `0 0 8px ${i % 3 === 0 ? "rgba(124, 58, 237, 0.8)" : "rgba(34, 211, 238, 0.8)"}`,
                   }}

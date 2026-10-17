@@ -111,13 +111,16 @@ export const settingsApi = {
   },
 
   // Save user settings
-  async save(betterAuthUserId: string, settings: SettingsUpdate): Promise<UserSettings> {
+  async save(
+    betterAuthUserId: string,
+    settings: SettingsUpdate,
+  ): Promise<UserSettings> {
     if (!supabase) {
       throw new Error("Supabase client not initialized");
     }
 
     // Convert settings to JSONB
-    const settingsJson = settings as any;
+    const settingsJson = settings;
 
     const { data, error } = await supabase.rpc("upsert_user_settings", {
       p_better_auth_id: betterAuthUserId,
@@ -136,14 +139,3 @@ export const settingsApi = {
     return data[0] as UserSettings;
   },
 };
-
-
-
-
-
-
-
-
-
-
-

@@ -1,13 +1,17 @@
 // API service for Analytics and Performance Metrics
 import { supabase } from "@/lib/supabase";
-import type { PerformanceMetric, InsertPerformanceMetric } from "@/types/database";
+import type {
+  PerformanceMetric,
+  InsertPerformanceMetric,
+  MetricType,
+} from "@/types/database";
 
 export const analyticsApi = {
   // Get performance metrics for a time period
   async getMetrics(
     betterAuthUserId: string,
     startDate: string,
-    endDate: string
+    endDate: string,
   ): Promise<PerformanceMetric[]> {
     if (!supabase) {
       throw new Error("Supabase client not initialized");
@@ -16,7 +20,7 @@ export const analyticsApi = {
     // Convert Better Auth ID to UUID
     const { getUserIdFromBetterAuth } = await import("./utils");
     const userUuid = await getUserIdFromBetterAuth(betterAuthUserId);
-    
+
     if (!userUuid) {
       throw new Error("User not found in database");
     }
@@ -38,7 +42,9 @@ export const analyticsApi = {
   },
 
   // Get latest metrics for each type
-  async getLatestMetrics(betterAuthUserId: string): Promise<Record<string, PerformanceMetric>> {
+  async getLatestMetrics(
+    betterAuthUserId: string,
+  ): Promise<Record<string, PerformanceMetric>> {
     if (!supabase) {
       throw new Error("Supabase client not initialized");
     }
@@ -46,12 +52,18 @@ export const analyticsApi = {
     // Convert Better Auth ID to UUID
     const { getUserIdFromBetterAuth } = await import("./utils");
     const userUuid = await getUserIdFromBetterAuth(betterAuthUserId);
-    
+
     if (!userUuid) {
       throw new Error("User not found in database");
     }
 
-    const metricTypes = ["reply_rate", "avg_response_time", "time_saved", "emails_sent", "leads_converted"];
+    const metricTypes: MetricType[] = [
+      "reply_rate",
+      "avg_response_time",
+      "time_saved",
+      "emails_sent",
+      "leads_converted",
+    ];
 
     const results: Record<string, PerformanceMetric> = {};
 
@@ -102,7 +114,7 @@ export const analyticsApi = {
     // Convert Better Auth ID to UUID
     const { getUserIdFromBetterAuth } = await import("./utils");
     const userUuid = await getUserIdFromBetterAuth(betterAuthUserId);
-    
+
     if (!userUuid) {
       throw new Error("User not found in database");
     }
@@ -123,9 +135,13 @@ export const analyticsApi = {
     }
 
     // Calculate stats
-    const sent = data?.filter((e) => e.direction === "outbound" && e.status === "sent").length || 0;
+    const sent =
+      data?.filter((e) => e.direction === "outbound" && e.status === "sent")
+        .length || 0;
     const received = data?.filter((e) => e.direction === "inbound").length || 0;
-    const replied = data?.filter((e) => e.direction === "outbound" && e.status === "sent").length || 0;
+    const replied =
+      data?.filter((e) => e.direction === "outbound" && e.status === "sent")
+        .length || 0;
 
     return {
       sent,
@@ -151,15 +167,14 @@ export const analyticsApi = {
       throw new Error(`Failed to fetch lead stats: ${error.message}`);
     }
 
-    return data?.[0] || {
-      total_leads: 0,
-      hot_leads: 0,
-      warm_leads: 0,
-      cold_leads: 0,
-      needs_follow_up: 0,
-    };
+    return (
+      data?.[0] || {
+        total_leads: 0,
+        hot_leads: 0,
+        warm_leads: 0,
+        cold_leads: 0,
+        needs_follow_up: 0,
+      }
+    );
   },
 };
-
-
-

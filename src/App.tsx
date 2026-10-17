@@ -1,3 +1,4 @@
+import { lazy, Suspense, useEffect } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -10,39 +11,26 @@ import {
   useLocation,
 } from "react-router-dom";
 import { ThemeProvider } from "next-themes";
-import { AnimatePresence, motion, MotionConfig } from "framer-motion";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import Landing from "./pages/Landing";
-import Index from "./pages/Index";
-import Inbox from "./pages/Inbox";
-import Leads from "./pages/Leads";
-import Drafts from "./pages/Drafts";
-import Analytics from "./pages/Analytics";
-import Settings from "./pages/Settings";
+const Index = lazy(() => import("./pages/Index"));
+const Inbox = lazy(() => import("./pages/Inbox"));
+const Leads = lazy(() => import("./pages/Leads"));
+const Drafts = lazy(() => import("./pages/Drafts"));
+const Analytics = lazy(() => import("./pages/Analytics"));
+const Settings = lazy(() => import("./pages/Settings"));
 import NotFound from "./pages/NotFound";
-import Test from "./pages/Test";
-import SignIn from "./pages/SignIn";
-import SignUp from "./pages/SignUp";
-import ChatBot from "./components/ChatBot";
+const Test = lazy(() => import("./pages/Test"));
+const SignIn = lazy(() => import("./pages/SignIn"));
+const SignUp = lazy(() => import("./pages/SignUp"));
+const ChatBot = lazy(() => import("./components/ChatBot"));
 
 const queryClient = new QueryClient();
 
-const PageTransition = ({ children }: { children: React.ReactNode }) => {
-  return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      transition={{
-        duration: 0.15,
-        ease: [0.16, 1, 0.3, 1],
-      }}
-    >
-      {children}
-    </motion.div>
-  );
-};
+const PageTransition = ({ children }: { children: React.ReactNode }) => (
+  <div className="route-enter">{children}</div>
+);
 
 const AnimatedRoutes = () => {
   const location = useLocation();
@@ -52,8 +40,19 @@ const AnimatedRoutes = () => {
   return (
     <>
       {/* Chatbot - Only show on protected routes */}
-      {isProtectedRoute && <ChatBot />}
-      <AnimatePresence mode="wait">
+      {isProtectedRoute && (
+        <Suspense fallback={null}>
+          <ChatBot />
+        </Suspense>
+      )}
+
+      <Suspense
+        fallback={
+          <div className="p-10 text-xs text-muted-foreground" role="status">
+            Opening workspace...
+          </div>
+        }
+      >
         <Routes location={location} key={location.pathname}>
           {/* Public routes */}
           <Route
@@ -152,12 +151,32 @@ const AnimatedRoutes = () => {
             }
           />
         </Routes>
-      </AnimatePresence>
+      </Suspense>
     </>
   );
 };
 
+const savedPreferences = () => {
+  for (const [key, attr, fallback] of [
+    ["compact_mode", "compact", "false"],
+    ["show_avatars", "avatars", "true"],
+    ["animations", "motion", "true"],
+  ]) {
+    const value = localStorage.getItem(`inboxiq:${key}`) || fallback;
+    document.documentElement.dataset[attr] =
+      key === "show_avatars"
+        ? value === "true"
+          ? "visible"
+          : "hidden"
+        : key === "animations"
+          ? value === "true"
+            ? "normal"
+            : "reduce"
+          : value;
+  }
+};
 const App = () => {
+  useEffect(savedPreferences, []);
   try {
     return (
       <ErrorBoundary>
@@ -172,9 +191,7 @@ const App = () => {
               <Toaster />
               <Sonner />
               <BrowserRouter>
-                <MotionConfig reducedMotion="user">
-                  <AnimatedRoutes />
-                </MotionConfig>
+                <AnimatedRoutes />
               </BrowserRouter>
             </TooltipProvider>
           </QueryClientProvider>

@@ -5,7 +5,6 @@
 import { Pool } from "pg";
 import { generateAI, TONE_INSTRUCTIONS } from "../src/lib/groq";
 
-
 interface FollowUpContext {
   recipientName: string | null;
   recipientEmail: string;
@@ -54,31 +53,44 @@ Subject: <subject line>
 
 <email body>`;
 
-function replaceTemplateVars(template: string, context: FollowUpContext): string {
+function replaceTemplateVars(
+  template: string,
+  context: FollowUpContext,
+): string {
   const tone = context.tone || "professional";
   const variation = context.variation || Math.floor(Math.random() * 1000);
-  const toneInstructions = TONE_INSTRUCTIONS[tone] || TONE_INSTRUCTIONS.professional;
-  
+  const toneInstructions =
+    TONE_INSTRUCTIONS[tone] || TONE_INSTRUCTIONS.professional;
+
   return template
     .replace(/\{\{recipient_name_or_empty\}\}/g, context.recipientName || "")
     .replace(/\{\{recipient_email\}\}/g, context.recipientEmail)
     .replace(/\{\{last_subject\}\}/g, context.lastSubject)
     .replace(/\{\{last_snippet\}\}/g, context.lastSnippet)
-    .replace(/\{\{days_since_last_reply\}\}/g, context.daysSinceLastReply.toString())
+    .replace(
+      /\{\{days_since_last_reply\}\}/g,
+      context.daysSinceLastReply.toString(),
+    )
     .replace(/\{\{tone_instructions\}\}/g, toneInstructions)
     .replace(/\{\{variation\}\}/g, variation.toString());
 }
 
 async function generateFollowUpWithAI(
-  context: FollowUpContext
+  context: FollowUpContext,
 ): Promise<{ subject: string; body: string }> {
   const prompt = replaceTemplateVars(FOLLOW_UP_PROMPT, context);
   const tone = context.tone || "professional";
 
   try {
     const rawText = await generateAI(prompt, {
-      tone: tone as "professional" | "short" | "confident" | "polite" | "sales-focused",
-      systemPrompt: "You are a professional email assistant that helps users write follow-up emails. Increase reply rates, sound human and natural, be respectful and appropriate.",
+      tone: tone as
+        | "professional"
+        | "short"
+        | "confident"
+        | "polite"
+        | "sales-focused",
+      systemPrompt:
+        "You are a professional email assistant that helps users write follow-up emails. Increase reply rates, sound human and natural, be respectful and appropriate.",
       temperature: 0.6,
       maxTokens: tone === "short" ? 200 : 300,
     });
@@ -92,11 +104,7 @@ async function generateFollowUpWithAI(
     //
     // Body...
     const subjectMatch = rawText.match(/Subject:\s*(.+)/i);
-    const body = rawText
-      .split(/\n\n/)
-      .slice(1)
-      .join("\n\n")
-      .trim();
+    const body = rawText.split(/\n\n/).slice(1).join("\n\n").trim();
 
     return {
       subject: subjectMatch?.[1]?.trim() || `Re: ${context.lastSubject}`,
@@ -108,9 +116,10 @@ async function generateFollowUpWithAI(
   }
 }
 
-function generateFallbackFollowUp(
-  context: FollowUpContext
-): { subject: string; body: string } {
+function generateFallbackFollowUp(context: FollowUpContext): {
+  subject: string;
+  body: string;
+} {
   const tone = context.tone || "professional";
   const greeting = context.recipientName
     ? `Hi ${context.recipientName},`
@@ -156,7 +165,7 @@ export async function generateFollowUpText(
   leadId: string,
   userUuid: string,
   databaseUrl: string,
-  tone?: "professional" | "short" | "confident" | "polite" | "sales-focused"
+  tone?: "professional" | "short" | "confident" | "polite" | "sales-focused",
 ): Promise<{ subject: string; body: string }> {
   const pool = new Pool({
     connectionString: databaseUrl,
@@ -171,7 +180,7 @@ export async function generateFollowUpText(
        FROM public.leads
        WHERE id = $1 AND user_id = $2
        LIMIT 1`,
-      [leadId, userUuid]
+      [leadId, userUuid],
     );
 
     if (leadResult.rows.length === 0) {
@@ -186,7 +195,7 @@ export async function generateFollowUpText(
        WHERE lead_id = $1 AND user_id = $2
        ORDER BY updated_at DESC
        LIMIT 1`,
-      [leadId, userUuid]
+      [leadId, userUuid],
     );
 
     let lastSubject = "our conversation";
@@ -202,20 +211,18 @@ export async function generateFollowUpText(
          WHERE thread_id = $1 AND user_id = $2
          ORDER BY COALESCE(received_at, sent_at, created_at) DESC
          LIMIT 1`,
-        [threadResult.rows[0].id, userUuid]
+        [threadResult.rows[0].id, userUuid],
       );
 
       if (emailResult.rows.length > 0) {
         const email = emailResult.rows[0];
         lastSnippet = email.body_text || "";
 
-        const lastDate =
-          email.received_at || email.sent_at || email.created_at;
+        const lastDate = email.received_at || email.sent_at || email.created_at;
 
         if (lastDate) {
           daysSinceLastReply = Math.floor(
-            (Date.now() - new Date(lastDate).getTime()) /
-              (1000 * 60 * 60 * 24)
+            (Date.now() - new Date(lastDate).getTime()) / (1000 * 60 * 60 * 24),
           );
         }
       }
@@ -223,7 +230,7 @@ export async function generateFollowUpText(
 
     const selectedTone = tone || "professional";
     const variation = Math.floor(Math.random() * 10000);
-    
+
     const context: FollowUpContext = {
       recipientName: lead.contact_name,
       recipientEmail: lead.email,
@@ -249,7 +256,7 @@ export async function generateFollowUpForLead(
   userUuid: string,
   userEmail: string,
   databaseUrl: string,
-  tone?: "professional" | "short" | "confident" | "polite" | "sales-focused"
+  tone?: "professional" | "short" | "confident" | "polite" | "sales-focused",
 ): Promise<{ draftId: string; subject: string; body: string }> {
   const pool = new Pool({
     connectionString: databaseUrl,
@@ -264,7 +271,7 @@ export async function generateFollowUpForLead(
        FROM public.leads
        WHERE id = $1 AND user_id = $2
        LIMIT 1`,
-      [leadId, userUuid]
+      [leadId, userUuid],
     );
 
     if (leadResult.rows.length === 0) {
@@ -279,7 +286,7 @@ export async function generateFollowUpForLead(
        WHERE lead_id = $1 AND user_id = $2
        ORDER BY updated_at DESC
        LIMIT 1`,
-      [leadId, userUuid]
+      [leadId, userUuid],
     );
 
     let lastSubject = "our conversation";
@@ -295,20 +302,18 @@ export async function generateFollowUpForLead(
          WHERE thread_id = $1 AND user_id = $2
          ORDER BY COALESCE(received_at, sent_at, created_at) DESC
          LIMIT 1`,
-        [threadResult.rows[0].id, userUuid]
+        [threadResult.rows[0].id, userUuid],
       );
 
       if (emailResult.rows.length > 0) {
         const email = emailResult.rows[0];
         lastSnippet = email.body_text || "";
 
-        const lastDate =
-          email.received_at || email.sent_at || email.created_at;
+        const lastDate = email.received_at || email.sent_at || email.created_at;
 
         if (lastDate) {
           daysSinceLastReply = Math.floor(
-            (Date.now() - new Date(lastDate).getTime()) /
-              (1000 * 60 * 60 * 24)
+            (Date.now() - new Date(lastDate).getTime()) / (1000 * 60 * 60 * 24),
           );
         }
       }
@@ -316,7 +321,7 @@ export async function generateFollowUpForLead(
 
     const selectedTone = tone || "professional";
     const variation = Math.floor(Math.random() * 10000); // Random variation for uniqueness
-    
+
     const context: FollowUpContext = {
       recipientName: lead.contact_name,
       recipientEmail: lead.email,
@@ -346,7 +351,7 @@ export async function generateFollowUpForLead(
         body,
         body.replace(/\n/g, "<br>"),
         selectedTone,
-      ]
+      ],
     );
 
     return {

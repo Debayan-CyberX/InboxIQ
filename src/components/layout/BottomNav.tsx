@@ -10,7 +10,7 @@ const items = [
 export default function BottomNav() {
   const location = useLocation();
   return (
-    <nav className="iq-bottom-nav" aria-label="Mobile navigation">
+    <nav className="mobile-nav" aria-label="Mobile navigation">
       {items.map((item) => (
         <Link
           key={item.href}

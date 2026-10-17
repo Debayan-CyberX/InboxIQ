@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, Navigate } from "react-router-dom";
 import {
   ArrowRight,
@@ -6,242 +6,249 @@ import {
   Check,
   ChevronDown,
   Inbox,
-  LayoutDashboard,
+  FileText,
   Users,
-  Send,
-  BarChart3,
   Search,
-  Sparkles,
-  Plus,
-  Circle,
+  Send,
+  CheckCheck,
+  Clock,
   Menu,
   X,
+  CornerDownRight,
+  Lock,
   ShieldCheck,
-  Workflow,
-  WandSparkles,
-  Command,
+  PanelLeft,
 } from "lucide-react";
 import Brand from "@/components/Brand";
 import { useSession } from "@/lib/auth-client";
 import "./landing.css";
-const examples = [
+const steps = [
   {
-    initials: "AM",
-    name: "Alex Morgan",
-    company: "Forma Studio",
-    subject: "Re: A new chapter for Forma",
-    preview:
-      "This looks great. Could we find a time to talk through the details?",
-    tag: "High intent",
-    time: "12m",
-    color: "peach",
+    name: "Received",
+    label: "A conversation arrives",
+    detail: "A message worth a closer look.",
+    icon: Inbox,
   },
   {
-    initials: "JL",
-    name: "Jamie Lee",
-    company: "Northstar",
-    subject: "A quick follow-up on our conversation",
-    preview: "Thanks for sending this over. Let me share it with the team.",
-    tag: "Follow up",
-    time: "48m",
-    color: "purple",
+    name: "Classified",
+    label: "The signal, surfaced",
+    detail: "A project inquiry, with context attached.",
+    icon: Users,
   },
   {
-    initials: "SC",
-    name: "Sam Chen",
-    company: "Layers",
-    subject: "Partnership possibilities",
-    preview: "I think there could be a really interesting opportunity here.",
-    tag: "Opportunity",
-    time: "2h",
-    color: "green",
+    name: "Reviewed",
+    label: "A reply that sounds like you",
+    detail: "Edit the suggestion. Make it your own.",
+    icon: FileText,
+  },
+  {
+    name: "Followed up",
+    label: "Keep the next step in sight",
+    detail: "A reviewable follow-up, connected to the conversation.",
+    icon: Clock,
+  },
+  {
+    name: "Converted",
+    label: "A conversation becomes an opportunity",
+    detail: "An illustrative outcome, built one thoughtful reply at a time.",
+    icon: CheckCheck,
   },
 ];
-function ProductPreview() {
-  const [view, setView] = useState("Overview");
+function DemoWorkspace({
+  stage,
+  setStage,
+  compact = false,
+}: {
+  stage: number;
+  setStage: (stage: number) => void;
+  compact?: boolean;
+}) {
+  const [edited, setEdited] = useState(false);
+  const [reply, setReply] = useState(
+    "Hi Maya, thanks for the detail. The new product launch sounds like a great fit. Would Tuesday at 10 work for a short call?",
+  );
   return (
-    <div className="lp-product" id="product-preview">
-      <div className="lp-product-bar">
-        <span className="flex gap-1.5">
+    <div className={`story-workspace ${compact ? "compact" : ""}`}>
+      <div className="story-chrome">
+        <div className="flex gap-1.5">
           <i />
           <i />
           <i />
-        </span>
-        <span>InboxIQ / Your workspace</span>
-        <span className="lp-demo-badge">Interactive product preview</span>
+        </div>
+        <span>inboxiq / workspace</span>
+        <span>Sample workspace</span>
       </div>
-      <div className="lp-product-body">
-        <aside className="lp-demo-sidebar">
+      <div className="story-body">
+        <aside className="story-sidebar">
           <Brand />
-          <div className="lp-demo-workspace">
-            <span className="iq-workspace-icon">S</span>
-            <span>
-              Studio workspace<small>Personal workspace</small>
-            </span>
+          <div className="story-nav active">
+            <Inbox size={13} />
+            Inbox<span>3</span>
           </div>
-          <div className="iq-nav-label">Workspace</div>
-          {[
-            { name: "Overview", icon: LayoutDashboard },
-            { name: "Inbox", icon: Inbox },
-            { name: "Pipeline", icon: Users },
-          ].map((item) => (
-            <button
-              key={item.name}
-              onClick={() => setView(item.name)}
-              className={`lp-demo-nav ${view === item.name ? "active" : ""}`}
-            >
-              <item.icon size={14} />
-              {item.name}
-            </button>
-          ))}
-          <div className="lp-demo-nav muted">
-            <Send size={14} />
+          <div className="story-nav">
+            <Users size={13} />
+            Leads
+          </div>
+          <div className="story-nav">
+            <FileText size={13} />
             Drafts
           </div>
-          <div className="lp-demo-nav muted">
-            <BarChart3 size={14} />
-            Analytics
-          </div>
-          <div className="lp-demo-assistant">
-            <Sparkles size={16} />
-            <p>
-              Good relationships.
-              <br />
-              Great possibilities.
-            </p>
+          <div className="story-nav footer">
+            <span className="story-avatar">JT</span>Jordan's workspace
           </div>
         </aside>
-        <div className="lp-demo-main">
-          <div className="lp-demo-top">
-            <span className="flex gap-2 items-center">
-              <Search size={12} />
-              Search your workspace
-            </span>
-            <span className="lp-demo-avatar">S</span>
+        <div className="story-message-list">
+          <div className="story-list-heading">
+            Inbox <Search size={12} />
           </div>
-          <div className="lp-demo-content">
-            <div className="lp-demo-title">
+          {[
+            {
+              name: "Maya Patel",
+              subject: "A new product, a bigger launch",
+              time: "Now",
+              body: "We're looking for a partner to help...",
+            },
+            {
+              name: "Oliver Chen",
+              subject: "Re: A quick introduction",
+              time: "12m",
+              body: "Thanks for getting back to me.",
+            },
+            {
+              name: "Elena Ruiz",
+              subject: "Picking up where we left off",
+              time: "1h",
+              body: "A few thoughts ahead of our call.",
+            },
+          ].map((m, i) => (
+            <div
+              key={m.name}
+              className={`story-message ${i === 0 ? "selected" : ""}`}
+            >
               <div>
-                <span className="iq-eyebrow">YOUR WORKSPACE, IN FOCUS</span>
-                <h3>
-                  {view === "Overview"
-                    ? "A little clarity. A lot of possibility."
-                    : view === "Inbox"
-                      ? "Conversations worth your attention."
-                      : "Your next opportunity starts here."}
-                </h3>
+                <strong>{m.name}</strong>
+                <time>{m.time}</time>
+              </div>
+              <p>{m.subject}</p>
+              <small>{m.body}</small>
+            </div>
+          ))}
+        </div>
+        <div className="story-reader">
+          <div className="story-reader-toolbar">
+            <span>{stage > 0 ? "Sales inquiry" : "Conversation"}</span>
+            <div>
+              <Clock size={12} />
+              <span className="story-separator" />
+              <ArrowUpRight size={13} />
+            </div>
+          </div>
+          <div className="story-reader-content">
+            <div className="story-email-subject">
+              A new product,
+              <br />a bigger launch.
+            </div>
+            <div className="story-sender">
+              <span className="story-avatar">MP</span>
+              <div>
+                <strong>Maya Patel</strong>
+                <small>
+                  maya@example.com <span>to you</span>
+                </small>
+              </div>
+              <span>10:24 AM</span>
+            </div>
+            <div className="story-email-text">
+              <p>Hi Jordan,</p>
+              <p>
+                We're launching a new product next quarter and looking for a
+                design partner. I liked what you did with the last project.
+              </p>
+              <p>Could we find a time to talk through scope and timelines?</p>
+              <p>Maya</p>
+            </div>
+            {stage > 0 && (
+              <div className="story-context">
+                <div className="story-context-title">
+                  <span className="story-signal" />
+                  Project inquiry <span>Lead identified</span>
+                </div>
                 <p>
-                  {view === "Overview"
-                    ? "Here's where your relationships stand today."
-                    : view === "Inbox"
-                      ? "The right conversations, brought to the surface."
-                      : "Every relationship. A clear next step."}
+                  Clear project intent. A specific timeline. Ready for a
+                  conversation.
                 </p>
               </div>
-              <span className="lp-demo-live">
-                <span className="iq-dot" />
-                Demo data
-              </span>
-            </div>
-            {view === "Overview" && (
-              <>
-                <div className="lp-demo-stats">
-                  {[
-                    {
-                      label: "Active conversations",
-                      value: "24",
-                      foot: "Across your workspace",
-                    },
-                    {
-                      label: "Ready for a follow-up",
-                      value: "08",
-                      foot: "A good time to reconnect",
-                    },
-                    {
-                      label: "Drafts to review",
-                      value: "03",
-                      foot: "Your voice. A head start.",
-                    },
-                  ].map((s, i) => (
-                    <div key={s.label}>
-                      <span>{s.label}</span>
-                      <strong>
-                        {s.value}
-                        <span className={`lp-mini-chart c${i}`}>
-                          <i />
-                          <i />
-                          <i />
-                          <i />
-                          <i />
-                          <i />
-                          <i />
-                        </span>
-                      </strong>
-                      <small>{s.foot}</small>
-                    </div>
-                  ))}
-                </div>
-                <div className="lp-demo-insight">
-                  <Sparkles size={17} />
-                  <div>
-                    <span>A little context goes a long way</span>
-                    <p>
-                      Alex is ready to talk details. Your next big opportunity
-                      might be one reply away.
-                    </p>
-                  </div>
-                  <ArrowUpRight size={16} />
-                </div>
-              </>
             )}
-            {view === "Pipeline" ? (
-              <div className="lp-demo-kanban">
-                {["New connections", "In conversation", "Ready to move"].map(
-                  (stage, i) => (
-                    <div key={stage}>
-                      <span className="lp-stage">
-                        {stage}
-                        <Circle size={7} />
-                      </span>
-                      <div className="lp-kanban-card">
-                        <span className={`lp-person ${examples[i].color}`}>
-                          {examples[i].initials}
-                        </span>
-                        <h4>{examples[i].company}</h4>
-                        <p>{examples[i].name}</p>
-                        <span className="lp-email-tag">{examples[i].tag}</span>
-                      </div>
-                    </div>
-                  ),
-                )}
-              </div>
-            ) : (
-              <div className="lp-demo-conversations">
-                <div className="lp-table-heading">
-                  <span>Priority conversations</span>
-                  <span>
-                    Latest activity <ChevronDown size={10} />
-                  </span>
+            {stage === 0 && (
+              <button className="story-action" onClick={() => setStage(1)}>
+                See the opportunity <ArrowRight size={12} />
+              </button>
+            )}
+            {stage === 1 && (
+              <button className="story-action" onClick={() => setStage(2)}>
+                Review a suggested reply <ArrowRight size={12} />
+              </button>
+            )}
+            {stage === 2 && (
+              <div className="story-reply">
+                <div className="story-context-title">
+                  <FileText size={12} />
+                  Suggested reply<span>Not sent</span>
                 </div>
-                {examples.map((item) => (
-                  <div className="lp-email-row" key={item.name}>
-                    <span className={`lp-person ${item.color}`}>
-                      {item.initials}
-                    </span>
-                    <div className="lp-email-name">
-                      {item.name}
-                      <small>{item.company}</small>
-                    </div>
-                    <div className="lp-email-message">
-                      <span>{item.subject}</span>
-                      <small>{item.preview}</small>
-                    </div>
-                    <span className={`lp-email-tag ${item.color}`}>
-                      {item.tag}
-                    </span>
-                    <time>{item.time}</time>
-                  </div>
-                ))}
+                <label
+                  htmlFor={compact ? "story-reply-small" : "story-reply"}
+                  className="sr-only"
+                >
+                  Edit sample response
+                </label>
+                <textarea
+                  id={compact ? "story-reply-small" : "story-reply"}
+                  value={reply}
+                  onChange={(e) => {
+                    setReply(e.target.value);
+                    setEdited(true);
+                  }}
+                />
+                <div className="flex items-center justify-between">
+                  <small>
+                    {edited
+                      ? "Your edit is saved in this demo"
+                      : "Editable. Always reviewed by you."}
+                  </small>
+                  <button className="story-action" onClick={() => setStage(3)}>
+                    Mark reviewed <Check size={11} />
+                  </button>
+                </div>
+              </div>
+            )}
+            {stage === 3 && (
+              <div className="story-followup">
+                <Clock size={14} />
+                <div>
+                  <strong>Next step: confirm the conversation</strong>
+                  <p>
+                    Follow-up connected to Maya's lead. Nothing sends
+                    automatically.
+                  </p>
+                </div>
+                <button
+                  onClick={() => setStage(4)}
+                  aria-label="Complete sample workflow"
+                >
+                  <ArrowRight size={13} />
+                </button>
+              </div>
+            )}
+            {stage === 4 && (
+              <div className="story-followup complete">
+                <CheckCheck size={15} />
+                <div>
+                  <strong>An opportunity, ready to move forward.</strong>
+                  <p>From a message to a clear next step.</p>
+                </div>
+                <button onClick={() => setStage(0)} className="text-[9px]">
+                  Replay
+                </button>
               </div>
             )}
           </div>
@@ -250,350 +257,554 @@ function ProductPreview() {
     </div>
   );
 }
-const faqs = [
-  {
-    q: "What is InboxIQ?",
-    a: "InboxIQ brings your email conversations, lead pipeline, drafts, and relationship activity into a single workspace, so you can decide what deserves your attention next.",
-  },
-  {
-    q: "Does InboxIQ send emails automatically?",
-    a: "You stay in control. Review and edit your drafts before sending them, and choose which relationships to follow up on.",
-  },
-  {
-    q: "Can I connect my existing email?",
-    a: "Your workspace includes email connection settings for supported providers. Provider availability depends on the integrations configured for your workspace.",
-  },
-  {
-    q: "What can I explore when I sign up?",
-    a: "Create your workspace, explore your dashboard and lead pipeline, and configure your preferences. Email and AI features become available when the corresponding integrations are configured.",
-  },
-];
+function Lifecycle({ active }: { active: number }) {
+  return (
+    <div
+      className="lifecycle"
+      role="img"
+      aria-label="Lead lifecycle: received, classified, reviewed, followed up, converted"
+    >
+      <svg viewBox="0 0 1000 50" preserveAspectRatio="none" aria-hidden="true">
+        <path
+          d="M50 25H950"
+          stroke="currentColor"
+          strokeWidth="1"
+          strokeDasharray="3 5"
+        />
+        <path
+          d={`M50 25H${50 + active * 225}`}
+          stroke="#8fc7b5"
+          strokeWidth="1.5"
+        />
+      </svg>
+      {steps.map((s, i) => (
+        <div className={i <= active ? "done" : ""} key={s.name}>
+          <span>
+            {i < active ? <Check size={13} /> : String(i + 1).padStart(2, "0")}
+          </span>
+          <p>{s.name}</p>
+        </div>
+      ))}
+    </div>
+  );
+}
 export default function Landing() {
   const { data } = useSession();
-  const [menuOpen, setMenuOpen] = useState(false);
+  const [stage, setStage] = useState(0);
+  const [nav, setNav] = useState(false);
+  const [after, setAfter] = useState(true);
+  const [feature, setFeature] = useState(0);
+  const panels = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((e) => {
+          if (e.isIntersecting)
+            setFeature(Number((e.target as HTMLElement).dataset.feature));
+        });
+      },
+      { rootMargin: "-25% 0px -35% 0px", threshold: 0 },
+    );
+    panels.current
+      ?.querySelectorAll("[data-feature]")
+      .forEach((el) => observer.observe(el));
+    return () => observer.disconnect();
+  }, []);
   if (data?.session) return <Navigate to="/dashboard" replace />;
   return (
-    <div className="lp-site">
-      <a href="#main" className="lp-skip">
+    <div className="marketing">
+      <a className="marketing-skip" href="#main">
         Skip to content
       </a>
-      <header className="lp-header">
-        <Link to="/" aria-label="InboxIQ home">
-          <Brand />
-        </Link>
-        <nav
-          className={menuOpen ? "lp-nav open" : "lp-nav"}
-          aria-label="Main navigation"
-        >
-          <a href="#product" onClick={() => setMenuOpen(false)}>
-            Product
-          </a>
-          <a href="#workflow" onClick={() => setMenuOpen(false)}>
-            How it works
-          </a>
-          <a href="#why-inboxiq" onClick={() => setMenuOpen(false)}>
-            Why InboxIQ
-          </a>
-          <a href="#questions" onClick={() => setMenuOpen(false)}>
-            FAQs
-          </a>
-        </nav>
-        <div className="lp-header-actions">
-          <Link to="/sign-in" className="lp-sign-in">
-            Log in <ArrowUpRight size={13} />
+      <header className="marketing-header">
+        <div>
+          <Link to="/" aria-label="InboxIQ home">
+            <Brand />
           </Link>
-          <Link to="/sign-up" className="iq-button">
-            Get started <ArrowRight size={14} />
-          </Link>
-          <button
-            className="lp-menu"
-            onClick={() => setMenuOpen(!menuOpen)}
-            aria-label={menuOpen ? "Close navigation" : "Open navigation"}
-            aria-expanded={menuOpen}
-          >
-            {menuOpen ? <X size={20} /> : <Menu size={20} />}
-          </button>
+          <nav className={nav ? "open" : ""} aria-label="Main navigation">
+            <a href="#product" onClick={() => setNav(false)}>
+              Product
+            </a>
+            <a href="#workflow" onClick={() => setNav(false)}>
+              Workflow
+            </a>
+            <a href="#principles" onClick={() => setNav(false)}>
+              Our approach
+            </a>
+          </nav>
+          <div className="marketing-header-actions">
+            <Link to="/sign-in">Log in</Link>
+            <Link className="marketing-button small" to="/sign-up">
+              Get started
+              <ArrowUpRight size={12} />
+            </Link>
+            <button
+              className="marketing-menu"
+              onClick={() => setNav(!nav)}
+              aria-expanded={nav}
+              aria-label={nav ? "Close navigation" : "Open navigation"}
+            >
+              {nav ? <X size={18} /> : <Menu size={18} />}
+            </button>
+          </div>
         </div>
       </header>
       <main id="main">
-        <section className="lp-hero">
-          <div className="lp-hero-glow" aria-hidden="true" />
-          <div className="lp-announcement">
-            <span className="iq-dot" />A more intentional way to work
-            <ArrowUpRight size={12} />
-          </div>
-          <h1>
-            Your inbox is full.
-            <br />
-            Your next move should
-            <br />
-            be <span>clear.</span>
-          </h1>
-          <p className="lp-hero-description">
-            Turn everyday conversations into meaningful opportunities.
-            <br className="hidden sm:block" /> One calm workspace for your
-            inbox, relationships, and next steps.
-          </p>
-          <div className="lp-hero-actions">
-            <Link to="/sign-up" className="iq-button">
-              Find your focus <ArrowRight size={15} />
-            </Link>
-            <a href="#product-preview" className="iq-button secondary">
-              <LayoutDashboard size={14} />
-              Explore the workspace
-            </a>
-          </div>
-          <div className="lp-hero-note">
-            <span>
-              <Check size={12} />
-              Your voice, always
-            </span>
-            <span>
-              <Check size={12} />
-              You decide what gets sent
-            </span>
-          </div>
-          <ProductPreview />
-        </section>
-        <section className="lp-principles">
-          <span>
-            A little less busywork.
-            <br />
-            <strong>A lot more momentum.</strong>
-          </span>
-          <div>
-            <Inbox size={18} />
-            <p>A focused inbox</p>
-          </div>
-          <div>
-            <Users size={18} />
-            <p>Stronger relationships</p>
-          </div>
-          <div>
-            <Sparkles size={18} />
-            <p>Thoughtful next steps</p>
-          </div>
-        </section>
-        <section className="lp-section" id="product">
-          <div className="lp-section-intro">
+        <section className="marketing-hero marketing-container">
+          <div className="marketing-hero-top">
             <div>
-              <span className="iq-eyebrow">
-                <span className="iq-dot" />
-                LESS NOISE. MORE SIGNAL.
+              <span className="marketing-eyebrow">
+                THE INTELLIGENT SALES INBOX
+              </span>
+              <h1>
+                Every conversation.
+                <br />
+                <span>Every opportunity.</span>
+              </h1>
+            </div>
+            <div className="marketing-hero-copy">
+              <p>
+                Your best opportunities are already in your inbox. Bring
+                conversations, leads, and follow-ups into one considered
+                workspace.
+              </p>
+              <div className="flex gap-4 items-center">
+                <Link to="/sign-up" className="marketing-button">
+                  Open your workspace
+                  <ArrowUpRight size={14} />
+                </Link>
+                <a href="#product" className="marketing-text-link">
+                  See it in action
+                  <ArrowRight size={13} />
+                </a>
+              </div>
+              <span className="marketing-subnote">
+                Built around your judgment. Not another autopilot.
+              </span>
+            </div>
+          </div>
+          <div className="marketing-demo-layout" id="product">
+            <div>
+              <DemoWorkspace stage={stage} setStage={setStage} />
+              <div className="marketing-demo-caption">
+                <span>
+                  <span className="marketing-small-dot" />
+                  Interactive demonstration
+                </span>
+                <span>Fictional sample data. No emails are sent.</span>
+              </div>
+            </div>
+            <div className="marketing-stage-list">
+              <span className="marketing-eyebrow">A CLEARER NEXT STEP</span>
+              {steps.map((s, i) => (
+                <button
+                  key={s.name}
+                  className={stage === i ? "active" : ""}
+                  onClick={() => setStage(i)}
+                  aria-pressed={stage === i}
+                >
+                  <span>{String(i + 1).padStart(2, "0")}</span>
+                  <div>
+                    <h2>{s.label}</h2>
+                    {stage === i && <p>{s.detail}</p>}
+                  </div>
+                  <ArrowUpRight size={12} />
+                </button>
+              ))}
+            </div>
+          </div>
+        </section>
+        <section className="marketing-statement marketing-container">
+          <p>
+            The inbox wasn't built
+            <br />
+            to manage opportunities.
+          </p>
+          <p>
+            InboxIQ connects the message to the relationship, the relationship
+            to the next step, and the next step to your day. Less context
+            switching. More considered work.
+          </p>
+        </section>
+        <section
+          className="marketing-container marketing-before-after"
+          id="workflow"
+        >
+          <div className="marketing-section-head">
+            <div>
+              <span className="marketing-eyebrow">
+                CHANGE THE WORKFLOW, NOT YOUR VOICE
               </span>
               <h2>
-                Everything you need.
+                The same conversation.
                 <br />
-                <span>Room to think.</span>
+                <span>A different way forward.</span>
               </h2>
             </div>
-            <p>
-              Important conversations shouldn't get lost between tabs. Bring the
-              context and the next step together.
-            </p>
+            <div
+              className="marketing-toggle"
+              role="group"
+              aria-label="Compare workflows"
+            >
+              <button onClick={() => setAfter(false)} aria-pressed={!after}>
+                Without context
+              </button>
+              <button onClick={() => setAfter(true)} aria-pressed={after}>
+                With InboxIQ
+              </button>
+            </div>
           </div>
-          <div className="lp-features">
-            <article className="lp-feature lp-feature-wide">
-              <div className="lp-feature-copy">
-                <span className="lp-feature-icon">
-                  <Inbox size={20} />
-                </span>
-                <h3>An inbox with perspective.</h3>
-                <p>
-                  See your conversations in context. Find the messages that need
-                  attention, and pick up right where you left off.
-                </p>
-                <Link to="/sign-up">
-                  Get a clearer picture <ArrowUpRight size={14} />
-                </Link>
-              </div>
-              <div className="lp-focus-visual">
-                <div className="lp-focus-label">
-                  <span className="iq-dot" />
-                  PRIORITY VIEW<span>Illustrative example</span>
+          <div className={`workflow-comparison ${after ? "organized" : ""}`}>
+            <div>
+              <span className="marketing-eyebrow">
+                {after
+                  ? "ONE CONNECTED WORKSPACE"
+                  : "SCATTERED ACROSS YOUR DAY"}
+              </span>
+              <h3>
+                {after
+                  ? "The message. The meaning. The move."
+                  : "A message, somewhere in the noise."}
+              </h3>
+              <p>
+                {after
+                  ? "Conversation history and lead context stay together. Review a response, decide what happens next, and pick up without starting over."
+                  : "Search through your inbox. Rebuild the context. Open another tab. Remember to follow up. Repeat."}
+              </p>
+            </div>
+            <div
+              className="workflow-fragments"
+              key={after ? "after" : "before"}
+            >
+              <div className="workflow-fragment">
+                <Inbox size={15} />
+                <div>
+                  <strong>New project inquiry</strong>
+                  <small>Maya / Product launch</small>
                 </div>
-                {examples.slice(0, 2).map((e, i) => (
-                  <div key={e.name} className="lp-focus-message">
-                    <span className={`lp-person ${e.color}`}>{e.initials}</span>
+                {after && <Check size={13} />}
+              </div>
+              <div className="workflow-connector">
+                <CornerDownRight size={14} />
+                <span>
+                  {after
+                    ? "Context stays connected"
+                    : "Where did the conversation go?"}
+                </span>
+              </div>
+              <div className="workflow-fragment">
+                <Users size={15} />
+                <div>
+                  <strong>
+                    {after ? "Qualified lead" : "Another spreadsheet"}
+                  </strong>
+                  <small>
+                    {after
+                      ? "Clear intent. Launch next quarter."
+                      : "Copy, paste, fill in the blanks."}
+                  </small>
+                </div>
+                {after && <Check size={13} />}
+              </div>
+              <div className="workflow-connector">
+                <CornerDownRight size={14} />
+                <span>
+                  {after ? "A reviewable next step" : "Remember to come back"}
+                </span>
+              </div>
+              <div className="workflow-fragment">
+                <FileText size={15} />
+                <div>
+                  <strong>
+                    {after
+                      ? "A reply, ready for your review"
+                      : "A follow-up to remember"}
+                  </strong>
+                  <small>
+                    {after
+                      ? "Edited by you. Sent only when you decide."
+                      : "Somewhere on a to-do list."}
+                  </small>
+                </div>
+                {after && <Check size={13} />}
+              </div>
+            </div>
+          </div>
+        </section>
+        <section
+          className="marketing-container marketing-story"
+          id="principles"
+        >
+          <div className="marketing-story-index">
+            <span className="marketing-eyebrow">DESIGNED FOR THE WORK</span>
+            <h2>
+              Less software
+              <br />
+              to think about.
+              <br />
+              <span>
+                More room
+                <br />
+                to work.
+              </span>
+            </h2>
+            <div>
+              {["See the signal", "Keep the context", "Make the next move"].map(
+                (t, i) => (
+                  <a
+                    key={t}
+                    href={`#feature-${i}`}
+                    className={feature === i ? "active" : ""}
+                  >
+                    <span>0{i + 1}</span>
+                    {t}
+                  </a>
+                ),
+              )}
+            </div>
+          </div>
+          <div className="marketing-story-panels" ref={panels}>
+            <article data-feature="0" id="feature-0">
+              <div className="story-feature-fragment">
+                <div className="fragment-top">
+                  <Inbox size={14} />
+                  <span>Inbox / Priority</span>
+                  <span>Sample view</span>
+                </div>
+                {[
+                  {
+                    name: "Maya Patel",
+                    subject: "A new product, a bigger launch",
+                    tag: "Project inquiry",
+                  },
+                  {
+                    name: "Oliver Chen",
+                    subject: "Re: Picking up our conversation",
+                    tag: "Follow-up",
+                  },
+                  {
+                    name: "Elena Ruiz",
+                    subject: "A few thoughts before our call",
+                    tag: "Conversation",
+                  },
+                ].map((m, i) => (
+                  <div className="fragment-message" key={m.name}>
+                    <span className="story-avatar">
+                      {m.name
+                        .split(" ")
+                        .map((n) => n[0])
+                        .join("")}
+                    </span>
                     <div>
-                      <strong>{e.name}</strong>
-                      <small>{e.subject}</small>
+                      <strong>{m.name}</strong>
+                      <p>{m.subject}</p>
                     </div>
-                    <span className="lp-focus-status">
-                      {i === 0 ? "Ready to reply" : "Follow up"}
+                    <span
+                      className={i === 0 ? "fragment-tag" : "fragment-muted"}
+                    >
+                      {m.tag}
                     </span>
                   </div>
                 ))}
-                <div className="lp-focus-context">
-                  <Sparkles size={14} />
-                  <span>The context you need. Without the digging.</span>
-                </div>
               </div>
-            </article>
-            <article className="lp-feature">
-              <span className="lp-feature-icon">
-                <Workflow size={20} />
-              </span>
-              <h3>Relationships, not rows.</h3>
+              <span className="marketing-eyebrow">01 / SEE THE SIGNAL</span>
+              <h3>An inbox with a point of view.</h3>
               <p>
-                Keep every lead, conversation, and follow-up connected. A
-                pipeline that makes your next step easy to see.
+                Search, filter, and read your conversations with the details
+                that matter close at hand. Classification brings project intent
+                and follow-up opportunities into focus.
               </p>
-              <div className="lp-pipeline-visual">
-                {["Connect", "Nurture", "Move forward"].map((t, i) => (
-                  <div key={t}>
-                    <span>{String(i + 1).padStart(2, "0")}</span>
-                    <i />
-                    <small>{t}</small>
+            </article>
+            <article data-feature="1" id="feature-1">
+              <div className="story-feature-fragment lead-fragment">
+                <div className="fragment-top">
+                  <Users size={14} />
+                  <span>Lead / Maya Patel</span>
+                  <span>Sample view</span>
+                </div>
+                <div className="lead-fragment-person">
+                  <span className="story-avatar">MP</span>
+                  <div>
+                    <strong>Maya Patel</strong>
+                    <small>Product lead / Northline</small>
                   </div>
-                ))}
-              </div>
-            </article>
-            <article className="lp-feature">
-              <span className="lp-feature-icon">
-                <WandSparkles size={20} />
-              </span>
-              <h3>A head start. In your voice.</h3>
-              <p>
-                Build on AI-assisted drafts, bring your own perspective, and
-                review every word before it goes out.
-              </p>
-              <div className="lp-draft-visual">
-                <div>
-                  <Sparkles size={12} />
-                  DRAFT WORKSPACE
+                  <span className="fragment-tag">Qualified</span>
                 </div>
-                <p>Hi Alex,</p>
-                <p>
-                  Really enjoyed our conversation. I'd love to explore what we
-                  could build together
-                  <span className="lp-caret" />.
-                </p>
-                <span>
-                  <Check size={11} />
-                  Reviewed by you
-                </span>
+                <div className="lead-fragment-details">
+                  <span>
+                    Conversation<strong>New product launch</strong>
+                  </span>
+                  <span>
+                    Next step<strong>Scope discussion</strong>
+                  </span>
+                  <span>
+                    Context<strong>Launch next quarter</strong>
+                  </span>
+                </div>
               </div>
+              <span className="marketing-eyebrow">02 / KEEP THE CONTEXT</span>
+              <h3>The relationship behind the row.</h3>
+              <p>
+                Move between an email and its lead without piecing the story
+                together again. Table and pipeline views make your relationships
+                easy to scan, sort, and act on.
+              </p>
+            </article>
+            <article data-feature="2" id="feature-2">
+              <div className="story-feature-fragment draft-fragment">
+                <div className="fragment-top">
+                  <FileText size={14} />
+                  <span>Draft / Reply to Maya</span>
+                  <span>Sample view</span>
+                </div>
+                <p>Hi Maya,</p>
+                <p>
+                  The new product launch sounds like a great fit. I'd love to
+                  talk through scope and timing.
+                </p>
+                <p>Would Tuesday at 10 work for a short call?</p>
+                <div className="draft-fragment-footer">
+                  <span>
+                    <Check size={11} />
+                    Reviewed by you
+                  </span>
+                  <span>
+                    Ready when you are
+                    <ArrowUpRight size={12} />
+                  </span>
+                </div>
+              </div>
+              <span className="marketing-eyebrow">03 / MAKE THE NEXT MOVE</span>
+              <h3>
+                Suggested by software.
+                <br />
+                Considered by you.
+              </h3>
+              <p>
+                Start with a draft, edit the detail, and make it sound like you.
+                Every send is an explicit decision. The conversation stays
+                human.
+              </p>
+              <Link to="/sign-up" className="marketing-text-link">
+                Explore your workspace
+                <ArrowRight size={13} />
+              </Link>
             </article>
           </div>
         </section>
-        <section className="lp-section lp-workflow" id="workflow">
+        <section className="marketing-lifecycle">
+          <div className="marketing-container">
+            <div className="marketing-section-head">
+              <div>
+                <span className="marketing-eyebrow">ONE CONTINUOUS THREAD</span>
+                <h2>
+                  From first contact
+                  <br />
+                  <span>to what comes next.</span>
+                </h2>
+              </div>
+              <p>
+                A considered workflow. Your judgment at every step.
+                <br />
+                Illustrative journey; outcomes are always yours to build.
+              </p>
+            </div>
+            <Lifecycle active={stage} />
+            <div className="lifecycle-controls">
+              {steps.map((s, i) => (
+                <button
+                  key={s.name}
+                  onClick={() => setStage(i)}
+                  aria-label={`Show ${s.name.toLowerCase()} stage`}
+                  aria-pressed={stage === i}
+                >
+                  <s.icon size={13} />
+                  {s.name}
+                </button>
+              ))}
+            </div>
+          </div>
+        </section>
+        <section className="marketing-container marketing-trust">
           <div>
-            <span className="iq-eyebrow">
-              <span className="iq-dot" />A BETTER DAILY RHYTHM
+            <span className="marketing-eyebrow">
+              CONFIDENCE, WITHOUT THE CLAIMS
             </span>
             <h2>
-              From catching up
+              You're in control
               <br />
-              to <span>moving forward.</span>
+              <span>of the conversation.</span>
             </h2>
             <p>
-              Less time deciding where to start.
+              Good software makes its boundaries clear.
               <br />
-              More time doing the work that matters.
+              Here's what that means in InboxIQ.
             </p>
-            <Link to="/sign-up" className="iq-button secondary">
-              Make room for better work <ArrowRight size={14} />
-            </Link>
           </div>
-          <div className="lp-steps">
+          <div>
             {[
               {
-                title: "Bring your conversations together",
-                text: "Connect your email and give your relationships a home in one focused workspace.",
+                icon: Lock,
+                title: "Protected sign-in sessions",
+                text: "Email and password sign-in uses secure, HTTP-only session cookies in production.",
               },
               {
-                title: "See what deserves your attention",
-                text: "Explore your pipeline, review activity, and find the follow-ups that matter.",
+                icon: CheckCheck,
+                title: "A review before every send",
+                text: "Drafts are editable. Sending a message is an explicit action, with the recipient and content visible.",
               },
               {
-                title: "Make your next move",
-                text: "Review a draft, reconnect with a lead, and keep the conversation moving.",
+                icon: PanelLeft,
+                title: "Connections you manage",
+                text: "Connect email through the workspace's supported integrations. Review connection status, sync, or disconnect from settings.",
               },
-            ].map((step, i) => (
-              <article key={step.title}>
-                <span>{String(i + 1).padStart(2, "0")}</span>
+            ].map((item) => (
+              <article key={item.title}>
+                <item.icon size={16} />
                 <div>
-                  <h3>{step.title}</h3>
-                  <p>{step.text}</p>
+                  <h3>{item.title}</h3>
+                  <p>{item.text}</p>
                 </div>
               </article>
             ))}
           </div>
         </section>
-        <section className="lp-manifesto" id="why-inboxiq">
-          <span className="iq-eyebrow">
-            <span className="iq-dot" />
-            BUILT FOR THE HUMAN SIDE OF WORK
+        <section className="marketing-final marketing-container">
+          <span className="marketing-eyebrow">
+            MAKE ROOM FOR THE WORK THAT MATTERS
           </span>
-          <h2>
-            Behind every email,
-            <br />
-            there's <span>a possibility.</span>
-          </h2>
-          <p>
-            A new client. A meaningful partnership. A conversation worth
-            continuing.
-            <br />
-            InboxIQ gives those possibilities the attention they deserve.
-          </p>
           <div>
-            <span>
-              <ShieldCheck size={16} />
-              You stay in control
-            </span>
-            <span>
-              <Command size={16} />
-              One connected workspace
-            </span>
-            <span>
-              <Sparkles size={16} />
-              Space for your best work
-            </span>
+            <h2>
+              A better inbox.
+              <br />
+              <span>A clearer next move.</span>
+            </h2>
+            <div>
+              <p>
+                Your conversations already hold the opportunity.
+                <br />
+                Give them a place to move forward.
+              </p>
+              <Link to="/sign-up" className="marketing-button">
+                Get started with InboxIQ
+                <ArrowUpRight size={14} />
+              </Link>
+              <Link to="/sign-in" className="marketing-text-link">
+                Already have a workspace? Log in
+                <ArrowRight size={12} />
+              </Link>
+            </div>
           </div>
-        </section>
-        <section className="lp-section lp-faq" id="questions">
-          <div>
-            <span className="iq-eyebrow">
-              <span className="iq-dot" />A FEW THINGS TO KNOW
-            </span>
-            <h2>Clarity starts here.</h2>
-            <p>A closer look at your next workspace.</p>
-          </div>
-          <div>
-            {faqs.map((faq) => (
-              <details key={faq.q}>
-                <summary>
-                  {faq.q}
-                  <Plus size={16} />
-                </summary>
-                <p>{faq.a}</p>
-              </details>
-            ))}
-          </div>
-        </section>
-        <section className="lp-final-cta">
-          <span className="iq-eyebrow">
-            YOUR NEXT CHAPTER STARTS WITH A CONVERSATION
-          </span>
-          <h2>
-            Less catching up.
-            <br />
-            <span>More possibility.</span>
-          </h2>
-          <Link to="/sign-up" className="iq-button">
-            Step into your workspace <ArrowRight size={15} />
-          </Link>
-          <p>Your relationships deserve a little more room.</p>
         </section>
       </main>
-      <footer className="lp-footer">
+      <footer className="marketing-footer marketing-container">
         <Link to="/">
           <Brand />
         </Link>
-        <span>Make every conversation count.</span>
+        <span>The intelligent sales inbox.</span>
         <div>
           <a href="#product">Product</a>
+          <a href="#workflow">Workflow</a>
           <Link to="/sign-in">Log in</Link>
           <span>? {new Date().getFullYear()} InboxIQ</span>
         </div>

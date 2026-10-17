@@ -6,7 +6,10 @@ import { cn } from "@/lib/utils";
 interface EmailPreviewPanelProps {
   isOpen: boolean;
   onClose: () => void;
-  onSend?: (editedContent?: { subject?: string; body?: string }) => void | Promise<void>;
+  onSend?: (editedContent?: {
+    subject?: string;
+    body?: string;
+  }) => void | Promise<void>;
   onRegenerate?: (tone?: string) => void | Promise<void>;
   email: {
     to: string;
@@ -59,8 +62,8 @@ const EmailPreviewPanel = ({
     try {
       setIsSending(true);
       // Pass edited content if it was modified
-      const editedContent = 
-        (subjectContent !== email?.subject || draftContent !== email?.draft)
+      const editedContent =
+        subjectContent !== email?.subject || draftContent !== email?.draft
           ? { subject: subjectContent, body: draftContent }
           : undefined;
       await onSend(editedContent);
@@ -71,19 +74,22 @@ const EmailPreviewPanel = ({
     }
   };
 
-  const handleRegenerate = useCallback(async (toneOverride?: string) => {
-    if (!onRegenerate) return;
+  const handleRegenerate = useCallback(
+    async (toneOverride?: string) => {
+      if (!onRegenerate) return;
 
-    try {
-      setIsRegenerating(true);
-      await onRegenerate(toneOverride || selectedTone);
-      // Content will be updated via useEffect when email prop changes
-    } catch (err) {
-      console.error("Regenerate failed:", err);
-    } finally {
-      setIsRegenerating(false);
-    }
-  }, [onRegenerate, selectedTone]);
+      try {
+        setIsRegenerating(true);
+        await onRegenerate(toneOverride || selectedTone);
+        // Content will be updated via useEffect when email prop changes
+      } catch (err) {
+        console.error("Regenerate failed:", err);
+      } finally {
+        setIsRegenerating(false);
+      }
+    },
+    [onRegenerate, selectedTone],
+  );
 
   if (!isOpen || !email) return null;
 
@@ -134,9 +140,7 @@ const EmailPreviewPanel = ({
               <label className="text-xs font-medium text-muted-foreground uppercase">
                 To
               </label>
-              <p className="mt-1 text-sm font-medium break-all">
-                {email.to}
-              </p>
+              <p className="mt-1 text-sm font-medium break-all">{email.to}</p>
             </div>
 
             {/* Subject */}
@@ -180,7 +184,7 @@ const EmailPreviewPanel = ({
                       selectedTone === tone.id
                         ? "bg-accent text-accent-foreground"
                         : "bg-muted text-muted-foreground hover:bg-muted/80",
-                      isRegenerating && "opacity-50 cursor-not-allowed"
+                      isRegenerating && "opacity-50 cursor-not-allowed",
                     )}
                   >
                     {tone.label}
@@ -215,7 +219,7 @@ const EmailPreviewPanel = ({
                   "focus:outline-none focus:ring-2 focus:ring-ring",
                   isEditing
                     ? "bg-background border border-border"
-                    : "bg-muted/30 border border-transparent"
+                    : "bg-muted/30 border border-transparent",
                 )}
               />
             </div>
@@ -232,7 +236,9 @@ const EmailPreviewPanel = ({
                 onClick={() => handleRegenerate()}
                 disabled={isSending || isRegenerating}
               >
-                <RotateCcw className={cn("w-4 h-4", isRegenerating && "animate-spin")} />
+                <RotateCcw
+                  className={cn("w-4 h-4", isRegenerating && "animate-spin")}
+                />
                 {isRegenerating ? "Regenerating…" : "Regenerate"}
               </Button>
             )}

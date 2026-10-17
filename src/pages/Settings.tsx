@@ -1,1058 +1,853 @@
-import { useState, useEffect } from "react";
-import { motion } from "framer-motion";
+import { useEffect, useState } from "react";
+import { useSearchParams } from "react-router-dom";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useTheme } from "next-themes";
 import {
-  Settings as SettingsIcon,
-  User,
   Mail,
-  Bell,
-  Sparkles,
-  Shield,
-  Palette,
-  Globe,
-  Save,
-  Check,
-  X,
-  Edit,
-  Trash2,
-  Plus,
-  Key,
-  AlertCircle,
-  Info,
   RefreshCw,
-  Unlink
+  Unplug,
+  Trash2,
+  Monitor,
+  Sun,
+  Moon,
+  Check,
+  Save,
+  ShieldCheck,
 } from "lucide-react";
 import DashboardLayout from "@/components/layout/DashboardLayout";
+import { PageHeader, ConfirmAction } from "@/components/WorkspaceUI";
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
+import { Switch } from "@/components/ui/switch";
 import { LoadingState } from "@/components/LoadingState";
 import { ErrorState } from "@/components/ErrorState";
+import ConnectEmailDialog from "@/components/ConnectEmailDialog";
+import { useConnections } from "@/hooks/use-workspace-data";
 import { useUserId } from "@/hooks/useUserId";
+import { useSession, authClient } from "@/lib/auth-client";
 import { settingsApi, type SettingsUpdate } from "@/lib/api/settings";
 import { emailConnectionsApi } from "@/lib/api";
-import type { EmailConnection } from "@/lib/api/email-connections";
-import { useSession } from "@/lib/auth-client";
+import { errorMessage } from "@/lib/format";
 import { toast } from "sonner";
-import ConnectEmailDialog from "@/components/ConnectEmailDialog";
-
-type TabType = "profile" | "email" | "ai" | "notifications" | "security" | "appearance";
-
-const Settings = () => {
-  const userId = useUserId();
+const tabs = [
+  { id: "profile", name: "Account" },
+  { id: "email", name: "Email connections" },
+  { id: "ai", name: "Draft preferences" },
+  { id: "notifications", name: "Notifications" },
+  { id: "appearance", name: "Appearance" },
+  { id: "security", name: "Security" },
+];
+const defaults: SettingsUpdate = {
+  full_name: "",
+  company: "",
+  role: "",
+  timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+  language: "en",
+  email_signature: "",
+  default_tone: "professional",
+  auto_archive: true,
+  archive_after_days: 30,
+  email_notifications: true,
+  ai_enabled: true,
+  confidence_threshold: 85,
+  auto_generate_drafts: true,
+  suggest_follow_ups: true,
+  analyze_sentiment: true,
+  generate_subject_lines: true,
+  preferred_tone: "professional",
+  max_draft_length: 500,
+  browser_notifications: true,
+  hot_lead_alerts: true,
+  follow_up_reminders: true,
+  weekly_digest: true,
+  ai_draft_ready: true,
+  deal_at_risk: true,
+  compact_mode: false,
+  show_avatars: true,
+  animations: true,
+};
+export default function Settings() {
+  const id = useUserId();
   const { data: session } = useSession();
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<Error | null>(null);
-  const [activeTab, setActiveTab] = useState<TabType>("profile");
-  const [isSaving, setIsSaving] = useState(false);
-  const [emailConnections, setEmailConnections] = useState<EmailConnection[]>([]);
-  const [isLoadingConnections, setIsLoadingConnections] = useState(false);
-  const [isConnectDialogOpen, setIsConnectDialogOpen] = useState(false);
-  const [syncingConnectionId, setSyncingConnectionId] = useState<string | null>(null);
-
-  // Profile settings
-  const [profile, setProfile] = useState({
-    name: session?.user?.name || "",
-    email: session?.user?.email || "",
-    company: "",
-    role: "",
-    timezone: "America/New_York",
-    language: "en",
+  const client = useQueryClient();
+  const [params, setParams] = useSearchParams();
+  const requested = params.get("tab") || "profile";
+  const tab = tabs.some((t) => t.id === requested) ? requested : "profile";
+  const query = useQuery({
+    queryKey: ["settings", id],
+    queryFn: () => settingsApi.get(id!),
+    enabled: !!id,
   });
-
-  // Email settings
-  const [emailSettings, setEmailSettings] = useState({
-    autoReply: false,
-    signature: "",
-    defaultTone: "professional",
-    autoArchive: true,
-    archiveAfterDays: 30,
-    emailNotifications: true,
+  const connections = useConnections();
+  const { theme, setTheme } = useTheme();
+  const [draft, setDraft] = useState<SettingsUpdate>({
+    ...defaults,
+    full_name: session?.user.name || "",
   });
-
-  // AI settings
-  const [aiSettings, setAiSettings] = useState({
-    enabled: true,
-    confidenceThreshold: 85,
-    autoGenerate: true,
-    suggestFollowUps: true,
-    analyzeSentiment: true,
-    generateSubjectLines: true,
-    preferredTone: "professional",
-    maxDraftLength: 500,
-  });
-
-  // Notification settings
-  const [notificationSettings, setNotificationSettings] = useState({
-    emailAlerts: true,
-    browserNotifications: true,
-    hotLeadAlerts: true,
-    followUpReminders: true,
-    weeklyDigest: true,
-    aiDraftReady: true,
-    dealAtRisk: true,
-  });
-
-  // Security settings
-  const [securitySettings, setSecuritySettings] = useState({
-    twoFactorEnabled: false,
-    sessionTimeout: 60,
-    requirePasswordChange: false,
-    lastPasswordChange: null as string | null,
-  });
-
-  // Appearance settings
-  const [appearanceSettings, setAppearanceSettings] = useState({
-    theme: "dark",
-    compactMode: false,
-    showAvatars: true,
-    animations: true,
-  });
-
-  // Load settings from database
+  const [dirty, setDirty] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [connect, setConnect] = useState(false);
+  const [syncing, setSyncing] = useState<string | null>(null);
   useEffect(() => {
-    if (!userId) {
-      setLoading(false);
-      return;
+    if (!id) return;
+    const failure = params.get("error");
+    const success = params.get("success");
+    if (failure) {
+      toast.error("Email connection could not be completed", {
+        description: failure,
+      });
+      setParams({ tab: "email" }, { replace: true });
+    } else if (success === "true") {
+      toast.success("Email connected");
+      client.invalidateQueries({ queryKey: ["connections"] });
+      setParams({ tab: "email" }, { replace: true });
     }
-
-    async function loadSettings() {
-      try {
-        setLoading(true);
-        setError(null);
-
-        const settings = await settingsApi.get(userId);
-
-        if (settings) {
-          // Load profile settings
-          setProfile({
-            name: settings.full_name || session?.user?.name || "",
-            email: session?.user?.email || "",
-            company: settings.company || "",
-            role: settings.role || "",
-            timezone: settings.timezone || "America/New_York",
-            language: settings.language || "en",
-          });
-
-          // Load email settings
-          setEmailSettings({
-            autoReply: false, // Not in DB yet
-            signature: settings.email_signature || "",
-            defaultTone: settings.default_tone || "professional",
-            autoArchive: settings.auto_archive ?? true,
-            archiveAfterDays: settings.archive_after_days || 30,
-            emailNotifications: settings.email_notifications ?? true,
-          });
-
-          // Load AI settings
-          setAiSettings({
-            enabled: settings.ai_enabled ?? true,
-            confidenceThreshold: settings.confidence_threshold || 85,
-            autoGenerate: settings.auto_generate_drafts ?? true,
-            suggestFollowUps: settings.suggest_follow_ups ?? true,
-            analyzeSentiment: settings.analyze_sentiment ?? true,
-            generateSubjectLines: settings.generate_subject_lines ?? true,
-            preferredTone: settings.preferred_tone || "professional",
-            maxDraftLength: settings.max_draft_length || 500,
-          });
-
-          // Load notification settings
-          setNotificationSettings({
-            emailAlerts: settings.email_notifications ?? true,
-            browserNotifications: settings.browser_notifications ?? true,
-            hotLeadAlerts: settings.hot_lead_alerts ?? true,
-            followUpReminders: settings.follow_up_reminders ?? true,
-            weeklyDigest: settings.weekly_digest ?? true,
-            aiDraftReady: settings.ai_draft_ready ?? true,
-            dealAtRisk: settings.deal_at_risk ?? true,
-          });
-
-          // Load security settings
-          setSecuritySettings({
-            twoFactorEnabled: settings.two_factor_enabled ?? false,
-            sessionTimeout: settings.session_timeout || 60,
-            requirePasswordChange: settings.require_password_change ?? false,
-            lastPasswordChange: settings.last_password_change || null,
-          });
-
-          // Load appearance settings
-          setAppearanceSettings({
-            theme: settings.theme || "dark",
-            compactMode: settings.compact_mode ?? false,
-            showAvatars: settings.show_avatars ?? true,
-            animations: settings.animations ?? true,
-          });
-        }
-      } catch (err) {
-        console.error("Error loading settings:", err);
-        setError(err instanceof Error ? err : new Error("Failed to load settings"));
-      } finally {
-        setLoading(false);
+  }, [id, params, setParams, client]);
+  useEffect(() => {
+    if (query.data) {
+      const {
+        id: recordId,
+        user_id: ownerId,
+        created_at: created,
+        updated_at: updated,
+        theme: storedTheme,
+        ...values
+      } = query.data;
+      setDraft({ ...defaults, ...values });
+    } else if (query.isSuccess) {
+      setDraft({ ...defaults, full_name: session?.user.name || "" });
+    }
+  }, [query.data, query.isSuccess, session?.user.name]);
+  function update<K extends keyof SettingsUpdate>(
+    key: K,
+    value: SettingsUpdate[K],
+  ) {
+    setDraft((prev) => ({ ...prev, [key]: value }));
+    setDirty(true);
+  }
+  async function save() {
+    if (!id) return;
+    setSaving(true);
+    try {
+      const { full_name, ...other } = draft;
+      await settingsApi.save(id, {
+        ...other,
+        full_name,
+        theme: theme || "system",
+      });
+      if (full_name && full_name !== session?.user.name) {
+        const result = await authClient.updateUser({ name: full_name });
+        if (result.error)
+          throw new Error(
+            result.error.message ||
+              "Profile preference saved, but the account name could not update.",
+          );
       }
-    }
-
-    loadSettings();
-    loadEmailConnections();
-
-    // Handle OAuth callback from URL params
-    const urlParams = new URLSearchParams(window.location.search);
-    const oauthProvider = urlParams.get("provider");
-    const oauthCode = urlParams.get("code");
-    const oauthState = urlParams.get("state");
-    const oauthSuccess = urlParams.get("success");
-    const oauthError = urlParams.get("error");
-
-    // Handle OAuth success/error from URL params
-    if (oauthSuccess === "true") {
-      const provider = urlParams.get("provider") || "email";
-      toast.success(`${provider === "gmail" ? "Gmail" : provider === "outlook" ? "Outlook" : "Email"} connected successfully!`);
-      loadEmailConnections();
-      // Clean up URL
-      window.history.replaceState({}, "", window.location.pathname + "?tab=email");
-    }
-
-    if (oauthError) {
-      toast.error("Failed to connect email", {
-        description: decodeURIComponent(oauthError),
-      });
-      // Clean up URL
-      window.history.replaceState({}, "", window.location.pathname + "?tab=email");
-    }
-  }, [userId, session]);
-
-  // Load email connections
-  const loadEmailConnections = async () => {
-    if (!userId) return;
-
-    try {
-      setIsLoadingConnections(true);
-      const connections = await emailConnectionsApi.getAll(userId);
-      setEmailConnections(connections);
-    } catch (err) {
-      console.error("Error loading email connections:", err);
-      // Don't show error toast - just log it
+      setDirty(false);
+      await client.invalidateQueries({ queryKey: ["settings"] });
+      toast.success("Preferences saved");
+    } catch (e) {
+      toast.error(errorMessage(e));
     } finally {
-      setIsLoadingConnections(false);
+      setSaving(false);
     }
-  };
-
-  const handleDisconnectEmail = async (connectionId: string) => {
-    if (!userId) return;
-
-    if (!confirm("Are you sure you want to disconnect this email account?")) {
-      return;
-    }
-
-    try {
-      await emailConnectionsApi.disconnect(connectionId, userId);
-      toast.success("Email account disconnected");
-      loadEmailConnections();
-    } catch (err) {
-      console.error("Error disconnecting email:", err);
-      toast.error("Failed to disconnect email", {
-        description: err instanceof Error ? err.message : "Unknown error",
-      });
-    }
-  };
-
-  const handleDeleteEmail = async (connectionId: string) => {
-    if (!userId) return;
-
-    if (!confirm("Are you sure you want to permanently delete this email connection?")) {
-      return;
-    }
-
-    try {
-      await emailConnectionsApi.delete(connectionId, userId);
-      toast.success("Email connection deleted");
-      loadEmailConnections();
-    } catch (err) {
-      console.error("Error deleting email connection:", err);
-      toast.error("Failed to delete email connection", {
-        description: err instanceof Error ? err.message : "Unknown error",
-      });
-    }
-  };
-
-  const handleSyncEmail = async (connectionId: string) => {
-    try {
-      setSyncingConnectionId(connectionId);
-      const result = await emailConnectionsApi.sync(connectionId);
-      toast.success("Email sync completed", {
-        description: result.threadsSynced 
-          ? `Synced ${result.threadsSynced} email threads`
-          : result.message || "Your emails have been synced.",
-      });
-      // Reload connections to show updated last_sync_at
-      await loadEmailConnections();
-      
-      // Trigger inbox data refetch by dispatching a custom event
-      window.dispatchEvent(new CustomEvent("emailSyncCompleted", { 
-        detail: { threadsSynced: result.threadsSynced } 
-      }));
-    } catch (err) {
-      console.error("Error syncing email:", err);
-      toast.error("Failed to sync emails", {
-        description: err instanceof Error ? err.message : "Unknown error",
-      });
-    } finally {
-      setSyncingConnectionId(null);
-    }
-  };
-
-  const handleSave = async () => {
-    if (!userId) {
-      toast.error("You must be logged in to save settings");
-      return;
-    }
-
-    try {
-      setIsSaving(true);
-
-      // Prepare settings update
-      const settingsUpdate: SettingsUpdate = {
-        // Profile
-        full_name: profile.name,
-        company: profile.company,
-        role: profile.role,
-        timezone: profile.timezone,
-        language: profile.language,
-        // Email
-        email_signature: emailSettings.signature,
-        default_tone: emailSettings.defaultTone,
-        auto_archive: emailSettings.autoArchive,
-        archive_after_days: emailSettings.archiveAfterDays,
-        email_notifications: emailSettings.emailNotifications,
-        // AI
-        ai_enabled: aiSettings.enabled,
-        confidence_threshold: aiSettings.confidenceThreshold,
-        auto_generate_drafts: aiSettings.autoGenerate,
-        suggest_follow_ups: aiSettings.suggestFollowUps,
-        analyze_sentiment: aiSettings.analyzeSentiment,
-        generate_subject_lines: aiSettings.generateSubjectLines,
-        preferred_tone: aiSettings.preferredTone,
-        max_draft_length: aiSettings.maxDraftLength,
-        // Notifications
-        browser_notifications: notificationSettings.browserNotifications,
-        hot_lead_alerts: notificationSettings.hotLeadAlerts,
-        follow_up_reminders: notificationSettings.followUpReminders,
-        weekly_digest: notificationSettings.weeklyDigest,
-        ai_draft_ready: notificationSettings.aiDraftReady,
-        deal_at_risk: notificationSettings.dealAtRisk,
-        // Security
-        two_factor_enabled: securitySettings.twoFactorEnabled,
-        session_timeout: securitySettings.sessionTimeout,
-        require_password_change: securitySettings.requirePasswordChange,
-        last_password_change: securitySettings.lastPasswordChange || undefined,
-        // Appearance
-        theme: appearanceSettings.theme,
-        compact_mode: appearanceSettings.compactMode,
-        show_avatars: appearanceSettings.showAvatars,
-        animations: appearanceSettings.animations,
-      };
-
-      await settingsApi.save(userId, settingsUpdate);
-      toast.success("Settings saved successfully!");
-    } catch (err) {
-      console.error("Error saving settings:", err);
-      toast.error("Failed to save settings", {
-        description: err instanceof Error ? err.message : "Unknown error",
-      });
-    } finally {
-      setIsSaving(false);
-    }
-  };
-
-  const tabs = [
-    { id: "profile" as TabType, label: "Profile", icon: User },
-    { id: "email" as TabType, label: "Email", icon: Mail },
-    { id: "ai" as TabType, label: "AI Assistant", icon: Sparkles },
-    { id: "notifications" as TabType, label: "Notifications", icon: Bell },
-    { id: "security" as TabType, label: "Security", icon: Shield },
-    { id: "appearance" as TabType, label: "Appearance", icon: Palette },
-  ];
-
-  const ToggleSwitch = ({ 
-    enabled, 
-    onChange, 
-    label, 
-    description 
-  }: { 
-    enabled: boolean; 
-    onChange: (enabled: boolean) => void;
-    label: string;
-    description?: string;
-  }) => {
-    return (
-      <div className="flex items-start justify-between">
-        <div className="flex-1">
-          <label className="text-sm font-medium text-foreground">{label}</label>
-          {description && (
-            <p className="text-xs text-muted-foreground mt-1">{description}</p>
-          )}
-        </div>
-        <button
-          onClick={() => onChange(!enabled)}
-          className={cn(
-            "relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
-            enabled ? "bg-accent" : "bg-muted"
-          )}
-        >
-          <span
-            className={cn(
-              "inline-block h-4 w-4 transform rounded-full bg-white transition-transform",
-              enabled ? "translate-x-6" : "translate-x-1"
-            )}
-          />
-        </button>
-      </div>
-    );
-  };
-
-  const InputField = ({
-    label,
-    value,
-    onChange,
-    type = "text",
-    placeholder,
-    description,
-  }: {
-    label: string;
-    value: string;
-    onChange: (value: string) => void;
-    type?: string;
-    placeholder?: string;
-    description?: string;
-  }) => {
-    return (
-      <div className="space-y-2">
-        <label className="text-sm font-medium text-foreground">{label}</label>
-        {description && (
-          <p className="text-xs text-muted-foreground">{description}</p>
-        )}
-        <input
-          type={type}
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          placeholder={placeholder}
-          className="w-full h-9 px-3 rounded-lg bg-secondary/50 border border-border text-sm focus:outline-none focus:ring-2 focus:ring-ring focus:bg-background transition-all"
-        />
-      </div>
-    );
-  };
-
-  const SelectField = ({
-    label,
-    value,
-    onChange,
-    options,
-    description,
-  }: {
-    label: string;
-    value: string;
-    onChange: (value: string) => void;
-    options: Array<{ value: string; label: string }>;
-    description?: string;
-  }) => {
-    return (
-      <div className="space-y-2">
-        <label className="text-sm font-medium text-foreground">{label}</label>
-        {description && (
-          <p className="text-xs text-muted-foreground">{description}</p>
-        )}
-        <select
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          className="w-full h-9 px-3 rounded-lg bg-secondary/50 border border-border text-sm focus:outline-none focus:ring-2 focus:ring-ring focus:bg-background transition-all"
-        >
-          {options.map((option) => (
-            <option key={option.value} value={option.value}>
-              {option.label}
-            </option>
-          ))}
-        </select>
-      </div>
-    );
-  };
-
-  const TextAreaField = ({
-    label,
-    value,
-    onChange,
-    placeholder,
-    description,
-    rows = 4,
-  }: {
-    label: string;
-    value: string;
-    onChange: (value: string) => void;
-    placeholder?: string;
-    description?: string;
-    rows?: number;
-  }) => {
-    return (
-      <div className="space-y-2">
-        <label className="text-sm font-medium text-foreground">{label}</label>
-        {description && (
-          <p className="text-xs text-muted-foreground">{description}</p>
-        )}
-        <textarea
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          placeholder={placeholder}
-          rows={rows}
-          className="w-full px-3 py-2 rounded-lg bg-secondary/50 border border-border text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-ring focus:bg-background transition-all resize-none"
-        />
-      </div>
-    );
-  };
-
-  if (loading) {
-    return (
-      <DashboardLayout>
-        <LoadingState message="Loading settings..." />
-      </DashboardLayout>
-    );
   }
-
-  if (error) {
-    return (
-      <DashboardLayout>
-        <ErrorState 
-          error={error} 
-          onRetry={() => window.location.reload()} 
-        />
-      </DashboardLayout>
-    );
+  function applyPreference(
+    name: "compact_mode" | "show_avatars" | "animations",
+    value: boolean,
+  ) {
+    update(name, value);
+    localStorage.setItem(`inboxiq:${name}`, String(value));
+    document.documentElement.dataset[
+      name === "compact_mode"
+        ? "compact"
+        : name === "show_avatars"
+          ? "avatars"
+          : "motion"
+    ] =
+      name === "animations"
+        ? value
+          ? "normal"
+          : "reduce"
+        : name === "show_avatars"
+          ? value
+            ? "visible"
+            : "hidden"
+          : String(value);
   }
-
+  const toggle = (
+    key: keyof SettingsUpdate,
+    title: string,
+    description: string,
+  ) => (
+    <PreferenceToggle
+      key={key}
+      checked={Boolean(draft[key])}
+      onChange={(value) => update(key, value)}
+      title={title}
+      description={description}
+    />
+  );
   return (
     <DashboardLayout>
-      <div className="space-y-4 sm:space-y-6 w-full min-w-0 max-w-full">
-        {/* Header */}
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4">
-          <div>
-            <div className="iq-page-intro"><span className="iq-eyebrow"><span className="iq-dot"/>MAKE IT YOURS</span><h1>Workspace settings</h1><p>A workspace that works the way you do.</p></div>
-            <p className="text-xs sm:text-sm text-muted-foreground mt-0.5 sm:mt-1">
-              Manage your account preferences and configuration
-            </p>
-          </div>
-          <Button
-            variant="accent"
-            size="sm"
-            className="gap-1.5 sm:gap-2 text-xs sm:text-sm w-full sm:w-auto"
-            onClick={handleSave}
-            disabled={isSaving}
-          >
-            <Save className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-            {isSaving ? "Saving..." : "Save Changes"}
-          </Button>
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6">
-          {/* Sidebar - Tabs */}
-          <div className="col-span-1 lg:col-span-3">
-            <div className="card-elevated p-2 space-y-1">
-              {tabs.map((tab) => {
-                const Icon = tab.icon;
-                return (
-                  <button
-                    key={tab.id}
-                    onClick={() => setActiveTab(tab.id)}
-                    className={cn(
-                      "w-full flex items-center gap-2 sm:gap-3 px-2 sm:px-3 py-2 sm:py-2.5 rounded-lg text-xs sm:text-sm font-medium transition-all text-left",
-                      activeTab === tab.id
-                        ? "bg-accent/10 text-accent"
-                        : "text-foreground/70 hover:bg-muted/50 hover:text-foreground"
-                    )}
-                  >
-                    <Icon className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                    <span>{tab.label}</span>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Main Content */}
-          <div className="col-span-1 lg:col-span-9">
-            <motion.div
-              key={activeTab}
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.2 }}
-              className="card-elevated p-4 sm:p-5 md:p-6"
-            >
-              {/* Profile Tab */}
-              {activeTab === "profile" && (
-                <div className="space-y-4 sm:space-y-6">
-                  <div>
-                    <h2 className="text-base sm:text-lg font-semibold text-foreground mb-0.5 sm:mb-1">Profile Information</h2>
-                    <p className="text-xs sm:text-sm text-muted-foreground">Update your personal information</p>
-                  </div>
-                  <div className="space-y-3 sm:space-y-4">
-                    <InputField
-                      label="Full Name"
-                      value={profile.name}
-                      onChange={(v) => setProfile({ ...profile, name: v })}
-                      placeholder="Enter your full name"
+      <PageHeader
+        title="Settings"
+        description="Your account, connections, and the way you work."
+      >
+        <Button size="sm" disabled={saving || !dirty} onClick={save}>
+          <Save size={12} />
+          {saving ? "Saving..." : dirty ? "Save changes" : "All changes saved"}
+        </Button>
+      </PageHeader>
+      {query.isPending ? (
+        <LoadingState message="Loading settings..." />
+      ) : query.error ? (
+        <ErrorState error={query.error} onRetry={() => query.refetch()} />
+      ) : (
+        <div className="settings-workspace">
+          <nav aria-label="Settings categories" className="settings-navigation">
+            {tabs.map((t) => (
+              <button
+                key={t.id}
+                onClick={() => setParams({ tab: t.id }, { replace: true })}
+                aria-current={tab === t.id ? "page" : undefined}
+              >
+                {t.name}
+              </button>
+            ))}
+          </nav>
+          <div className="settings-content">
+            {tab === "profile" && (
+              <>
+                <SettingsHeading
+                  title="Account"
+                  description="Personal information used across your workspace."
+                />
+                <div className="form-row mt-7">
+                  <label className="form-field">
+                    <span>Full name</span>
+                    <input
+                      className="form-input"
+                      value={draft.full_name || ""}
+                      onChange={(e) => update("full_name", e.target.value)}
                     />
-                    <InputField
-                      label="Email"
-                      type="email"
-                      value={profile.email}
-                      onChange={(v) => setProfile({ ...profile, email: v })}
-                      placeholder="Enter your email"
+                  </label>
+                  <label className="form-field">
+                    <span>Sign-in email</span>
+                    <input
+                      className="form-input"
+                      value={session?.user.email || ""}
+                      readOnly
                     />
-                    <InputField
-                      label="Company"
-                      value={profile.company}
-                      onChange={(v) => setProfile({ ...profile, company: v })}
-                      placeholder="Enter your company name"
+                    <small className="text-[9px] text-muted-foreground">
+                      Managed by your sign-in account.
+                    </small>
+                  </label>
+                  <label className="form-field">
+                    <span>Company</span>
+                    <input
+                      className="form-input"
+                      value={draft.company || ""}
+                      onChange={(e) => update("company", e.target.value)}
                     />
-                    <InputField
-                      label="Role"
-                      value={profile.role}
-                      onChange={(v) => setProfile({ ...profile, role: v })}
-                      placeholder="Enter your role"
+                  </label>
+                  <label className="form-field">
+                    <span>Role</span>
+                    <input
+                      className="form-input"
+                      value={draft.role || ""}
+                      onChange={(e) => update("role", e.target.value)}
                     />
-                    <SelectField
-                      label="Timezone"
-                      value={profile.timezone}
-                      onChange={(v) => setProfile({ ...profile, timezone: v })}
-                      options={[
-                        { value: "America/New_York", label: "Eastern Time (ET)" },
-                        { value: "America/Chicago", label: "Central Time (CT)" },
-                        { value: "America/Denver", label: "Mountain Time (MT)" },
-                        { value: "America/Los_Angeles", label: "Pacific Time (PT)" },
-                        { value: "Europe/London", label: "London (GMT)" },
-                        { value: "Europe/Paris", label: "Paris (CET)" },
-                        { value: "Asia/Tokyo", label: "Tokyo (JST)" },
-                      ]}
-                    />
-                    <SelectField
-                      label="Language"
-                      value={profile.language}
-                      onChange={(v) => setProfile({ ...profile, language: v })}
-                      options={[
-                        { value: "en", label: "English" },
-                        { value: "es", label: "Spanish" },
-                        { value: "fr", label: "French" },
-                        { value: "de", label: "German" },
-                        { value: "ja", label: "Japanese" },
-                      ]}
-                    />
-                  </div>
+                  </label>
+                  <label className="form-field">
+                    <span>Timezone</span>
+                    <select
+                      className="form-input"
+                      value={draft.timezone}
+                      onChange={(e) => update("timezone", e.target.value)}
+                    >
+                      {Array.from(
+                        new Set([
+                          draft.timezone || "UTC",
+                          "UTC",
+                          "Asia/Kolkata",
+                          "America/New_York",
+                          "America/Los_Angeles",
+                          "Europe/London",
+                          "Europe/Berlin",
+                          "Asia/Singapore",
+                          "Australia/Sydney",
+                        ]),
+                      ).map((zone) => (
+                        <option key={zone}>{zone}</option>
+                      ))}
+                    </select>
+                  </label>
+                  <label className="form-field">
+                    <span>Language preference</span>
+                    <select
+                      className="form-input"
+                      value={draft.language}
+                      onChange={(e) => update("language", e.target.value)}
+                    >
+                      <option value="en">English</option>
+                      <option value="es">Spanish</option>
+                      <option value="fr">French</option>
+                      <option value="de">German</option>
+                    </select>
+                  </label>
                 </div>
-              )}
-
-              {/* Email Tab */}
-              {activeTab === "email" && (
-                <div className="space-y-4 sm:space-y-6">
-                  <div>
-                    <h2 className="text-base sm:text-lg font-semibold text-foreground mb-0.5 sm:mb-1">Email Configuration</h2>
-                    <p className="text-xs sm:text-sm text-muted-foreground">Configure your email preferences and settings</p>
-                  </div>
-                  <div className="space-y-4 sm:space-y-6">
-                    <div className="space-y-3 sm:space-y-4">
-                      <ToggleSwitch
-                        enabled={emailSettings.autoReply}
-                        onChange={(v) => setEmailSettings({ ...emailSettings, autoReply: v })}
-                        label="Auto-Reply"
-                        description="Automatically send replies to incoming emails"
-                      />
-                      <ToggleSwitch
-                        enabled={emailSettings.autoArchive}
-                        onChange={(v) => setEmailSettings({ ...emailSettings, autoArchive: v })}
-                        label="Auto-Archive"
-                        description="Automatically archive emails after a specified period"
-                      />
-                      {emailSettings.autoArchive && (
-                        <InputField
-                          label="Archive After (Days)"
-                          type="number"
-                          value={emailSettings.archiveAfterDays.toString()}
-                          onChange={(v) => setEmailSettings({ ...emailSettings, archiveAfterDays: parseInt(v) || 30 })}
-                        />
-                      )}
-                      <SelectField
-                        label="Default Tone"
-                        value={emailSettings.defaultTone}
-                        onChange={(v) => setEmailSettings({ ...emailSettings, defaultTone: v })}
-                        options={[
-                          { value: "professional", label: "Professional" },
-                          { value: "confident", label: "Confident" },
-                          { value: "polite", label: "Polite" },
-                          { value: "short", label: "Short" },
-                          { value: "sales-focused", label: "Sales-focused" },
-                        ]}
-                      />
-                      <TextAreaField
-                        label="Email Signature"
-                        value={emailSettings.signature}
-                        onChange={(v) => setEmailSettings({ ...emailSettings, signature: v })}
-                        placeholder="Enter your email signature"
-                        description="This signature will be added to all outgoing emails"
-                        rows={4}
-                      />
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* AI Tab */}
-              {activeTab === "ai" && (
-                <div className="space-y-4 sm:space-y-6">
-                  <div>
-                    <h2 className="text-base sm:text-lg font-semibold text-foreground mb-0.5 sm:mb-1">AI Assistant Settings</h2>
-                    <p className="text-xs sm:text-sm text-muted-foreground">Configure AI-powered features and preferences</p>
-                  </div>
-                  <div className="space-y-4 sm:space-y-6">
-                    <div className="space-y-3 sm:space-y-4">
-                      <ToggleSwitch
-                        enabled={aiSettings.enabled}
-                        onChange={(v) => setAiSettings({ ...aiSettings, enabled: v })}
-                        label="Enable AI Assistant"
-                        description="Turn on AI-powered email drafting and suggestions"
-                      />
-                      {aiSettings.enabled && (
-                        <>
-                          <ToggleSwitch
-                            enabled={aiSettings.autoGenerate}
-                            onChange={(v) => setAiSettings({ ...aiSettings, autoGenerate: v })}
-                            label="Auto-Generate Drafts"
-                            description="Automatically generate email drafts for detected leads"
-                          />
-                          <ToggleSwitch
-                            enabled={aiSettings.suggestFollowUps}
-                            onChange={(v) => setAiSettings({ ...aiSettings, suggestFollowUps: v })}
-                            label="Suggest Follow-ups"
-                            description="AI will suggest when to follow up with leads"
-                          />
-                          <ToggleSwitch
-                            enabled={aiSettings.analyzeSentiment}
-                            onChange={(v) => setAiSettings({ ...aiSettings, analyzeSentiment: v })}
-                            label="Analyze Sentiment"
-                            description="Analyze email sentiment to prioritize responses"
-                          />
-                          <ToggleSwitch
-                            enabled={aiSettings.generateSubjectLines}
-                            onChange={(v) => setAiSettings({ ...aiSettings, generateSubjectLines: v })}
-                            label="Generate Subject Lines"
-                            description="AI will suggest subject lines for your emails"
-                          />
-                          <div className="space-y-2">
-                            <label className="text-sm font-medium text-foreground">
-                              Confidence Threshold: {aiSettings.confidenceThreshold}%
-                            </label>
-                            <p className="text-xs text-muted-foreground">
-                              Minimum confidence score for AI suggestions
+                <p className="text-[10px] text-muted-foreground mt-6">
+                  Your language preference is saved to your account. The current
+                  interface is available in English.
+                </p>
+              </>
+            )}
+            {tab === "email" && (
+              <>
+                <SettingsHeading
+                  title="Email connections"
+                  description="Connect an account, manage sync, and keep conversations up to date."
+                />
+                <div className="mt-6 space-y-0">
+                  {connections.isPending ? (
+                    <LoadingState message="Loading email accounts..." />
+                  ) : connections.error ? (
+                    <ErrorState
+                      error={connections.error}
+                      onRetry={() => connections.refetch()}
+                    />
+                  ) : connections.data?.length ? (
+                    connections.data.map((c) => (
+                      <article key={c.id} className="email-connection-row">
+                        <div className="flex gap-3">
+                          <span className="avatar">
+                            <Mail size={14} />
+                          </span>
+                          <div className="min-w-0">
+                            <p className="text-xs font-medium break-all">
+                              {c.email}
                             </p>
-                            <input
-                              type="range"
-                              min="50"
-                              max="100"
-                              value={aiSettings.confidenceThreshold}
-                              onChange={(e) => setAiSettings({ ...aiSettings, confidenceThreshold: parseInt(e.target.value) })}
-                              className="w-full"
-                            />
-                            <div className="flex justify-between text-xs text-muted-foreground">
-                              <span>50%</span>
-                              <span>100%</span>
-                            </div>
-                          </div>
-                          <SelectField
-                            label="Preferred Tone"
-                            value={aiSettings.preferredTone}
-                            onChange={(v) => setAiSettings({ ...aiSettings, preferredTone: v })}
-                            options={[
-                              { value: "professional", label: "Professional" },
-                              { value: "confident", label: "Confident" },
-                              { value: "polite", label: "Polite" },
-                              { value: "short", label: "Short" },
-                              { value: "sales-focused", label: "Sales-focused" },
-                            ]}
-                          />
-                          <InputField
-                            label="Max Draft Length"
-                            type="number"
-                            value={aiSettings.maxDraftLength.toString()}
-                            onChange={(v) => setAiSettings({ ...aiSettings, maxDraftLength: parseInt(v) || 500 })}
-                            description="Maximum number of characters in AI-generated drafts"
-                          />
-                        </>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* Notifications Tab */}
-              {activeTab === "notifications" && (
-                <div className="space-y-4 sm:space-y-6">
-                  <div>
-                    <h2 className="text-base sm:text-lg font-semibold text-foreground mb-0.5 sm:mb-1">Notification Preferences</h2>
-                    <p className="text-xs sm:text-sm text-muted-foreground">Control how and when you receive notifications</p>
-                  </div>
-                  <div className="space-y-3 sm:space-y-4">
-                    <ToggleSwitch
-                      enabled={notificationSettings.emailAlerts}
-                      onChange={(v) => setNotificationSettings({ ...notificationSettings, emailAlerts: v })}
-                      label="Email Alerts"
-                      description="Receive notifications via email"
-                    />
-                    <ToggleSwitch
-                      enabled={notificationSettings.browserNotifications}
-                      onChange={(v) => setNotificationSettings({ ...notificationSettings, browserNotifications: v })}
-                      label="Browser Notifications"
-                      description="Receive browser push notifications"
-                    />
-                    <div className="pt-3 sm:pt-4 border-t border-border space-y-3 sm:space-y-4">
-                      <h3 className="text-xs sm:text-sm font-semibold text-foreground">Alert Types</h3>
-                      <ToggleSwitch
-                        enabled={notificationSettings.hotLeadAlerts}
-                        onChange={(v) => setNotificationSettings({ ...notificationSettings, hotLeadAlerts: v })}
-                        label="Hot Lead Alerts"
-                        description="Get notified when a lead becomes hot"
-                      />
-                      <ToggleSwitch
-                        enabled={notificationSettings.followUpReminders}
-                        onChange={(v) => setNotificationSettings({ ...notificationSettings, followUpReminders: v })}
-                        label="Follow-up Reminders"
-                        description="Remind me when leads need follow-up"
-                      />
-                      <ToggleSwitch
-                        enabled={notificationSettings.aiDraftReady}
-                        onChange={(v) => setNotificationSettings({ ...notificationSettings, aiDraftReady: v })}
-                        label="AI Draft Ready"
-                        description="Notify when AI drafts are ready for review"
-                      />
-                      <ToggleSwitch
-                        enabled={notificationSettings.dealAtRisk}
-                        onChange={(v) => setNotificationSettings({ ...notificationSettings, dealAtRisk: v })}
-                        label="Deal at Risk"
-                        description="Alert when deals are at risk of going cold"
-                      />
-                      <ToggleSwitch
-                        enabled={notificationSettings.weeklyDigest}
-                        onChange={(v) => setNotificationSettings({ ...notificationSettings, weeklyDigest: v })}
-                        label="Weekly Digest"
-                        description="Receive a weekly summary of your activity"
-                      />
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* Security Tab */}
-              {activeTab === "security" && (
-                <div className="space-y-4 sm:space-y-6">
-                  <div>
-                    <h2 className="text-base sm:text-lg font-semibold text-foreground mb-0.5 sm:mb-1">Security Settings</h2>
-                    <p className="text-xs sm:text-sm text-muted-foreground">Manage your account security and privacy</p>
-                  </div>
-                  <div className="space-y-4 sm:space-y-6">
-                    <div className="space-y-3 sm:space-y-4">
-                      <ToggleSwitch
-                        enabled={securitySettings.twoFactorEnabled}
-                        onChange={(v) => setSecuritySettings({ ...securitySettings, twoFactorEnabled: v })}
-                        label="Two-Factor Authentication"
-                        description="Add an extra layer of security to your account"
-                      />
-                      <SelectField
-                        label="Session Timeout"
-                        value={securitySettings.sessionTimeout.toString()}
-                        onChange={(v) => setSecuritySettings({ ...securitySettings, sessionTimeout: parseInt(v) })}
-                        options={[
-                          { value: "15", label: "15 minutes" },
-                          { value: "30", label: "30 minutes" },
-                          { value: "60", label: "1 hour" },
-                          { value: "120", label: "2 hours" },
-                          { value: "240", label: "4 hours" },
-                        ]}
-                        description="Automatically log out after inactivity"
-                      />
-                      <div className="p-4 rounded-lg bg-muted/30 border border-border">
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <p className="text-sm font-medium text-foreground">Password</p>
-                            <p className="text-xs text-muted-foreground mt-1">
-                              Last changed: {securitySettings.lastPasswordChange}
+                            <p className="text-[10px] text-muted-foreground mt-1 capitalize">
+                              {c.provider} <span className="mx-1">/</span>
+                              {c.is_active ? "Connected" : "Disconnected"}
                             </p>
+                            {c.last_sync_at && (
+                              <p className="text-[9px] text-muted-foreground mt-2">
+                                Last synced{" "}
+                                {new Date(c.last_sync_at).toLocaleString()}
+                              </p>
+                            )}
+                            {c.error_message && (
+                              <p className="text-[10px] text-destructive mt-2">
+                                {c.error_message}
+                              </p>
+                            )}
                           </div>
-                          <Button variant="outline" size="sm">
-                            Change Password
-                          </Button>
                         </div>
-                      </div>
-                      <div className="space-y-3">
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <p className="text-sm font-medium text-foreground">Connected Email Accounts</p>
-                            <p className="text-xs text-muted-foreground mt-1">
-                              {emailConnections.length} {emailConnections.length === 1 ? "account" : "accounts"} connected
-                            </p>
-                          </div>
-                          <Button 
-                            variant="outline" 
-                            size="sm" 
-                            className="gap-2"
-                            onClick={() => setIsConnectDialogOpen(true)}
-                          >
-                            <Plus className="w-4 h-4" />
-                            Add Account
-                          </Button>
-                        </div>
-
-                        {isLoadingConnections ? (
-                          <div className="p-4 text-center text-sm text-muted-foreground">
-                            Loading connections...
-                          </div>
-                        ) : emailConnections.length === 0 ? (
-                          <div className="p-4 rounded-lg bg-muted/30 border border-border text-center">
-                            <p className="text-sm text-muted-foreground mb-3">No email accounts connected</p>
-                            <Button 
-                              variant="outline" 
-                              size="sm" 
-                              className="gap-2"
-                              onClick={() => setIsConnectDialogOpen(true)}
+                        <div className="flex items-center gap-1">
+                          {c.is_active && (
+                            <button
+                              className="icon-button"
+                              aria-label={`Sync ${c.email}`}
+                              disabled={syncing === c.id}
+                              onClick={async () => {
+                                setSyncing(c.id);
+                                try {
+                                  const result = await emailConnectionsApi.sync(
+                                    c.id,
+                                  );
+                                  await client.invalidateQueries({
+                                    queryKey: ["connections"],
+                                  });
+                                  await client.invalidateQueries({
+                                    queryKey: ["threads"],
+                                  });
+                                  await client.invalidateQueries({
+                                    queryKey: ["leads"],
+                                  });
+                                  toast.success(
+                                    result.message || "Sync complete",
+                                  );
+                                } catch (e) {
+                                  toast.error(errorMessage(e));
+                                } finally {
+                                  setSyncing(null);
+                                }
+                              }}
                             >
-                              <Plus className="w-4 h-4" />
-                              Connect Your First Account
-                            </Button>
-                          </div>
-                        ) : (
-                          <div className="space-y-2">
-                            {emailConnections.map((connection) => (
-                              <div
-                                key={connection.id}
-                                className="p-4 rounded-lg bg-muted/30 border border-border"
+                              <RefreshCw
+                                size={13}
+                                className={
+                                  syncing === c.id ? "animate-spin" : ""
+                                }
+                              />
+                            </button>
+                          )}
+                          {c.is_active && (
+                            <ConfirmAction
+                              title="Disconnect this account?"
+                              description={`${c.email} will stop syncing. Existing messages remain in your workspace.`}
+                              confirmLabel="Disconnect"
+                              onConfirm={async () => {
+                                if (!id) return;
+                                await emailConnectionsApi.disconnect(c.id, id);
+                                await connections.refetch();
+                                toast.success("Email disconnected");
+                              }}
+                            >
+                              <button
+                                className="icon-button"
+                                aria-label={`Disconnect ${c.email}`}
                               >
-                                <div className="flex items-center justify-between">
-                                  <div className="flex-1">
-                                    <div className="flex items-center gap-2 mb-1">
-                                      <Mail className="w-4 h-4 text-muted-foreground" />
-                                      <p className="text-sm font-medium text-foreground">{connection.email}</p>
-                                      {connection.is_active ? (
-                                        <span className="px-2 py-0.5 rounded text-xs bg-green-500/20 text-green-400 border border-green-500/30">
-                                          Active
-                                        </span>
-                                      ) : (
-                                        <span className="px-2 py-0.5 rounded text-xs bg-muted text-muted-foreground border border-border">
-                                          Inactive
-                                        </span>
-                                      )}
-                                    </div>
-                                    <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                                      <span className="capitalize">{connection.provider}</span>
-                                      {connection.last_sync_at && (
-                                        <>
-                                          <span>•</span>
-                                          <span>Last sync: {new Date(connection.last_sync_at).toLocaleDateString()}</span>
-                                        </>
-                                      )}
-                                    </div>
-                                    {connection.error_message && (
-                                      <p className="text-xs text-red-400 mt-1">{connection.error_message}</p>
-                                    )}
-                                  </div>
-                                  <div className="flex items-center gap-2">
-                                    <Button
-                                      variant="outline"
-                                      size="sm"
-                                      onClick={() => handleSyncEmail(connection.id)}
-                                      title="Sync Now"
-                                      className="gap-2"
-                                      disabled={syncingConnectionId === connection.id}
-                                    >
-                                      <RefreshCw className={cn("w-4 h-4", syncingConnectionId === connection.id && "animate-spin")} />
-                                      {syncingConnectionId === connection.id ? "Syncing..." : "Sync"}
-                                    </Button>
-                                    <Button
-                                      variant="ghost"
-                                      size="icon-sm"
-                                      onClick={() => handleDisconnectEmail(connection.id)}
-                                      title="Disconnect"
-                                    >
-                                      <Unlink className="w-4 h-4" />
-                                    </Button>
-                                    <Button
-                                      variant="ghost"
-                                      size="icon-sm"
-                                      onClick={() => handleDeleteEmail(connection.id)}
-                                      title="Delete"
-                                    >
-                                      <Trash2 className="w-4 h-4 text-red-400" />
-                                    </Button>
-                                  </div>
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        )}
-                      </div>
+                                <Unplug size={13} />
+                              </button>
+                            </ConfirmAction>
+                          )}
+                          <ConfirmAction
+                            title="Remove this connection?"
+                            description={`Remove the saved connection for ${c.email}. You can reconnect the account later.`}
+                            destructive
+                            confirmLabel="Remove connection"
+                            onConfirm={async () => {
+                              if (!id) return;
+                              await emailConnectionsApi.delete(c.id, id);
+                              await connections.refetch();
+                              toast.success("Connection removed");
+                            }}
+                          >
+                            <button
+                              className="icon-button"
+                              aria-label={`Remove ${c.email}`}
+                            >
+                              <Trash2 size={13} />
+                            </button>
+                          </ConfirmAction>
+                        </div>
+                      </article>
+                    ))
+                  ) : (
+                    <div className="py-8 border-y text-xs text-muted-foreground">
+                      No email accounts are connected yet.
                     </div>
-                  </div>
+                  )}
                 </div>
-              )}
-
-              {/* Appearance Tab */}
-              {activeTab === "appearance" && (
-                <div className="space-y-4 sm:space-y-6">
+                <Button
+                  className="mt-5"
+                  size="sm"
+                  variant="outline"
+                  onClick={() => setConnect(true)}
+                >
+                  <Mail size={12} />
+                  Connect email account
+                </Button>
+                <div className="settings-section mt-8">
+                  <h2>Signature and defaults</h2>
+                  <p>Preferences for your email workflow.</p>
+                  <label className="form-field mt-6">
+                    <span>Email signature</span>
+                    <textarea
+                      className="form-input"
+                      rows={4}
+                      value={draft.email_signature || ""}
+                      onChange={(e) =>
+                        update("email_signature", e.target.value)
+                      }
+                    />
+                  </label>
+                  <label className="form-field mt-5 max-w-xs">
+                    <span>Default tone</span>
+                    <select
+                      className="form-input"
+                      value={draft.default_tone}
+                      onChange={(e) => update("default_tone", e.target.value)}
+                    >
+                      {[
+                        "professional",
+                        "short",
+                        "confident",
+                        "polite",
+                        "sales-focused",
+                      ].map((t) => (
+                        <option key={t} value={t}>
+                          {t}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  {toggle(
+                    "auto_archive",
+                    "Auto-archive preference",
+                    "Save your preference for archiving inactive conversations.",
+                  )}
+                  <label className="form-field mt-4 max-w-xs">
+                    <span>Archive after (days)</span>
+                    <input
+                      className="form-input"
+                      type="number"
+                      min={1}
+                      max={365}
+                      value={draft.archive_after_days}
+                      onChange={(e) =>
+                        update(
+                          "archive_after_days",
+                          Math.max(1, Number(e.target.value)),
+                        )
+                      }
+                    />
+                  </label>
+                </div>
+              </>
+            )}
+            {tab === "ai" && (
+              <>
+                <SettingsHeading
+                  title="Draft preferences"
+                  description="Guidance for AI-assisted drafting. These settings never authorize automatic sending."
+                />
+                <div className="mt-6">
+                  {toggle(
+                    "ai_enabled",
+                    "AI assistance",
+                    "Save your preference for assisted drafting and conversation analysis.",
+                  )}
+                  {toggle(
+                    "auto_generate_drafts",
+                    "Draft suggestions",
+                    "Allow draft suggestions where the integration is available. You still review and send.",
+                  )}
+                  {toggle(
+                    "suggest_follow_ups",
+                    "Follow-up suggestions",
+                    "Include follow-up opportunities in your workflow.",
+                  )}
+                  {toggle(
+                    "analyze_sentiment",
+                    "Conversation analysis",
+                    "Save your preference for conversation analysis.",
+                  )}
+                  {toggle(
+                    "generate_subject_lines",
+                    "Subject suggestions",
+                    "Save your preference for draft subject generation.",
+                  )}
+                </div>
+                <div className="form-row mt-7">
+                  <label className="form-field">
+                    <span>Preferred tone</span>
+                    <select
+                      className="form-input"
+                      value={draft.preferred_tone}
+                      onChange={(e) => update("preferred_tone", e.target.value)}
+                    >
+                      {[
+                        "professional",
+                        "short",
+                        "confident",
+                        "polite",
+                        "sales-focused",
+                      ].map((t) => (
+                        <option key={t}>{t}</option>
+                      ))}
+                    </select>
+                  </label>
+                  <label className="form-field">
+                    <span>Maximum draft length (characters)</span>
+                    <input
+                      className="form-input"
+                      type="number"
+                      min={100}
+                      max={10000}
+                      value={draft.max_draft_length}
+                      onChange={(e) =>
+                        update(
+                          "max_draft_length",
+                          Math.max(100, Number(e.target.value)),
+                        )
+                      }
+                    />
+                  </label>
+                  <label className="form-field">
+                    <span>Minimum classification confidence (%)</span>
+                    <input
+                      className="form-input"
+                      type="number"
+                      min={0}
+                      max={100}
+                      value={draft.confidence_threshold}
+                      onChange={(e) =>
+                        update(
+                          "confidence_threshold",
+                          Math.min(100, Math.max(0, Number(e.target.value))),
+                        )
+                      }
+                    />
+                  </label>
+                </div>
+                <p className="text-[10px] text-muted-foreground mt-7">
+                  AI-assisted features depend on the services enabled for your
+                  workspace. Suggestions always need your judgment.
+                </p>
+              </>
+            )}
+            {tab === "notifications" && (
+              <>
+                <SettingsHeading
+                  title="Notifications"
+                  description="Save the updates you want to receive. Delivery depends on the channels enabled for your workspace."
+                />
+                <div className="mt-6">
+                  {toggle(
+                    "email_notifications",
+                    "Email updates",
+                    "Preference for workspace updates by email.",
+                  )}
+                  {toggle(
+                    "browser_notifications",
+                    "Browser updates",
+                    "Preference for browser notifications.",
+                  )}
+                  {toggle(
+                    "hot_lead_alerts",
+                    "Qualified lead updates",
+                    "New conversations with strong project intent.",
+                  )}
+                  {toggle(
+                    "follow_up_reminders",
+                    "Follow-up reminders",
+                    "Relationships that may need your attention.",
+                  )}
+                  {toggle(
+                    "ai_draft_ready",
+                    "Drafts ready for review",
+                    "New assisted drafts awaiting your decision.",
+                  )}
+                  {toggle(
+                    "deal_at_risk",
+                    "At-risk relationships",
+                    "Conversations that have gone quiet.",
+                  )}
+                  {toggle(
+                    "weekly_digest",
+                    "Weekly digest",
+                    "Preference for a weekly summary.",
+                  )}
+                </div>
+              </>
+            )}
+            {tab === "appearance" && (
+              <>
+                <SettingsHeading
+                  title="Appearance"
+                  description="A workspace that fits your environment and attention."
+                />
+                <div className="appearance-options mt-7">
+                  {[
+                    { key: "light", name: "Light", icon: Sun },
+                    { key: "dark", name: "Dark", icon: Moon },
+                    { key: "system", name: "System", icon: Monitor },
+                  ].map((option) => (
+                    <button
+                      key={option.key}
+                      aria-pressed={theme === option.key}
+                      onClick={() => {
+                        setTheme(option.key);
+                        setDirty(true);
+                      }}
+                    >
+                      <div className={`theme-swatch ${option.key}`}>
+                        <div />
+                        <span />
+                        <span />
+                        <span />
+                      </div>
+                      <span>
+                        <option.icon size={12} />
+                        {option.name}
+                        {theme === option.key && (
+                          <Check size={12} className="ml-auto text-primary" />
+                        )}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+                <div className="mt-8">
+                  <PreferenceToggle
+                    title="Compact density"
+                    description="Reduce spacing in tables and lists."
+                    checked={!!draft.compact_mode}
+                    onChange={(v) => applyPreference("compact_mode", v)}
+                  />
+                  <PreferenceToggle
+                    title="Show contact avatars"
+                    description="Display initials beside people and companies."
+                    checked={draft.show_avatars !== false}
+                    onChange={(v) => applyPreference("show_avatars", v)}
+                  />
+                  <PreferenceToggle
+                    title="Interface motion"
+                    description="Use subtle transitions. Your system's reduced-motion preference is always respected."
+                    checked={draft.animations !== false}
+                    onChange={(v) => applyPreference("animations", v)}
+                  />
+                </div>
+              </>
+            )}
+            {tab === "security" && (
+              <>
+                <SettingsHeading
+                  title="Sign-in and security"
+                  description="Manage the credentials used to access your workspace."
+                />
+                <div className="flex gap-3 items-start py-6 border-b">
+                  <ShieldCheck
+                    size={16}
+                    className="text-muted-foreground mt-1"
+                  />
                   <div>
-                    <h2 className="text-base sm:text-lg font-semibold text-foreground mb-0.5 sm:mb-1">Appearance Settings</h2>
-                    <p className="text-xs sm:text-sm text-muted-foreground">Customize the look and feel of your dashboard</p>
-                  </div>
-                  <div className="space-y-3 sm:space-y-4">
-                    <SelectField
-                      label="Theme"
-                      value={appearanceSettings.theme}
-                      onChange={(v) => setAppearanceSettings({ ...appearanceSettings, theme: v })}
-                      options={[
-                        { value: "light", label: "Light" },
-                        { value: "dark", label: "Dark" },
-                        { value: "system", label: "System" },
-                      ]}
-                      description="Choose your preferred color theme"
-                    />
-                    <ToggleSwitch
-                      enabled={appearanceSettings.compactMode}
-                      onChange={(v) => setAppearanceSettings({ ...appearanceSettings, compactMode: v })}
-                      label="Compact Mode"
-                      description="Use a more compact layout to fit more content"
-                    />
-                    <ToggleSwitch
-                      enabled={appearanceSettings.showAvatars}
-                      onChange={(v) => setAppearanceSettings({ ...appearanceSettings, showAvatars: v })}
-                      label="Show Avatars"
-                      description="Display profile pictures and avatars throughout the app"
-                    />
-                    <ToggleSwitch
-                      enabled={appearanceSettings.animations}
-                      onChange={(v) => setAppearanceSettings({ ...appearanceSettings, animations: v })}
-                      label="Animations"
-                      description="Enable smooth animations and transitions"
-                    />
+                    <h3 className="text-xs tracking-normal">Current account</h3>
+                    <p className="text-[11px] text-muted-foreground mt-1">
+                      {session?.user.email}
+                    </p>
+                    <p className="text-[10px] text-muted-foreground mt-3 leading-relaxed">
+                      Production sign-in uses secure, HTTP-only session cookies.
+                      Signing out ends your current session.
+                    </p>
                   </div>
                 </div>
-              )}
-            </motion.div>
+                <PasswordChange />
+              </>
+            )}
           </div>
         </div>
-      </div>
-
-      {/* Connect Email Dialog */}
+      )}
       <ConnectEmailDialog
-        open={isConnectDialogOpen}
-        onOpenChange={setIsConnectDialogOpen}
-        onConnected={() => {
-          loadEmailConnections();
-          setIsConnectDialogOpen(false);
-        }}
+        open={connect}
+        onOpenChange={setConnect}
+        onConnected={() => connections.refetch()}
       />
     </DashboardLayout>
   );
-};
-
-export default Settings;
-
-
-
+}
+function SettingsHeading({
+  title,
+  description,
+}: {
+  title: string;
+  description: string;
+}) {
+  return (
+    <div>
+      <h2 className="text-base font-medium">{title}</h2>
+      <p className="text-[11px] text-muted-foreground mt-2 leading-relaxed">
+        {description}
+      </p>
+    </div>
+  );
+}
+function PreferenceToggle({
+  title,
+  description,
+  checked,
+  onChange,
+}: {
+  title: string;
+  description: string;
+  checked: boolean;
+  onChange: (checked: boolean) => void;
+}) {
+  return (
+    <div className="preference-row">
+      <div>
+        <h3>{title}</h3>
+        <p>{description}</p>
+      </div>
+      <Switch checked={checked} onCheckedChange={onChange} aria-label={title} />
+    </div>
+  );
+}
+function PasswordChange() {
+  const [current, setCurrent] = useState("");
+  const [next, setNext] = useState("");
+  const [confirm, setConfirm] = useState("");
+  const [pending, setPending] = useState(false);
+  return (
+    <form
+      className="settings-section mt-3"
+      onSubmit={async (e) => {
+        e.preventDefault();
+        if (next !== confirm) {
+          toast.error("The new passwords do not match");
+          return;
+        }
+        setPending(true);
+        try {
+          const result = await authClient.changePassword({
+            currentPassword: current,
+            newPassword: next,
+            revokeOtherSessions: true,
+          });
+          if (result.error)
+            throw new Error(
+              result.error.message || "Password could not be updated.",
+            );
+          setCurrent("");
+          setNext("");
+          setConfirm("");
+          toast.success("Password updated. Other sessions were signed out.");
+        } catch (error) {
+          toast.error(errorMessage(error));
+        } finally {
+          setPending(false);
+        }
+      }}
+    >
+      <h2>Change password</h2>
+      <p>Use at least 8 characters. Other sessions will be signed out.</p>
+      <div className="space-y-4 mt-6 max-w-sm">
+        <label className="form-field">
+          <span>Current password</span>
+          <input
+            className="form-input"
+            type="password"
+            autoComplete="current-password"
+            value={current}
+            onChange={(e) => setCurrent(e.target.value)}
+            required
+          />
+        </label>
+        <label className="form-field">
+          <span>New password</span>
+          <input
+            className="form-input"
+            type="password"
+            autoComplete="new-password"
+            minLength={8}
+            value={next}
+            onChange={(e) => setNext(e.target.value)}
+            required
+          />
+        </label>
+        <label className="form-field">
+          <span>Confirm new password</span>
+          <input
+            className="form-input"
+            type="password"
+            autoComplete="new-password"
+            minLength={8}
+            value={confirm}
+            onChange={(e) => setConfirm(e.target.value)}
+            required
+          />
+        </label>
+        <Button
+          type="submit"
+          size="sm"
+          variant="outline"
+          disabled={pending || !current || next.length < 8 || !confirm}
+        >
+          {pending ? "Updating..." : "Update password"}
+        </Button>
+      </div>
+    </form>
+  );
+}

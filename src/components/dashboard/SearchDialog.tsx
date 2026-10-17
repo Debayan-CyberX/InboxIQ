@@ -1,136 +1,176 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { CommandDialog, CommandInput, CommandList, CommandEmpty, CommandGroup, CommandItem } from "@/components/ui/command";
+import {
+  CommandDialog,
+  CommandInput,
+  CommandList,
+  CommandEmpty,
+  CommandGroup,
+  CommandItem,
+} from "@/components/ui/command";
 import { emailsApi, leadsApi } from "@/lib/api";
-import { Mail, Building2, Loader2 } from "lucide-react";
-import type { Email } from "@/types/database";
-import type { Lead } from "@/types/database";
-
-interface SearchDialogProps {
+import {
+  Mail,
+  Users,
+  LayoutDashboard,
+  FileText,
+  BarChart3,
+  Settings,
+  Loader2,
+} from "lucide-react";
+import type { Email, Lead } from "@/types/database";
+const pages = [
+  { label: "Overview", path: "/dashboard", icon: LayoutDashboard },
+  { label: "Inbox", path: "/inbox", icon: Mail },
+  { label: "Leads", path: "/leads", icon: Users },
+  { label: "Drafts", path: "/drafts", icon: FileText },
+  { label: "Analytics", path: "/analytics", icon: BarChart3 },
+  { label: "Settings", path: "/settings", icon: Settings },
+];
+export default function SearchDialog({
+  open,
+  onOpenChange,
+  userId,
+}: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   userId: string;
-}
-
-const SearchDialog = ({ open, onOpenChange, userId }: SearchDialogProps) => {
+}) {
   const navigate = useNavigate();
   const [query, setQuery] = useState("");
-  const [isSearching, setIsSearching] = useState(false);
+  const [pending, setPending] = useState(false);
   const [emails, setEmails] = useState<Email[]>([]);
   const [leads, setLeads] = useState<Lead[]>([]);
-
+  const [failed, setFailed] = useState(false);
   useEffect(() => {
-    const search = async () => {
-      if (!query.trim() || !userId) {
-        setEmails([]);
-        setLeads([]);
-        return;
-      }
-
-      setIsSearching(true);
+    if (!open) {
+      setQuery("");
+      return;
+    }
+    let active = true;
+    if (!query.trim()) {
+      setEmails([]);
+      setLeads([]);
+      setPending(false);
+      return;
+    }
+    setPending(true);
+    setFailed(false);
+    const timer = setTimeout(async () => {
       try {
-        const [emailsResults, leadsResults] = await Promise.all([
-          emailsApi.search(userId, query).catch(() => []),
-          leadsApi.search(userId, query).catch(() => []),
+        const [e, l] = await Promise.all([
+          emailsApi.search(userId, query),
+          leadsApi.search(userId, query),
         ]);
-
-        setEmails(emailsResults.slice(0, 5)); // Limit to 5 results
-        setLeads(leadsResults.slice(0, 5));
-      } catch (error) {
-        console.error("Search error:", error);
-        setEmails([]);
-        setLeads([]);
+        if (active) {
+          setEmails(e.slice(0, 5));
+          setLeads(l.slice(0, 5));
+        }
+      } catch {
+        if (active) setFailed(true);
       } finally {
-        setIsSearching(false);
+        if (active) setPending(false);
       }
+    }, 250);
+    return () => {
+      active = false;
+      clearTimeout(timer);
     };
-
-    // Debounce search
-    const timer = setTimeout(search, 300);
-    return () => clearTimeout(timer);
-  }, [query, userId]);
-
-  const handleSelectEmail = (email: Email) => {
+  }, [open, query, userId]);
+  const go = (path: string) => {
     onOpenChange(false);
-    navigate("/inbox");
-    // Optionally scroll to email or open email detail
+    navigate(path);
   };
-
-  const handleSelectLead = (lead: Lead) => {
-    onOpenChange(false);
-    navigate("/leads");
-    // Optionally scroll to lead or open lead detail
-  };
-
-  const hasResults = emails.length > 0 || leads.length > 0;
-  const showEmpty = !isSearching && query.trim() && !hasResults;
-
   return (
     <CommandDialog open={open} onOpenChange={onOpenChange}>
       <CommandInput
-        placeholder="Search leads, emails..."
+        placeholder="Search conversations, leads, or pages..."
         value={query}
         onValueChange={setQuery}
       />
-      <CommandList>
-        {isSearching && (
-          <div className="flex items-center justify-center py-6">
-            <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
+      <CommandList className="max-h-[440px]">
+        {pending && (
+          <div className="flex gap-2 items-center p-4 text-xs text-muted-foreground">
+            <Loader2 size={13} className="animate-spin" />
+            Searching your workspace...
           </div>
         )}
-
-        {!isSearching && query.trim() && !hasResults && (
-          <CommandEmpty>No results found.</CommandEmpty>
+        {failed && (
+          <p role="status" className="text-xs text-destructive p-4">
+            Search is temporarily unavailable. You can still jump to a page.
+          </p>
         )}
-
-        {!isSearching && !query.trim() && (
-          <div className="py-6 text-center text-sm text-muted-foreground">
-            Start typing to search leads and emails...
-          </div>
-        )}
-
-        {!isSearching && leads.length > 0 && (
+        <CommandGroup heading="Go to">
+          {pages
+            .filter((p) => p.label.toLowerCase().includes(query.toLowerCase()))
+            .map((p) => (
+              <CommandItem
+                key={p.path}
+                value={p.label}
+                onSelect={() => go(p.path)}
+              >
+                <p.icon className="mr-2 h-4 w-4 text-muted-foreground" />
+                {p.label}
+                <span className="ml-auto text-[9px] text-muted-foreground">
+                  Page
+                </span>
+              </CommandItem>
+            ))}
+        </CommandGroup>
+        {leads.length > 0 && (
           <CommandGroup heading="Leads">
-            {leads.map((lead) => (
+            {leads.map((l) => (
               <CommandItem
-                key={lead.id}
-                onSelect={() => handleSelectLead(lead)}
-                className="flex items-center gap-3 cursor-pointer"
+                key={l.id}
+                value={`${l.company} ${l.contact_name} ${l.email} ${query}`}
+                onSelect={() => go(`/leads?lead=${l.id}`)}
               >
-                <Building2 className="w-4 h-4 text-muted-foreground" />
-                <div className="flex-1 min-w-0">
-                  <div className="font-medium truncate">{lead.company}</div>
-                  <div className="text-xs text-muted-foreground truncate">
-                    {lead.contact_name} • {lead.email}
-                  </div>
+                <Users size={14} className="mr-3 text-muted-foreground" />
+                <div className="min-w-0">
+                  <p className="text-xs truncate">
+                    {l.company || l.contact_name}
+                  </p>
+                  <p className="text-[10px] text-muted-foreground truncate">
+                    {l.contact_name} / {l.email}
+                  </p>
                 </div>
               </CommandItem>
             ))}
           </CommandGroup>
         )}
-
-        {!isSearching && emails.length > 0 && (
-          <CommandGroup heading="Emails">
-            {emails.map((email) => (
+        {emails.length > 0 && (
+          <CommandGroup heading="Conversations">
+            {emails.map((e) => (
               <CommandItem
-                key={email.id}
-                onSelect={() => handleSelectEmail(email)}
-                className="flex items-center gap-3 cursor-pointer"
+                key={e.id}
+                value={`${e.subject} ${e.from_email} ${query}`}
+                onSelect={() =>
+                  go(e.thread_id ? `/inbox?thread=${e.thread_id}` : "/inbox")
+                }
               >
-                <Mail className="w-4 h-4 text-muted-foreground" />
-                <div className="flex-1 min-w-0">
-                  <div className="font-medium truncate">{email.subject || "No subject"}</div>
-                  <div className="text-xs text-muted-foreground truncate">
-                    {email.from_email || email.to_email}
-                  </div>
+                <Mail size={14} className="mr-3 text-muted-foreground" />
+                <div className="min-w-0">
+                  <p className="text-xs truncate">
+                    {e.subject || "Untitled conversation"}
+                  </p>
+                  <p className="text-[10px] text-muted-foreground truncate">
+                    {e.from_email}
+                  </p>
                 </div>
               </CommandItem>
             ))}
           </CommandGroup>
+        )}
+        {!pending && (
+          <CommandEmpty>
+            No matching conversations, leads, or pages.
+          </CommandEmpty>
         )}
       </CommandList>
+      <div className="border-t px-4 py-2 text-[9px] text-muted-foreground">
+        Arrow keys to navigate <span className="mx-2">/</span> Enter to open{" "}
+        <span className="mx-2">/</span> Esc to close
+      </div>
     </CommandDialog>
   );
-};
-
-export default SearchDialog;
+}

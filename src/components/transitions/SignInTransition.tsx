@@ -1,5 +1,5 @@
 import { ReactNode, useEffect, useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, type Variants } from "framer-motion";
 import { useLocation } from "react-router-dom";
 
 interface SignInTransitionProps {
@@ -12,18 +12,19 @@ interface SignInTransitionProps {
  * Premium transition wrapper for Sign In page
  * Handles the exit animation: scale down, fade, blur, and background darkening
  */
-export const SignInTransition = ({ 
-  children, 
+export const SignInTransition = ({
+  children,
   isTransitioning,
-  onTransitionComplete 
+  onTransitionComplete,
 }: SignInTransitionProps) => {
   const location = useLocation();
   const [shouldAnimate, setShouldAnimate] = useState(false);
 
   // Check if user prefers reduced motion
-  const prefersReducedMotion = typeof window !== "undefined" 
-    ? window.matchMedia("(prefers-reduced-motion: reduce)").matches 
-    : false;
+  const prefersReducedMotion =
+    typeof window !== "undefined"
+      ? window.matchMedia("(prefers-reduced-motion: reduce)").matches
+      : false;
 
   useEffect(() => {
     if (isTransitioning) {
@@ -32,33 +33,33 @@ export const SignInTransition = ({
   }, [isTransitioning]);
 
   // Exit animation variants
-  const containerVariants = {
-    initial: { 
-      opacity: 1, 
+  const containerVariants: Variants = {
+    initial: {
+      opacity: 1,
       scale: 1,
-      filter: "blur(0px)"
+      filter: "blur(0px)",
     },
-    exit: { 
-      opacity: 0, 
+    exit: {
+      opacity: 0,
       scale: 0.95,
       filter: prefersReducedMotion ? "blur(0px)" : "blur(8px)",
       transition: {
         duration: prefersReducedMotion ? 0.2 : 0.5,
         ease: [0.22, 1, 0.36, 1], // easeOutCubic
-      }
-    }
+      },
+    },
   };
 
   // Background overlay variants
-  const overlayVariants = {
+  const overlayVariants: Variants = {
     initial: { opacity: 0 },
-    animate: { 
+    animate: {
       opacity: isTransitioning ? 0.4 : 0,
       transition: {
         duration: prefersReducedMotion ? 0.2 : 0.4,
         ease: [0.22, 1, 0.36, 1],
-      }
-    }
+      },
+    },
   };
 
   return (
@@ -72,7 +73,7 @@ export const SignInTransition = ({
             animate="animate"
             exit="initial"
             className="fixed inset-0 bg-[#0D0F14] z-[9999] pointer-events-none"
-            style={{ width: '100vw', maxWidth: '100vw', left: 0, right: 0 }}
+            style={{ width: "100vw", maxWidth: "100vw", left: 0, right: 0 }}
           />
         )}
       </AnimatePresence>
@@ -88,10 +89,10 @@ export const SignInTransition = ({
           }
         }}
         className="relative z-10 w-full min-w-0 max-w-full overflow-x-hidden"
-        style={{ 
-          willChange: shouldAnimate ? 'opacity, transform, filter' : 'auto',
-          width: '100%',
-          maxWidth: '100%'
+        style={{
+          willChange: shouldAnimate ? "opacity, transform, filter" : "auto",
+          width: "100%",
+          maxWidth: "100%",
         }}
       >
         {children}

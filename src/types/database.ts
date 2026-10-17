@@ -7,18 +7,37 @@
 // CORE TYPES
 // ============================================================================
 
-export type LeadStatus = 'hot' | 'warm' | 'cold';
-export type ActionType = 'reply' | 'follow-up' | 'meeting';
-export type ActionPriority = 'high' | 'medium' | 'low';
-export type ActionStatus = 'pending' | 'in_progress' | 'completed' | 'cancelled';
-export type EmailDirection = 'inbound' | 'outbound';
-export type EmailStatus = 'draft' | 'sent' | 'failed' | 'scheduled';
-export type EmailTone = 'professional' | 'short' | 'confident' | 'polite' | 'sales-focused';
-export type ThreadStatus = 'active' | 'archived' | 'closed';
-export type InsightType = 'daily' | 'weekly' | 'lead_specific' | 'opportunity' | 'risk';
-export type MetricType = 'reply_rate' | 'avg_response_time' | 'time_saved' | 'emails_sent' | 'leads_converted';
-export type Trend = 'up' | 'down' | 'neutral';
-export type HighlightType = 'hot' | 'risk' | 'opportunity';
+export type LeadStatus = "hot" | "warm" | "cold";
+export type ActionType = "reply" | "follow-up" | "meeting";
+export type ActionPriority = "high" | "medium" | "low";
+export type ActionStatus =
+  | "pending"
+  | "in_progress"
+  | "completed"
+  | "cancelled";
+export type EmailDirection = "inbound" | "outbound";
+export type EmailStatus = "draft" | "sent" | "failed" | "scheduled";
+export type EmailTone =
+  | "professional"
+  | "short"
+  | "confident"
+  | "polite"
+  | "sales-focused";
+export type ThreadStatus = "active" | "archived" | "closed";
+export type InsightType =
+  | "daily"
+  | "weekly"
+  | "lead_specific"
+  | "opportunity"
+  | "risk";
+export type MetricType =
+  | "reply_rate"
+  | "avg_response_time"
+  | "time_saved"
+  | "emails_sent"
+  | "leads_converted";
+export type Trend = "up" | "down" | "neutral";
+export type HighlightType = "hot" | "risk" | "opportunity";
 
 // ============================================================================
 // DATABASE TABLE TYPES
@@ -51,7 +70,7 @@ export interface Lead {
   days_since_contact: number;
   ai_suggestion: string | null;
   has_ai_draft: boolean;
-  metadata: Record<string, any>; // JSONB
+  metadata: Record<string, unknown>; // JSONB
   created_at: string; // ISO timestamp
   updated_at: string; // ISO timestamp
 }
@@ -66,7 +85,14 @@ export interface EmailThread {
   created_at: string; // ISO timestamp
   updated_at: string; // ISO timestamp
   // AI Classification fields (from latest incoming email)
-  ai_category?: "lead" | "follow_up_needed" | "important" | "promo" | "newsletter" | "spam" | null;
+  ai_category?:
+    | "lead"
+    | "follow_up_needed"
+    | "important"
+    | "promo"
+    | "newsletter"
+    | "spam"
+    | null;
   ai_confidence?: number | null; // 0-1
   ai_reason?: string | null;
 }
@@ -88,7 +114,14 @@ export interface Email {
   is_ai_draft: boolean;
   tone: EmailTone | null;
   ai_reason: string | null;
-  ai_category: "lead" | "follow_up_needed" | "important" | "promo" | "newsletter" | "spam" | null; // AI email classification
+  ai_category:
+    | "lead"
+    | "follow_up_needed"
+    | "important"
+    | "promo"
+    | "newsletter"
+    | "spam"
+    | null; // AI email classification
   ai_confidence: number | null; // 0-1, AI classification confidence
   external_email_id: string | null;
   sent_at: string | null; // ISO timestamp
@@ -169,29 +202,65 @@ export interface EmailAttachment {
 // INSERT TYPES (for creating new records)
 // ============================================================================
 
-export type InsertUser = Omit<User, 'id' | 'created_at' | 'updated_at'>;
-export type InsertLead = Omit<Lead, 'id' | 'created_at' | 'updated_at' | 'days_since_contact'>;
-export type InsertEmailThread = Omit<EmailThread, 'id' | 'created_at' | 'updated_at'>;
-export type InsertEmail = Omit<Email, 'id' | 'created_at' | 'updated_at'>;
-export type InsertAction = Omit<Action, 'id' | 'created_at' | 'updated_at'>;
-export type InsertAIInsight = Omit<AIInsight, 'id' | 'created_at' | 'updated_at'>;
-export type InsertPerformanceMetric = Omit<PerformanceMetric, 'id' | 'created_at'>;
-export type InsertEmailTemplate = Omit<EmailTemplate, 'id' | 'created_at' | 'updated_at'>;
-export type InsertEmailAttachment = Omit<EmailAttachment, 'id' | 'created_at'>;
+export type InsertUser = Omit<User, "id" | "created_at" | "updated_at">;
+export type InsertLead = Omit<
+  Lead,
+  "id" | "created_at" | "updated_at" | "days_since_contact"
+>;
+export type InsertEmailThread = Omit<
+  EmailThread,
+  "id" | "created_at" | "updated_at"
+>;
+export type InsertEmail = Omit<
+  Email,
+  | "id"
+  | "created_at"
+  | "updated_at"
+  | "user_id"
+  | "ai_category"
+  | "ai_confidence"
+> &
+  Partial<Pick<Email, "user_id" | "ai_category" | "ai_confidence">>;
+export type InsertAction = Omit<Action, "id" | "created_at" | "updated_at">;
+export type InsertAIInsight = Omit<
+  AIInsight,
+  "id" | "created_at" | "updated_at"
+>;
+export type InsertPerformanceMetric = Omit<
+  PerformanceMetric,
+  "id" | "created_at"
+>;
+export type InsertEmailTemplate = Omit<
+  EmailTemplate,
+  "id" | "created_at" | "updated_at"
+>;
+export type InsertEmailAttachment = Omit<EmailAttachment, "id" | "created_at">;
 
 // ============================================================================
 // UPDATE TYPES (for updating existing records)
 // ============================================================================
 
-export type UpdateUser = Partial<Omit<User, 'id' | 'created_at'>>;
-export type UpdateLead = Partial<Omit<Lead, 'id' | 'user_id' | 'created_at'>>;
-export type UpdateEmailThread = Partial<Omit<EmailThread, 'id' | 'user_id' | 'created_at'>>;
-export type UpdateEmail = Partial<Omit<Email, 'id' | 'user_id' | 'created_at'>>;
-export type UpdateAction = Partial<Omit<Action, 'id' | 'user_id' | 'created_at'>>;
-export type UpdateAIInsight = Partial<Omit<AIInsight, 'id' | 'user_id' | 'created_at'>>;
-export type UpdatePerformanceMetric = Partial<Omit<PerformanceMetric, 'id' | 'user_id' | 'created_at'>>;
-export type UpdateEmailTemplate = Partial<Omit<EmailTemplate, 'id' | 'user_id' | 'created_at'>>;
-export type UpdateEmailAttachment = Partial<Omit<EmailAttachment, 'id' | 'email_id' | 'created_at'>>;
+export type UpdateUser = Partial<Omit<User, "id" | "created_at">>;
+export type UpdateLead = Partial<Omit<Lead, "id" | "user_id" | "created_at">>;
+export type UpdateEmailThread = Partial<
+  Omit<EmailThread, "id" | "user_id" | "created_at">
+>;
+export type UpdateEmail = Partial<Omit<Email, "id" | "user_id" | "created_at">>;
+export type UpdateAction = Partial<
+  Omit<Action, "id" | "user_id" | "created_at">
+>;
+export type UpdateAIInsight = Partial<
+  Omit<AIInsight, "id" | "user_id" | "created_at">
+>;
+export type UpdatePerformanceMetric = Partial<
+  Omit<PerformanceMetric, "id" | "user_id" | "created_at">
+>;
+export type UpdateEmailTemplate = Partial<
+  Omit<EmailTemplate, "id" | "user_id" | "created_at">
+>;
+export type UpdateEmailAttachment = Partial<
+  Omit<EmailAttachment, "id" | "email_id" | "created_at">
+>;
 
 // ============================================================================
 // RELATIONSHIP TYPES (with joins)
@@ -244,4 +313,3 @@ export interface LeadStatistics {
 // You can import and re-export them here:
 // import type { Database as SupabaseDatabase } from './supabase';
 // export type { SupabaseDatabase };
-

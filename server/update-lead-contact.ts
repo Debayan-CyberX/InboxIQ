@@ -14,7 +14,7 @@ import { Pool } from "pg";
 export async function calculateDaysSinceLastContact(
   leadId: string,
   userUuid: string,
-  databaseUrl: string
+  databaseUrl: string,
 ): Promise<{ daysSinceContact: number; lastContactAt: Date | null }> {
   const pool = new Pool({
     connectionString: databaseUrl,
@@ -31,7 +31,7 @@ export async function calculateDaysSinceLastContact(
       FROM public.email_threads
       WHERE lead_id = $1 AND user_id = $2
       `,
-      [leadId, userUuid]
+      [leadId, userUuid],
     );
 
     const threadIds = threadsResult.rows.map((r) => r.id);
@@ -52,7 +52,7 @@ export async function calculateDaysSinceLastContact(
       ORDER BY message_date DESC
       LIMIT 1
       `,
-      [threadIds, userUuid]
+      [threadIds, userUuid],
     );
 
     let lastContactAt: Date | null = null;
@@ -72,7 +72,7 @@ export async function calculateDaysSinceLastContact(
         ORDER BY message_date ASC
         LIMIT 1
         `,
-        [threadIds, userUuid]
+        [threadIds, userUuid],
       );
 
       if (incomingResult.rows.length > 0) {
@@ -86,7 +86,7 @@ export async function calculateDaysSinceLastContact(
     const diffMs = now.getTime() - lastContactAt.getTime();
     const daysSinceContact = Math.max(
       0,
-      Math.floor(diffMs / (1000 * 60 * 60 * 24))
+      Math.floor(diffMs / (1000 * 60 * 60 * 24)),
     );
 
     return { daysSinceContact, lastContactAt };
@@ -101,7 +101,7 @@ export async function calculateDaysSinceLastContact(
 export async function updateLeadContactInfo(
   leadId: string,
   userUuid: string,
-  databaseUrl: string
+  databaseUrl: string,
 ): Promise<void> {
   const pool = new Pool({
     connectionString: databaseUrl,
@@ -123,11 +123,11 @@ export async function updateLeadContactInfo(
         updated_at = NOW()
       WHERE id = $3 AND user_id = $4
       `,
-      [daysSinceContact, lastContactAt, leadId, userUuid]
+      [daysSinceContact, lastContactAt, leadId, userUuid],
     );
 
     console.log(
-      `📅 Lead ${leadId} → ${daysSinceContact} days since last contact`
+      `📅 Lead ${leadId} → ${daysSinceContact} days since last contact`,
     );
   } finally {
     await pool.end();
@@ -139,7 +139,7 @@ export async function updateLeadContactInfo(
  */
 export async function updateAllLeadsContactInfo(
   userUuid: string,
-  databaseUrl: string
+  databaseUrl: string,
 ): Promise<void> {
   const pool = new Pool({
     connectionString: databaseUrl,
@@ -155,11 +155,11 @@ export async function updateAllLeadsContactInfo(
       FROM public.leads
       WHERE user_id = $1
       `,
-      [userUuid]
+      [userUuid],
     );
 
     console.log(
-      `📅 Recalculating contact info for ${leadsResult.rows.length} leads`
+      `📅 Recalculating contact info for ${leadsResult.rows.length} leads`,
     );
 
     for (const lead of leadsResult.rows) {

@@ -1,6 +1,6 @@
 /**
  * AI Email Classification and Lead Detection
- * 
+ *
  * Classifies emails and detects leads using Groq AI.
  * Runs AFTER email sync, stores results in database.
  * Falls back gracefully if AI fails.
@@ -20,7 +20,13 @@ export interface AILeadDetectionResult {
 }
 
 export interface AIEmailClassificationResult {
-  category: "lead" | "follow_up_needed" | "important" | "promo" | "newsletter" | "spam";
+  category:
+    | "lead"
+    | "follow_up_needed"
+    | "important"
+    | "promo"
+    | "newsletter"
+    | "spam";
   confidence: number; // 0-1
   reason: string;
 }
@@ -39,7 +45,7 @@ export interface EmailClassificationInput {
 
 /**
  * Detects if an email represents a real business lead using AI.
- * 
+ *
  * Rules:
  * - Ignore newsletters, promos, automated emails
  * - Ignore CC-only emails with no intent
@@ -47,7 +53,7 @@ export interface EmailClassificationInput {
  * - Prioritize real conversations & replies
  */
 export async function classifyLeadWithAI(
-  email: EmailClassificationInput
+  email: EmailClassificationInput,
 ): Promise<AILeadDetectionResult> {
   try {
     const prompt = `You are an AI assistant for a CRM.
@@ -75,14 +81,19 @@ Subject: ${email.subject}
 Body: ${email.body.substring(0, 2000)}${email.body.length > 2000 ? "..." : ""}`;
 
     const response = await generateAI(prompt, {
-      systemPrompt: "You are a CRM assistant that accurately identifies business leads from emails. Always return valid JSON only.",
+      systemPrompt:
+        "You are a CRM assistant that accurately identifies business leads from emails. Always return valid JSON only.",
       temperature: 0.3, // Lower temperature for more consistent classification
       maxTokens: 200,
     });
 
     // Parse JSON response (remove markdown code blocks if present)
     let cleanResponse = response.trim();
-    cleanResponse = cleanResponse.replace(/^```json\n?/i, "").replace(/^```\n?/i, "").replace(/\n?```$/i, "").trim();
+    cleanResponse = cleanResponse
+      .replace(/^```json\n?/i, "")
+      .replace(/^```\n?/i, "")
+      .replace(/\n?```$/i, "")
+      .trim();
 
     const parsed = JSON.parse(cleanResponse) as AILeadDetectionResult;
 
@@ -111,7 +122,7 @@ Body: ${email.body.substring(0, 2000)}${email.body.length > 2000 ? "..." : ""}`;
 
 /**
  * Classifies an email into one category using AI.
- * 
+ *
  * Categories:
  * - lead: real business intent
  * - follow_up_needed: stalled or unanswered thread
@@ -121,7 +132,7 @@ Body: ${email.body.substring(0, 2000)}${email.body.length > 2000 ? "..." : ""}`;
  * - spam: irrelevant / automated noise
  */
 export async function classifyEmailWithAI(
-  email: EmailClassificationInput
+  email: EmailClassificationInput,
 ): Promise<AIEmailClassificationResult> {
   try {
     const prompt = `You are an AI assistant for an email management system.
@@ -156,20 +167,34 @@ Subject: ${email.subject}
 Body: ${email.body.substring(0, 2000)}${email.body.length > 2000 ? "..." : ""}`;
 
     const response = await generateAI(prompt, {
-      systemPrompt: "You are an email classification assistant. Always return valid JSON only with one of the specified categories.",
+      systemPrompt:
+        "You are an email classification assistant. Always return valid JSON only with one of the specified categories.",
       temperature: 0.3, // Lower temperature for more consistent classification
       maxTokens: 200,
     });
 
     // Parse JSON response (remove markdown code blocks if present)
     let cleanResponse = response.trim();
-    cleanResponse = cleanResponse.replace(/^```json\n?/i, "").replace(/^```\n?/i, "").replace(/\n?```$/i, "").trim();
+    cleanResponse = cleanResponse
+      .replace(/^```json\n?/i, "")
+      .replace(/^```\n?/i, "")
+      .replace(/\n?```$/i, "")
+      .trim();
 
     const parsed = JSON.parse(cleanResponse) as AIEmailClassificationResult;
 
     // Validate category
-    const validCategories = ["lead", "follow_up_needed", "important", "promo", "newsletter", "spam"];
-    const category = validCategories.includes(parsed.category) ? parsed.category : "spam";
+    const validCategories = [
+      "lead",
+      "follow_up_needed",
+      "important",
+      "promo",
+      "newsletter",
+      "spam",
+    ];
+    const category = validCategories.includes(parsed.category)
+      ? parsed.category
+      : "spam";
 
     return {
       category: category as AIEmailClassificationResult["category"],
@@ -194,12 +219,12 @@ Body: ${email.body.substring(0, 2000)}${email.body.length > 2000 ? "..." : ""}`;
 /**
  * Performs both lead detection and email classification.
  * Returns both results for efficiency (single AI call can do both).
- * 
+ *
  * This function runs both classifications and returns combined results.
  * Used during email sync to store classification data.
  */
 export async function classifyEmailWithAICombined(
-  email: EmailClassificationInput
+  email: EmailClassificationInput,
 ): Promise<{
   leadDetection: AILeadDetectionResult;
   classification: AIEmailClassificationResult;

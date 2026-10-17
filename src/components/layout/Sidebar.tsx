@@ -2,116 +2,128 @@ import {
   LayoutDashboard,
   Inbox,
   Users,
-  Send,
+  FileText,
   BarChart3,
   Settings,
-  Sparkles,
   LogOut,
-  ChevronsUpDown,
-  ArrowUpRight,
+  PanelLeftClose,
+  PanelLeftOpen,
+  MessageSquare,
 } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { useSession, signOut } from "@/lib/auth-client";
 import { toast } from "sonner";
 import Brand from "@/components/Brand";
-const navigation = [
-  { name: "Overview", icon: LayoutDashboard, href: "/dashboard" },
-  { name: "Inbox", icon: Inbox, href: "/inbox" },
-  { name: "Lead pipeline", icon: Users, href: "/leads" },
-  { name: "Drafts", icon: Send, href: "/drafts" },
-  { name: "Analytics", icon: BarChart3, href: "/analytics" },
+import { ContactAvatar } from "@/components/WorkspaceUI";
+const items = [
+  { name: "Overview", href: "/dashboard", icon: LayoutDashboard, key: "O" },
+  { name: "Inbox", href: "/inbox", icon: Inbox, key: "I" },
+  { name: "Leads", href: "/leads", icon: Users, key: "L" },
+  { name: "Drafts", href: "/drafts", icon: FileText, key: "D" },
+  { name: "Analytics", href: "/analytics", icon: BarChart3, key: "A" },
 ];
-export default function Sidebar() {
-  const { data: session } = useSession();
-  const location = useLocation();
-  const user = session?.user;
-  const initials = (user?.name || user?.email || "You")
-    .split(" ")
-    .map((n) => n[0])
-    .join("")
-    .slice(0, 2)
-    .toUpperCase();
-  async function handleSignOut() {
-    try {
-      await signOut();
-      sessionStorage.removeItem("landingLoaderShown");
-      sessionStorage.removeItem("fromSignIn");
-      window.location.href = "/";
-    } catch {
-      toast.error("Could not sign out. Please try again.");
-    }
-  }
+export default function Sidebar({
+  collapsed = false,
+  onCollapse,
+}: {
+  collapsed?: boolean;
+  onCollapse?: () => void;
+}) {
+  const { data } = useSession();
+  const { pathname } = useLocation();
   return (
-    <div className="iq-sidebar">
+    <div className="app-sidebar">
       <Link to="/dashboard" aria-label="InboxIQ overview">
         <Brand />
       </Link>
-      <div className="iq-workspace-switch">
-        <span className="iq-workspace-icon">{initials}</span>
-        <div className="flex-1 min-w-0">
-          <div className="text-[11px] font-medium truncate">
+      <div className="sidebar-workspace">
+        <ContactAvatar name={data?.user.name || "Workspace"} />
+        <div className="min-w-0">
+          <p className="text-[11px] font-medium truncate">
+            {data?.user.name
+              ? `${data.user.name.split(" ")[0]}'s workspace`
+              : "Your workspace"}
+          </p>
+          <p className="text-[10px] text-muted-foreground">
             Personal workspace
-          </div>
-          <div className="text-[9px] text-muted-foreground">
-            Your relationship command center
-          </div>
+          </p>
         </div>
-        <ChevronsUpDown size={12} className="text-muted-foreground" />
       </div>
-      <p className="iq-nav-label">Workspace</p>
+      <div className="sidebar-label">Workspace</div>
       <nav aria-label="Main navigation">
-        {navigation.map((item) => (
+        {items.map((item) => (
           <Link
             key={item.href}
+            className="nav-link"
+            aria-current={pathname === item.href ? "page" : undefined}
             to={item.href}
-            aria-current={location.pathname === item.href ? "page" : undefined}
-            className={`iq-nav-item ${location.pathname === item.href ? "active" : ""}`}
+            title={collapsed ? item.name : undefined}
           >
-            <item.icon size={16} strokeWidth={1.6} />
+            <item.icon size={16} strokeWidth={1.5} />
             <span>{item.name}</span>
+            <kbd>G {item.key}</kbd>
           </Link>
         ))}
       </nav>
-      <div className="iq-sidebar-note">
-        <Sparkles size={16} className="text-primary mb-3" />
-        <p className="text-[11px] font-medium mb-1">
-          A little more intentional.
-        </p>
-        <p className="text-[10px] text-muted-foreground leading-relaxed">
-          Turn your next conversation into your next opportunity.
-        </p>
-        <Link
-          to="/leads"
-          className="mt-3 flex items-center justify-between text-[10px] text-primary"
-        >
-          Explore your pipeline <ArrowUpRight size={13} />
-        </Link>
-      </div>
-      <Link
-        to="/settings"
-        aria-current={location.pathname === "/settings" ? "page" : undefined}
-        className={`iq-nav-item ${location.pathname === "/settings" ? "active" : ""}`}
-      >
-        <Settings size={16} />
-        <span>Settings & preferences</span>
-      </Link>
-      <div className="iq-sidebar-user">
-        <span className="iq-avatar">{initials}</span>
-        <div className="min-w-0 flex-1">
-          <p className="text-[11px] font-medium truncate">
-            {user?.name || "Your workspace"}
-          </p>
-          <p className="text-[9px] text-muted-foreground truncate">
-            {user?.email}
-          </p>
-        </div>
+      <div className="sidebar-footer">
         <button
-          onClick={handleSignOut}
-          aria-label="Sign out"
-          className="p-2 text-muted-foreground hover:text-foreground"
+          className="nav-link w-full text-left"
+          onClick={() =>
+            window.dispatchEvent(new CustomEvent("inboxiq:assistant"))
+          }
+          title="Open assistant"
         >
-          <LogOut size={14} />
+          <MessageSquare size={16} strokeWidth={1.5} />
+          <span>Assistant</span>
         </button>
+        <Link
+          to="/settings"
+          className="nav-link"
+          aria-current={pathname === "/settings" ? "page" : undefined}
+          title="Settings"
+        >
+          <Settings size={16} strokeWidth={1.5} />
+          <span>Settings</span>
+        </Link>
+        {onCollapse && (
+          <button
+            className="nav-link w-full hidden min-[901px]:flex text-left"
+            onClick={onCollapse}
+            title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+          >
+            {collapsed ? (
+              <PanelLeftOpen size={16} />
+            ) : (
+              <PanelLeftClose size={16} />
+            )}
+            <span>Collapse sidebar</span>
+          </button>
+        )}
+        <div className="sidebar-user">
+          <ContactAvatar name={data?.user.name || "User"} />
+          <div className="min-w-0 flex-1">
+            <p className="text-[11px] truncate">
+              {data?.user.name || "Account"}
+            </p>
+            <p className="text-[9px] text-muted-foreground truncate">
+              {data?.user.email}
+            </p>
+          </div>
+          <button
+            className="icon-button"
+            aria-label="Sign out"
+            onClick={async () => {
+              try {
+                await signOut();
+                window.location.href = "/";
+              } catch {
+                toast.error("Unable to sign out. Try again.");
+              }
+            }}
+          >
+            <LogOut size={13} />
+          </button>
+        </div>
       </div>
     </div>
   );

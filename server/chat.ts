@@ -10,12 +10,20 @@ import { generateAI } from "../src/lib/groq";
 function getFallbackResponse(message: string): string {
   const lowerMessage = message.toLowerCase();
 
-  if (lowerMessage.includes("hello") || lowerMessage.includes("hi") || lowerMessage.includes("hey")) {
+  if (
+    lowerMessage.includes("hello") ||
+    lowerMessage.includes("hi") ||
+    lowerMessage.includes("hey")
+  ) {
     return "Hello! I'm your InboxIQ AI assistant. I can help you with:\n\n• Creating and managing email drafts\n• Tracking leads and pipelines\n• Syncing emails from Gmail\n• Understanding analytics and insights\n\nWhat would you like to know?";
   }
 
   if (lowerMessage.includes("help") || lowerMessage.includes("how")) {
-    if (lowerMessage.includes("create") || lowerMessage.includes("draft") || lowerMessage.includes("write")) {
+    if (
+      lowerMessage.includes("create") ||
+      lowerMessage.includes("draft") ||
+      lowerMessage.includes("write")
+    ) {
       return "To create an AI email draft:\n\n1. Go to the Leads page\n2. Click on a lead\n3. Click 'Generate Follow-up'\n4. Choose a tone\n5. Review and send";
     }
 
@@ -44,7 +52,10 @@ function getFallbackResponse(message: string): string {
     return "Connect your Gmail account to sync emails and automatically detect leads.";
   }
 
-  if (lowerMessage.includes("analytics") || lowerMessage.includes("performance")) {
+  if (
+    lowerMessage.includes("analytics") ||
+    lowerMessage.includes("performance")
+  ) {
     return "InboxIQ provides analytics on follow-ups, responses, and productivity insights.";
   }
 
@@ -65,7 +76,7 @@ Try asking:
 // ----------------------------------
 export async function generateChatResponse(
   message: string,
-  conversationHistory: Array<{ role: string; content: string }> = []
+  conversationHistory: Array<{ role: string; content: string }> = [],
 ): Promise<string> {
   try {
     const contextPrompt = `You are a helpful AI assistant for InboxIQ.
@@ -80,7 +91,7 @@ ${
         .slice(-3)
         .map(
           (msg) =>
-            `${msg.role === "user" ? "User" : "Assistant"}: ${msg.content}`
+            `${msg.role === "user" ? "User" : "Assistant"}: ${msg.content}`,
         )
         .join("\n")
     : "No previous context"
@@ -97,13 +108,17 @@ Instructions:
 Response:`;
 
     const aiResponse = await generateAI(contextPrompt, {
-      systemPrompt: "You are a helpful AI assistant for InboxIQ, an email management and lead tracking platform. Be concise, helpful, and professional.",
+      systemPrompt:
+        "You are a helpful AI assistant for InboxIQ, an email management and lead tracking platform. Be concise, helpful, and professional.",
       temperature: 0.7,
       maxTokens: 300,
     });
 
     let cleanResponse = aiResponse.trim();
-    cleanResponse = cleanResponse.replace(/^(Assistant|AI|Bot|InboxIQ):\s*/i, "");
+    cleanResponse = cleanResponse.replace(
+      /^(Assistant|AI|Bot|InboxIQ):\s*/i,
+      "",
+    );
     cleanResponse = cleanResponse.split("\n\n")[0].split("\n")[0].trim();
 
     if (!cleanResponse) {

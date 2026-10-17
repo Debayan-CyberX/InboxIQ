@@ -1,5 +1,5 @@
 import { ReactNode, useEffect, useState } from "react";
-import { motion } from "framer-motion";
+import { motion, type Variants } from "framer-motion";
 import { useLocation } from "react-router-dom";
 
 interface DashboardTransitionProps {
@@ -12,14 +12,14 @@ interface DashboardTransitionProps {
  * Handles the entrance animation: fade + slide in from bottom
  * Simplified to not interfere with layout
  */
-export const DashboardTransition = ({ 
-  children, 
-  isEntering = false 
+export const DashboardTransition = ({
+  children,
+  isEntering = false,
 }: DashboardTransitionProps) => {
   const location = useLocation();
   const [shouldAnimate, setShouldAnimate] = useState(false);
   const [mounted, setMounted] = useState(false);
-  
+
   // Check if coming from sign-in using sessionStorage (more reliable)
   useEffect(() => {
     const fromSignIn = sessionStorage.getItem("fromSignIn") === "true";
@@ -30,26 +30,27 @@ export const DashboardTransition = ({
     }
     setMounted(true);
   }, [isEntering, location.state]);
-  
+
   const fromSignIn = shouldAnimate && mounted;
 
   // Check if user prefers reduced motion
-  const prefersReducedMotion = typeof window !== "undefined" 
-    ? window.matchMedia("(prefers-reduced-motion: reduce)").matches 
-    : false;
+  const prefersReducedMotion =
+    typeof window !== "undefined"
+      ? window.matchMedia("(prefers-reduced-motion: reduce)").matches
+      : false;
 
   // Simplified animation - minimal impact on layout
-  const containerVariants = {
-    initial: { 
+  const containerVariants: Variants = {
+    initial: {
       opacity: prefersReducedMotion ? 1 : 0,
     },
-    animate: { 
+    animate: {
       opacity: 1,
       transition: {
         duration: prefersReducedMotion ? 0 : 0.3,
         ease: "easeOut",
-      }
-    }
+      },
+    },
   };
 
   // Always return children without layout-affecting wrappers when not animating
@@ -63,11 +64,11 @@ export const DashboardTransition = ({
       variants={containerVariants}
       initial="initial"
       animate="animate"
-      style={{ 
-        width: '100%', 
-        maxWidth: '100%',
+      style={{
+        width: "100%",
+        maxWidth: "100%",
         minWidth: 0,
-        overflow: 'hidden'
+        overflow: "hidden",
       }}
       className="w-full min-w-0 max-w-full overflow-x-hidden"
     >
