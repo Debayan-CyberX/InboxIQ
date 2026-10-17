@@ -2,6 +2,13 @@ import { createHmac, randomBytes, timingSafeEqual } from "node:crypto";
 import { Router, type Request } from "express";
 import { Pool, type PoolClient } from "pg";
 import { simpleParser } from "mailparser";
+import {
+  MAILBOX_EMAIL_LIMIT,
+  decodeMailCursor,
+  encodeMailCursor,
+  mailboxRetentionStats,
+  pruneMailboxEmails,
+} from "./mail-retention";
 
 export const GMAIL_SCOPES = [
   "https://www.googleapis.com/auth/gmail.readonly",
@@ -86,6 +93,7 @@ export type GmailPart = {
 };
 export type GmailMessage = {
   id?: string;
+  threadId?: string;
   internalDate?: string;
   snippet?: string;
   labelIds?: string[];
@@ -632,6 +640,27 @@ export function createGmailRouter(options: RouterOptions) {
       failure(res, error);
     }
   });
+  router.get(
+    "/api/email-connections/:connectionId/retention",
+    async (req, res) => {
+      try {
+        const user = await userUuid(await owner(req));
+        const connectionId = String(req.params.connectionId);
+        if (!uuidPattern.test(connectionId))
+          throw new GmailError(400, "Invalid email connection.");
+        const owned = await database().query(
+          "SELECT id FROM public.email_connections WHERE id=$1 AND user_id=$2",
+          [connectionId, user],
+        );
+        if (!owned.rowCount)
+          throw new GmailError(404, "Email connection not found.");
+        res.setHeader("Cache-Control", "no-store");
+        res.json(await mailboxRetentionStats(database(), user, connectionId));
+      } catch (error) {
+        failure(res, error);
+      }
+    },
+  );
   async function sync(
     req: Request,
     res: import("express").Response,
@@ -699,48 +728,72 @@ export function createGmailRouter(options: RouterOptions) {
         env,
         request,
       );
-      const pageToken =
-        typeof req.body?.pageToken === "string" ? req.body.pageToken : "";
-      if (pageToken.length > 2048)
-        throw new GmailError(400, "Invalid Gmail page token.");
+      let cursor: ReturnType<typeof decodeMailCursor>;
+      try {
+        cursor = decodeMailCursor(
+          typeof req.body?.pageToken === "string" ? req.body.pageToken : "",
+          user,
+          connectionId,
+          secret(),
+        );
+      } catch (error) {
+        throw new GmailError(400, (error as Error).message);
+      }
+      const remaining = MAILBOX_EMAIL_LIMIT - cursor.seen;
       const params = new URLSearchParams({
-        maxResults: String(PAGE_SIZE),
-        ...(pageToken ? { pageToken } : {}),
+        maxResults: String(Math.min(PAGE_SIZE, remaining)),
+        q: "-in:drafts",
+        ...(cursor.providerToken ? { pageToken: cursor.providerToken } : {}),
       });
       const page = await client.get<{
-        threads?: Array<{ id: string }>;
+        messages?: Array<{ id: string; threadId: string }>;
         nextPageToken?: string;
-      }>(`threads?${params}`);
+      }>(`messages?${params}`);
+      const summaries = (page.messages || []).slice(
+        0,
+        Math.min(PAGE_SIZE, remaining),
+      );
+      const grouped = new Map<
+        string,
+        Awaited<ReturnType<typeof parseGmailMessage>>[]
+      >();
+      for (const summary of summaries) {
+        const raw = await client.get<GmailMessage>(
+          `messages/${encodeURIComponent(summary.id)}?format=full`,
+        );
+        if (raw.labelIds?.includes("DRAFT")) continue;
+        const message = await parseGmailMessage(
+          raw,
+          connection.email,
+          async (attachmentId) =>
+            (
+              await client.get<{ data?: string }>(
+                `messages/${encodeURIComponent(summary.id)}/attachments/${encodeURIComponent(attachmentId)}`,
+              )
+            ).data || "",
+        );
+        const threadId = raw.threadId || summary.threadId;
+        if (!threadId)
+          throw new GmailError(
+            502,
+            "Gmail returned a message without a conversation.",
+          );
+        const group = grouped.get(threadId) || [];
+        group.push(message);
+        grouped.set(threadId, group);
+      }
       let threadsSynced = 0,
         emailsSynced = 0;
-      for (const summary of page.threads || []) {
-        const thread = await client.get<GmailThread>(
-          `threads/${encodeURIComponent(summary.id)}?format=full`,
-        );
-        const messages = await Promise.all(
-          (thread.messages || [])
-            .filter((m) => !m.labelIds?.includes("DRAFT"))
-            .map((m) =>
-              parseGmailMessage(
-                m,
-                connection.email,
-                async (attachmentId) =>
-                  (
-                    await client.get<{ data?: string }>(
-                      `messages/${encodeURIComponent(m.id!)}/attachments/${encodeURIComponent(attachmentId)}`,
-                    )
-                  ).data || "",
-              ),
-            ),
-        );
+      for (const [providerThreadId, messages] of grouped) {
+        messages.sort((a, b) => a.date.getTime() - b.date.getTime());
         if (!messages.length) continue;
         const latest = messages.reduce((a, b) => (a.date > b.date ? a : b)),
-          identifier = `${connectionId}:${summary.id}`;
+          identifier = `${connectionId}:${providerThreadId}`;
         await db.query("BEGIN");
         try {
           const existing = await db.query(
             `SELECT id,lead_id FROM public.email_threads t WHERE user_id=$1 AND (thread_identifier=$2 OR (thread_identifier=$3 AND EXISTS(SELECT 1 FROM public.emails e WHERE e.thread_id=t.id AND (e.from_email=$4 OR e.to_email=$4)))) ORDER BY (thread_identifier=$2) DESC LIMIT 1`,
-            [user, identifier, summary.id, connection.email],
+            [user, identifier, providerThreadId, connection.email],
           );
           let threadId = existing.rows[0]?.id,
             leadId = existing.rows[0]?.lead_id || null;
@@ -819,6 +872,18 @@ export function createGmailRouter(options: RouterOptions) {
           throw error;
         }
       }
+      const retention = await pruneMailboxEmails(db, user, connectionId);
+      const seen = cursor.seen + summaries.length;
+      const nextPageToken =
+        page.nextPageToken && summaries.length && seen < MAILBOX_EMAIL_LIMIT
+          ? encodeMailCursor(
+              page.nextPageToken,
+              seen,
+              user,
+              connectionId,
+              secret(),
+            )
+          : null;
       await db.query(
         "UPDATE public.email_connections SET last_sync_at=NOW(),error_message=NULL,updated_at=NOW() WHERE id=$1 AND user_id=$2",
         [connectionId, user],
@@ -832,7 +897,8 @@ export function createGmailRouter(options: RouterOptions) {
         success: true,
         threadsSynced,
         emailsSynced,
-        nextPageToken: page.nextPageToken || null,
+        nextPageToken,
+        retention,
         message: `Synced ${threadsSynced} conversations and imported ${emailsSynced} new messages.`,
       });
     } catch (error) {

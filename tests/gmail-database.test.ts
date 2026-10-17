@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
 import express from "express";
 import { Pool } from "pg";
+import { decodeMailCursor, encodeMailCursor } from "../server/mail-retention";
 import { createGmailRouter, signOAuthState } from "../server/gmail";
 
 // Explicit opt-in: synthetic data only, isolated fixture user, removed in finally.
@@ -26,6 +27,7 @@ test(
     const app = express();
     app.use(express.json());
     let failProvider = false;
+    let expectedPageSize = 25;
     const request: typeof fetch = async (url, init) => {
       const target = new URL(String(url));
       if (target.hostname === "oauth2.googleapis.com")
@@ -40,36 +42,36 @@ test(
           { error: "provider-private-detail" },
           { status: 503 },
         );
-      if (target.pathname.endsWith("/threads"))
+      if (target.pathname.endsWith("/messages")) {
+        assert.equal(
+          Number(target.searchParams.get("maxResults")),
+          expectedPageSize,
+        );
+        const thread = target.searchParams.get("pageToken")
+          ? "older"
+          : "recent";
+        assert.equal(target.searchParams.get("q"), "-in:drafts");
         return Response.json({
-          threads: [
-            { id: target.searchParams.get("pageToken") ? "older" : "recent" },
-          ],
-          ...(target.searchParams.has("pageToken")
-            ? {}
-            : { nextPageToken: "second-page" }),
+          messages: [{ id: `${thread}-message`, threadId: thread }],
+          nextPageToken: "second-page",
         });
-      const thread = target.pathname.split("/").at(-1)!;
+      }
+      const messageId = target.pathname.split("/").at(-1)!;
+      const thread = messageId.replace(/-message$/, "");
       return Response.json({
-        id: thread,
-        messages: [
-          {
-            id: `${thread}-message`,
-            internalDate: "1700000000000",
-            labelIds: ["INBOX"],
-            payload: {
-              mimeType: "text/plain",
-              headers: [
-                { name: "From", value: "Contact <contact@example.com>" },
-                { name: "To", value: email },
-                { name: "Subject", value: `Synthetic ${thread}` },
-              ],
-              body: {
-                data: Buffer.from("Synthetic body").toString("base64url"),
-              },
-            },
-          },
-        ],
+        id: messageId,
+        threadId: thread,
+        internalDate: "1700000000000",
+        labelIds: ["INBOX"],
+        payload: {
+          mimeType: "text/plain",
+          headers: [
+            { name: "From", value: "Contact <contact@example.com>" },
+            { name: "To", value: email },
+            { name: "Subject", value: `Synthetic ${thread}` },
+          ],
+          body: { data: Buffer.from("Synthetic body").toString("base64url") },
+        },
       });
     };
     // Map fixture identities without creating a Better Auth account. All mailbox SQL
@@ -116,12 +118,56 @@ test(
       assert.equal(first.status, 200);
       const result = await first.json();
       assert.equal(result.emailsSynced, 1);
-      assert.equal(result.nextPageToken, "second-page");
+      assert.equal(
+        decodeMailCursor(
+          result.nextPageToken,
+          owner,
+          connectionId,
+          env.BETTER_AUTH_SECRET,
+        ).providerToken,
+        "second-page",
+      );
+      assert.equal(result.retention.limit, 500);
+      assert.equal(
+        (await sync("owner", { pageToken: "second-page" })).status,
+        400,
+      );
       assert.equal((await (await sync()).json()).emailsSynced, 0);
       assert.equal(
-        (await (await sync("owner", { pageToken: "second-page" })).json())
-          .emailsSynced,
+        (
+          await (
+            await sync("owner", { pageToken: result.nextPageToken })
+          ).json()
+        ).emailsSynced,
         1,
+      );
+      expectedPageSize = 1;
+      const lastPage = await (
+        await sync("owner", {
+          pageToken: encodeMailCursor(
+            "second-page",
+            499,
+            owner,
+            connectionId,
+            env.BETTER_AUTH_SECRET,
+          ),
+        })
+      ).json();
+      assert.equal(lastPage.nextPageToken, null);
+      expectedPageSize = 25;
+      const stats = await fetch(
+        `${base}/api/email-connections/${connectionId}/retention`,
+        { headers: { "x-test-user": "owner" } },
+      );
+      assert.equal((await stats.json()).storedEmails, 2);
+      assert.equal(
+        (
+          await fetch(
+            `${base}/api/email-connections/${connectionId}/retention`,
+            { headers: { "x-test-user": "outsider" } },
+          )
+        ).status,
+        404,
       );
       assert.equal((await sync("outsider")).status, 404);
       const counts = await pool.query(
