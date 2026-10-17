@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1920" height="1200" viewBox="0 0 1920 1200" fill="none">
+  <defs>
+    <linearGradient id="fold" x1="430" y1="1110" x2="1430" y2="180" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#18352B" stop-opacity="0"/>
+      <stop offset=".3" stop-color="#427C63"/>
+      <stop offset=".58" stop-color="#AFD5B9"/>
+      <stop offset=".72" stop-color="#4A836E"/>
+      <stop offset="1" stop-color="#17352B" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="face" x1="630" y1="1020" x2="1050" y2="520" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#091410"/>
+      <stop offset=".45" stop-color="#3D7058"/>
+      <stop offset=".7" stop-color="#83B79A"/>
+      <stop offset="1" stop-color="#153228" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="edge" x1="150" y1="1140" x2="1340" y2="40" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#9BCBB0" stop-opacity="0"/>
+      <stop offset=".48" stop-color="#B9DBC9" stop-opacity=".65"/>
+      <stop offset="1" stop-color="#7EAB97" stop-opacity="0"/>
+    </linearGradient>
+    <radialGradient id="halo">
+      <stop stop-color="#4B8D77" stop-opacity=".55"/>
+      <stop offset="1" stop-color="#23463E" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="soft" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="32"/>
+    </filter>
+  </defs>
+  <ellipse cx="1270" cy="820" rx="660" ry="590" fill="url(#halo)"/>
+  <g filter="url(#soft)" opacity=".7">
+    <path d="M300 1310 1160 280 1390 190 770 1240Z" fill="url(#fold)"/>
+    <path d="m660 1370 780-1040 250-110-610 1120Z" fill="url(#fold)"/>
+  </g>
+  <path d="M-90 1160 1050-110h185L400 1200Z" fill="url(#fold)" opacity=".48"/>
+  <path d="m190 1280 900-1070 196-68-774 1108Z" fill="url(#face)" opacity=".9"/>
+  <path d="m480 1300 892-1010 193-56-728 1066Z" fill="url(#fold)" opacity=".7"/>
+  <path d="m650 1290 800-860 158-59-681 919Z" fill="url(#face)" opacity=".75"/>
+  <path d="m-90 1160 1140-1270M190 1280l900-1070m-610 1090 892-1010m-722 1000 800-860" stroke="url(#edge)" stroke-width="1.5"/>
+</svg>

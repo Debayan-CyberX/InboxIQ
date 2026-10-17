@@ -14,7 +14,7 @@ body:has(.app-shell) :is(.surface-floating, [data-sonner-toaster]) {
   --secondary: 220 8% 92%;
   --secondary-foreground: var(--foreground);
   --muted: 220 6% 94%;
-  --muted-foreground: 220 5% 43%;
+  --muted-foreground: 220 5% 40%;
   --border: 220 8% 86%;
   --input: 220 8% 81%;
   --sidebar-background: 220 8% 94%;
@@ -37,6 +37,13 @@ body:has(.app-shell) :is(.surface-floating, [data-sonner-toaster]) {
   --graphite-floating: linear-gradient(145deg, #fff8, #fff0 65%);
   --graphite-ambient: 0 6px 20px #10131a08, 0 1px 3px #10131a05;
   --graphite-float-shadow: 0 22px 64px #10131a26, 0 4px 12px #10131a0d;
+  --workspace-wallpaper-opacity: 0.24;
+  --workspace-wallpaper-base: #dce5e0;
+  --workspace-glass: #f8fcf9c9;
+  --workspace-glass-strong: #f8fcf9ed;
+  --workspace-glass-raised:
+    linear-gradient(145deg, #ffffffb3, #ffffff26), #f4faf5ad;
+  --workspace-glass-shadow: 0 18px 56px #152b2012, 0 2px 6px #152b2008;
   --graphite-grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160' viewBox='0 0 160 160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.92' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Cpath d='M0 0h160v160H0z' filter='url(%23n)' opacity='.8'/%3E%3C/svg%3E");
 }
 
@@ -51,7 +58,7 @@ body:has(.app-shell) :is(.surface-floating, [data-sonner-toaster]) {
   --popover: 220 7% 12%;
   --secondary: 220 5% 18%;
   --muted: 220 5% 13%;
-  --muted-foreground: 220 4% 69%;
+  --muted-foreground: 220 4% 73%;
   --border: 220 5% 22%;
   --input: 220 5% 27%;
   --sidebar-background: 220 7% 7%;
@@ -64,9 +71,9 @@ body:has(.app-shell) :is(.surface-floating, [data-sonner-toaster]) {
   --graphite-list: #151719;
   --graphite-reading: #202226;
   --graphite-writing: #1b1d20;
-  --graphite-edge: #e9ecf21a;
-  --graphite-edge-lit: #e9ecf22e;
-  --graphite-specular: #ffffff0e;
+  --graphite-edge: #e3f2e61f;
+  --graphite-edge-lit: #e3f2e640;
+  --graphite-specular: #f1fff51c;
   --graphite-hover: #ffffff08;
   --graphite-canvas:
     radial-gradient(ellipse at 85% -12%, #bfc1c614, #bfc1c600 60%),
@@ -77,24 +84,47 @@ body:has(.app-shell) :is(.surface-floating, [data-sonner-toaster]) {
   --graphite-floating: linear-gradient(145deg, #ffffff05, #ffffff00 65%);
   --graphite-ambient: 0 8px 24px #00000026, 0 2px 5px #0000001a;
   --graphite-float-shadow: 0 22px 70px #0006, 0 4px 16px #0003;
+  --workspace-wallpaper-opacity: 0.92;
+  --workspace-wallpaper-base: #070d0b;
+  --workspace-glass: #101814ad;
+  --workspace-glass-strong: #111a16eb;
+  --workspace-glass-raised:
+    linear-gradient(145deg, #e0f4e711, #e0f4e700 68%), #16231bad;
+  --workspace-glass-shadow: 0 20px 64px #00000033, 0 3px 10px #0000001a;
 }
 
-/* Ambient studio lighting stays behind the content, without continuous motion. */
+/* A static folded-light wallpaper lives only behind the authenticated workspace. */
 .app-shell {
-  background:
-    radial-gradient(ellipse at 88% 0%, #ffffff16, #ffffff00 48%),
-    radial-gradient(ellipse at 0% 85%, #ffffff08, #ffffff00 55%),
-    hsl(var(--workspace-frame));
+  position: relative;
+  isolation: isolate;
+  background: var(--workspace-wallpaper-base);
+}
+.app-shell::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -2;
+  pointer-events: none;
+  background: url("./assets/workspace-backdrop.svg") center / cover no-repeat;
+  opacity: var(--workspace-wallpaper-opacity);
+}
+.app-shell::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background: radial-gradient(ellipse at 80% 0%, #c1e9d614, transparent 55%);
 }
 .app-shell .app-workspace {
   position: relative;
   isolation: isolate;
-  background: var(--graphite-canvas);
+  background: var(--workspace-glass-strong);
   border-color: var(--graphite-edge-lit);
-  border-radius: 12px;
+  border-radius: 14px;
   box-shadow:
     inset 0 1px 0 var(--graphite-specular),
-    -8px 0 32px #0000000a;
+    var(--workspace-glass-shadow);
 }
 .app-shell .app-workspace::before {
   content: "";
@@ -108,7 +138,7 @@ body:has(.app-shell) :is(.surface-floating, [data-sonner-toaster]) {
   opacity: 0.028;
 }
 .app-shell .app-topbar {
-  background: hsl(var(--workspace-canvas));
+  background: var(--workspace-glass);
   border-bottom-color: var(--graphite-edge);
   box-shadow: inset 0 1px 0 var(--graphite-specular);
 }
@@ -118,7 +148,7 @@ body:has(.app-shell) :is(.surface-floating, [data-sonner-toaster]) {
 .app-shell .app-sidebar {
   background:
     linear-gradient(175deg, var(--graphite-hover), transparent 60%),
-    hsl(var(--sidebar-background));
+    var(--workspace-glass);
   border-right: 0;
 }
 .app-shell .sidebar-workspace,
@@ -156,7 +186,7 @@ body:has(.app-shell) :is(.surface-floating, [data-sonner-toaster]) {
   box-shadow: inset 0 1px 0 var(--graphite-specular);
 }
 
-/* Elevation is reserved for grouped decisions and context, not every row. */
+/* Edge-lit glass groups decisions without putting texture over text. */
 .app-shell :is(.metric-strip, .briefing, .onboarding, .panel) {
   background: var(--graphite-raised);
   border-color: var(--graphite-edge-lit);
@@ -207,7 +237,7 @@ body:has(.app-shell) :is(.surface-floating, [data-sonner-toaster]) {
 }
 /* Existing work carries emphasis; zero counts and supporting context stay quiet. */
 .app-shell .overview-metrics {
-  background: var(--graphite-surface);
+  background: var(--graphite-raised);
   border-color: var(--graphite-edge);
   box-shadow: inset 0 1px 0 var(--graphite-specular);
 }
@@ -249,7 +279,7 @@ body:has(.app-shell) :is(.surface-floating, [data-sonner-toaster]) {
   padding-block: 14px;
 }
 .app-shell .overview-columns > aside .briefing {
-  background: var(--graphite-surface);
+  background: var(--graphite-raised);
   border-color: var(--graphite-edge);
   box-shadow: inset 0 1px 0 var(--graphite-specular);
 }
@@ -261,7 +291,7 @@ body:has(.app-shell) :is(.surface-floating, [data-sonner-toaster]) {
   border-color: var(--graphite-edge);
 }
 
-/* Recessed navigation, a standard list, and an opaque, texture-free reader. */
+/* Recessed navigation and a stronger reading plane keep long messages clear. */
 .app-shell :is(.inbox-workspace, .draft-workspace) {
   background: var(--graphite-surface);
   border-color: var(--graphite-edge-lit);
@@ -335,8 +365,14 @@ body:has(.app-shell) :is(.surface-floating, [data-sonner-toaster]) {
   padding: 22px 24px;
   box-shadow: inset 1px 0 0 var(--graphite-specular);
 }
-.app-shell .reader-scroll
-  > :where(.reader-subject, .reader-contact, .reader-intelligence, .reader-email) {
+.app-shell
+  .reader-scroll
+  > :where(
+    .reader-subject,
+    .reader-contact,
+    .reader-intelligence,
+    .reader-email
+  ) {
   max-width: 76ch;
 }
 .app-shell .reader-subject {
@@ -575,13 +611,73 @@ body:has(.app-shell) .assistant-sheet textarea.form-input:focus-visible {
 @supports (
   (backdrop-filter: blur(18px)) or (-webkit-backdrop-filter: blur(18px))
 ) {
+  .app-shell {
+    --graphite-recessed: #e6eee9d6;
+    --graphite-surface: #f6fbf8d6;
+    --graphite-list: #e9f2edc2;
+    --graphite-reading: #fcfefcf2;
+    --graphite-raised: var(--workspace-glass-raised);
+  }
+  .dark .app-shell {
+    --graphite-recessed: #0b120ed6;
+    --graphite-surface: #16221bbd;
+    --graphite-list: #0f1913ad;
+    --graphite-reading: #17211df2;
+    --graphite-raised: var(--workspace-glass-raised);
+  }
+  .app-shell .app-workspace {
+    background:
+      radial-gradient(ellipse at 90% 0%, #e4ffec09, transparent 60%),
+      var(--workspace-glass);
+    -webkit-backdrop-filter: blur(12px) saturate(115%);
+    backdrop-filter: blur(12px) saturate(115%);
+  }
+  .app-shell :is(.app-sidebar-wrap, .app-topbar, .mobile-nav) {
+    -webkit-backdrop-filter: blur(18px) saturate(115%);
+    backdrop-filter: blur(18px) saturate(115%);
+  }
+  .app-shell
+    :is(
+      .metric-strip,
+      .briefing,
+      .onboarding,
+      .panel,
+      .inbox-workspace,
+      .draft-workspace,
+      .analytics-grid > section,
+      .settings-workspace,
+      .lead-board > section
+    ) {
+    -webkit-backdrop-filter: blur(14px) saturate(110%);
+    backdrop-filter: blur(14px) saturate(110%);
+  }
+  .app-shell .settings-workspace {
+    background: var(--graphite-raised);
+    border: 1px solid var(--graphite-edge-lit);
+    border-radius: 10px;
+    box-shadow:
+      inset 0 1px 0 var(--graphite-specular),
+      var(--workspace-glass-shadow);
+    padding: 22px;
+  }
+  .app-shell .overview-next[data-has-work="true"] {
+    padding: 18px;
+    background: var(--graphite-raised);
+    border: 1px solid var(--graphite-edge-lit);
+    border-radius: 10px;
+    box-shadow:
+      inset 0 1px 0 var(--graphite-specular),
+      var(--workspace-glass-shadow);
+    -webkit-backdrop-filter: blur(14px) saturate(110%);
+    backdrop-filter: blur(14px) saturate(110%);
+  }
   body:has(.app-shell) .surface-floating {
-    background: var(--graphite-floating), hsl(var(--popover) / 0.94);
+    background: var(--graphite-floating), hsl(var(--popover) / 0.88);
     -webkit-backdrop-filter: blur(18px) saturate(115%);
     backdrop-filter: blur(18px) saturate(115%);
   }
   .dark body:has(.app-shell) .surface-floating {
-    background: var(--graphite-floating), hsl(var(--popover) / 0.9);
+    background: linear-gradient(140deg, #e0f4e70c, #e0f4e700 60%), #142019d9;
   }
 }
 @media (max-width: 900px) {
@@ -593,7 +689,7 @@ body:has(.app-shell) .assistant-sheet textarea.form-input:focus-visible {
     background: hsl(var(--sidebar-background));
   }
   .app-shell .mobile-nav {
-    background: hsl(var(--workspace-canvas));
+    background: var(--workspace-glass-strong);
     border-top-color: var(--graphite-edge-lit);
     box-shadow: 0 -4px 16px #0000000a;
   }
