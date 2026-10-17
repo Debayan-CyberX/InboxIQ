@@ -195,11 +195,16 @@ async function tokenRequest(
   return tokens;
 }
 export class GmailClient {
+  private lastRequestAt = 0;
+  private requestQueue: Promise<void> = Promise.resolve();
   constructor(
     private connection: Connection,
     private persist: (tokens: Tokens) => Promise<void>,
     private env: NodeJS.ProcessEnv,
     private request: Fetcher = fetch,
+    private pause: (milliseconds: number) => Promise<void> = (milliseconds) =>
+      new Promise((resolve) => setTimeout(resolve, milliseconds)),
+    private minRequestIntervalMs = 1500,
   ) {}
   private async refresh() {
     if (!this.connection.refresh_token)
@@ -231,33 +236,79 @@ export class GmailClient {
           Date.now() + 60000)
     )
       await this.refresh();
-    const execute = () =>
-      this.request(`https://gmail.googleapis.com/gmail/v1/users/me/${path}`, {
-        headers: { Authorization: `Bearer ${this.connection.access_token}` },
-        signal: AbortSignal.timeout(20000),
+    const execute = () => {
+      const pending = this.requestQueue.then(async () => {
+        // Pace mailbox reads so initial imports do not exhaust small project quotas.
+        const wait =
+          this.minRequestIntervalMs - (Date.now() - this.lastRequestAt);
+        if (wait > 0) await this.pause(wait);
+        this.lastRequestAt = Date.now();
+        return this.request(
+          `https://gmail.googleapis.com/gmail/v1/users/me/${path}`,
+          {
+            headers: {
+              Authorization: `Bearer ${this.connection.access_token}`,
+            },
+            signal: AbortSignal.timeout(20000),
+          },
+        );
       });
+      this.requestQueue = pending.then(
+        () => {},
+        () => {},
+      );
+      return pending;
+    };
     let response = await execute();
     if (response.status === 401) {
       await this.refresh();
       response = await execute();
     }
+    let reasons: string[] = [];
+    for (let attempt = 0; !response.ok; attempt++) {
+      const details = (await response
+        .clone()
+        .json()
+        .catch(() => ({}))) as {
+        error?: { errors?: Array<{ reason?: string }> };
+      };
+      reasons = details.error?.errors?.map((error) => error.reason || "") || [];
+      const rateLimited =
+        response.status === 429 ||
+        (response.status === 403 &&
+          reasons.some((reason) =>
+            ["userRateLimitExceeded", "rateLimitExceeded"].includes(reason),
+          ));
+      if (attempt >= 3 || !(rateLimited || response.status >= 500)) break;
+      const retryAfter = Number(response.headers.get("Retry-After"));
+      const delay =
+        Number.isFinite(retryAfter) && retryAfter > 0
+          ? Math.min(retryAfter * 1000, 10000)
+          : 1000 * 2 ** attempt + Math.floor(Math.random() * 250);
+      await this.pause(delay);
+      response = await execute();
+    }
     if (!response.ok) {
       const status = response.status;
+      const limited =
+        status === 429 ||
+        reasons.some((reason) =>
+          [
+            "userRateLimitExceeded",
+            "rateLimitExceeded",
+            "dailyLimitExceeded",
+            "quotaExceeded",
+          ].includes(reason),
+        );
       throw new GmailError(
-        status === 401
-          ? 401
-          : status === 403
-            ? 403
-            : status === 429
-              ? 429
-              : 502,
-        status === 401
-          ? "Gmail authorization was rejected. Reconnect your Google account."
-          : status === 403
-            ? "Google denied Gmail access. Enable the Gmail API and reconnect with email permissions."
-            : status === 429
-              ? "Gmail's request limit was reached. Wait a moment and sync again."
-              : "Gmail could not return your messages. Try syncing again.",
+        limited ? 429 : status === 401 ? 401 : status === 403 ? 403 : 502,
+        limited
+          ? "Gmail temporarily limited requests. Sync will retry while your workspace is open, or you can try again later."
+          : status === 401
+            ? "Gmail authorization was rejected. Reconnect your Google account."
+            : status === 403
+              ? "Google denied Gmail access. Enable the Gmail API and reconnect with email permissions."
+              : "Gmail is temporarily unavailable. Try syncing again shortly.",
       );
     }
     return (await response.json()) as T;

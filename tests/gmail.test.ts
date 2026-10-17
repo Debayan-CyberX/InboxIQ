@@ -144,6 +144,70 @@ test("rejected access retries once and reports a reconnect error without returni
   );
   assert.equal(calls, 2);
 });
+test("Gmail 403 rate limits retry with backoff instead of asking the user to reconnect", async () => {
+  let calls = 0;
+  const delays: number[] = [];
+  const client = new GmailClient(
+    {
+      id: "a",
+      user_id: "u",
+      email: "x@example.com",
+      access_token: "token",
+      refresh_token: "offline",
+      token_expires_at: null,
+    },
+    async () => {},
+    {},
+    async () => {
+      calls++;
+      return calls < 3
+        ? Response.json(
+            { error: { errors: [{ reason: "userRateLimitExceeded" }] } },
+            { status: 403 },
+          )
+        : Response.json({ threads: [] });
+    },
+    async (delay) => {
+      delays.push(delay);
+    },
+    0,
+  );
+  assert.deepEqual(await client.get("threads"), { threads: [] });
+  assert.equal(calls, 3);
+  assert.equal(delays.length, 2);
+  assert(delays[1] > delays[0]);
+});
+test("persistent quota errors stop after bounded retries and remain retryable", async () => {
+  let calls = 0;
+  const client = new GmailClient(
+    {
+      id: "a",
+      user_id: "u",
+      email: "x@example.com",
+      access_token: "token",
+      refresh_token: "offline",
+      token_expires_at: null,
+    },
+    async () => {},
+    {},
+    async () => {
+      calls++;
+      return Response.json(
+        { error: { errors: [{ reason: "rateLimitExceeded" }] } },
+        { status: 403 },
+      );
+    },
+    async () => {},
+  );
+  await assert.rejects(
+    client.get("threads"),
+    (error: unknown) =>
+      error instanceof GmailError &&
+      error.status === 429 &&
+      !error.message.includes("Reconnect"),
+  );
+  assert.equal(calls, 4);
+});
 test("OAuth routes require sessions, bind cookies to the user, and reject forged callbacks", async () => {
   const app = express();
   app.use(express.json());

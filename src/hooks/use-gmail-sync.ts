@@ -31,7 +31,10 @@ export function useGmailSync() {
             connection.provider !== "gmail" ||
             !connection.is_active ||
             !connection.sync_enabled ||
-            connection.error_message
+            (connection.error_message &&
+              /reconnect|revoked|not configured/i.test(
+                connection.error_message,
+              ))
           )
             continue;
           if (

@@ -37,3 +37,8 @@ session-authenticated backend; those endpoints never return tokens.
 Validation: `npm test`, `npm run type:check`, and `npm run build`. Actual Google
 consent must be completed by the mailbox owner; simulated provider tests do not
 prove authorization of a real Gmail account.
+
+Gmail reads are paced and serialized, including inline-body requests. Temporary
+rate limits and server errors receive bounded exponential backoff. Quota failures
+remain retryable during visible-workspace polling; they do not require reconnecting.
+Each completed batch refreshes the inbox so conversations appear during import.

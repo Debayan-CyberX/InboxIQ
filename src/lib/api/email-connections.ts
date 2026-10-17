@@ -108,6 +108,7 @@ export const emailConnectionsApi = {
         );
         threadsSynced += result.threadsSynced || 0;
         emailsSynced += result.emailsSynced || 0;
+        window.dispatchEvent(new CustomEvent("emailSyncCompleted"));
         next = result.nextPageToken || undefined;
         if (pageToken || maxPages > 1) {
           if (next) cursors.set(connectionId, next);
