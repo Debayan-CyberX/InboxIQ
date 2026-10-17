@@ -12,7 +12,11 @@ import Header from "./Header";
 import BottomNav from "./BottomNav";
 import { useGmailSync } from "@/hooks/use-gmail-sync";
 import IntelligenceStatus from "@/components/dashboard/IntelligenceStatus";
+import { VisualSystem } from "@/components/workspace/VisualSystem";
+import WorkspaceBackdrop from "@/components/workspace/WorkspaceBackdrop";
+import CommandDock from "@/components/workspace/CommandDock";
 import "@/graphite.css";
+import "@/silver-workspace.css";
 export default function DashboardLayout({ children }: { children: ReactNode }) {
   useGmailSync();
   const [collapsed, setCollapsed] = useState(
@@ -46,42 +50,48 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
     };
   }, [mobile]);
   return (
-    <div className={`app-shell ${collapsed ? "is-collapsed" : ""}`}>
-      <a
-        href="#main-content"
-        className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[100] bg-card p-2"
+    <VisualSystem>
+      <div
+        className={`app-shell silver-workspace ${collapsed ? "is-collapsed" : ""}`}
       >
-        Skip to workspace
-      </a>
-      <aside className="app-sidebar-wrap">
-        <Sidebar collapsed={collapsed} onCollapse={collapse} />
-      </aside>
-      <dialog
-        ref={dialog}
-        onCancel={() => setMobile(false)}
-        onClick={(e) => {
-          if (e.currentTarget === e.target) setMobile(false);
-        }}
-        aria-label="Navigation menu"
-        className="fixed m-0 h-dvh max-h-none w-[270px] max-w-[85vw] p-0 border-0 bg-card backdrop:bg-black/50"
-      >
-        <button
-          aria-label="Close menu"
-          className="icon-button absolute right-2 top-4"
-          onClick={() => setMobile(false)}
+        <WorkspaceBackdrop />
+        <a
+          href="#main-content"
+          className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[100] bg-card p-2"
         >
-          <X size={16} />
-        </button>
-        <Sidebar />
-      </dialog>
-      <div className="app-workspace">
-        <Header onMenu={() => setMobile(true)} onCollapse={collapse} />
-        <main id="main-content" className="app-main">
-          <IntelligenceStatus />
-          {children}
-        </main>
+          Skip to workspace
+        </a>
+        <aside className="app-sidebar-wrap">
+          <Sidebar collapsed={collapsed} onCollapse={collapse} />
+        </aside>
+        <dialog
+          ref={dialog}
+          onCancel={() => setMobile(false)}
+          onClick={(e) => {
+            if (e.currentTarget === e.target) setMobile(false);
+          }}
+          aria-label="Navigation menu"
+          className="fixed m-0 h-dvh max-h-none w-[270px] max-w-[85vw] p-0 border-0 bg-card backdrop:bg-black/50"
+        >
+          <button
+            aria-label="Close menu"
+            className="icon-button absolute right-2 top-4"
+            onClick={() => setMobile(false)}
+          >
+            <X size={16} />
+          </button>
+          <Sidebar />
+        </dialog>
+        <div className="app-workspace">
+          <Header onMenu={() => setMobile(true)} onCollapse={collapse} />
+          <main id="main-content" className="app-main">
+            <IntelligenceStatus />
+            {children}
+          </main>
+        </div>
+        <BottomNav />
+        <CommandDock />
       </div>
-      <BottomNav />
-    </div>
+    </VisualSystem>
   );
 }

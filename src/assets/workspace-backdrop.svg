@@ -1,26 +1,26 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1920" height="1200" viewBox="0 0 1920 1200" fill="none">
   <defs>
     <linearGradient id="fold" x1="430" y1="1110" x2="1430" y2="180" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#18352B" stop-opacity="0"/>
-      <stop offset=".3" stop-color="#427C63"/>
-      <stop offset=".58" stop-color="#AFD5B9"/>
-      <stop offset=".72" stop-color="#4A836E"/>
-      <stop offset="1" stop-color="#17352B" stop-opacity="0"/>
+      <stop stop-color="#1B273A" stop-opacity="0"/>
+      <stop offset=".3" stop-color="#627995"/>
+      <stop offset=".58" stop-color="#D6E7FC"/>
+      <stop offset=".72" stop-color="#7188A5"/>
+      <stop offset="1" stop-color="#1B293D" stop-opacity="0"/>
     </linearGradient>
     <linearGradient id="face" x1="630" y1="1020" x2="1050" y2="520" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#091410"/>
-      <stop offset=".45" stop-color="#3D7058"/>
-      <stop offset=".7" stop-color="#83B79A"/>
-      <stop offset="1" stop-color="#153228" stop-opacity="0"/>
+      <stop stop-color="#0A101C"/>
+      <stop offset=".45" stop-color="#526A87"/>
+      <stop offset=".7" stop-color="#BDD3EC"/>
+      <stop offset="1" stop-color="#1B2A40" stop-opacity="0"/>
     </linearGradient>
     <linearGradient id="edge" x1="150" y1="1140" x2="1340" y2="40" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#9BCBB0" stop-opacity="0"/>
-      <stop offset=".48" stop-color="#B9DBC9" stop-opacity=".65"/>
-      <stop offset="1" stop-color="#7EAB97" stop-opacity="0"/>
+      <stop stop-color="#B4CBE5" stop-opacity="0"/>
+      <stop offset=".48" stop-color="#DFECFD" stop-opacity=".65"/>
+      <stop offset="1" stop-color="#91AECF" stop-opacity="0"/>
     </linearGradient>
     <radialGradient id="halo">
-      <stop stop-color="#4B8D77" stop-opacity=".55"/>
-      <stop offset="1" stop-color="#23463E" stop-opacity="0"/>
+      <stop stop-color="#6586AF" stop-opacity=".55"/>
+      <stop offset="1" stop-color="#283E5B" stop-opacity="0"/>
     </radialGradient>
     <filter id="soft" x="-30%" y="-30%" width="160%" height="160%">
       <feGaussianBlur stdDeviation="32"/>

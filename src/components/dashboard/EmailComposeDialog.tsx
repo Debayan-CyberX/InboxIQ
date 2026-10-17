@@ -179,7 +179,11 @@ export default function EmailComposeDialog({
         }
       }}
     >
-      <DialogContent className="compose-dialog sm:max-w-[650px] max-h-[90dvh] overflow-auto">
+      <DialogContent
+        className="compose-dialog sm:max-w-[650px] max-h-[90dvh] overflow-auto"
+        data-generating={generating || undefined}
+        data-ai-ready={(!!previous && !generating) || undefined}
+      >
         <DialogHeader>
           <DialogTitle className="text-lg">
             {mode === "reply"
@@ -192,6 +196,17 @@ export default function EmailComposeDialog({
             Review your recipient and message before sending.
           </DialogDescription>
         </DialogHeader>
+        {generating && (
+          <div className="silver-ai-request" role="status">
+            <span className="silver-ai-halo" aria-hidden="true" />
+            <span>
+              Drafting your reply
+              <span className="silver-ai-status-detail">
+                Using this conversation and your instructions.
+              </span>
+            </span>
+          </div>
+        )}
         <div className="space-y-4 mt-3">
           {mode === "reply" && originalEmail && threadId && (
             <div className="rounded-md border p-3 space-y-3">

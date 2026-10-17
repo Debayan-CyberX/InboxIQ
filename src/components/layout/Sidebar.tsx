@@ -13,7 +13,7 @@ import {
 import { Link, useLocation } from "react-router-dom";
 import { useSession, signOut } from "@/lib/auth-client";
 import { toast } from "sonner";
-import Brand from "@/components/Brand";
+import LiquidMark from "@/components/workspace/LiquidMark";
 import { ContactAvatar } from "@/components/WorkspaceUI";
 const items = [
   { name: "Overview", href: "/dashboard", icon: LayoutDashboard, key: "O" },
@@ -34,7 +34,12 @@ export default function Sidebar({
   return (
     <div className="app-sidebar">
       <Link to="/dashboard" aria-label="InboxIQ overview">
-        <Brand />
+        <span className="brand">
+          <LiquidMark />
+          <span className="brand-name">
+            Inbox<span className="font-normal">IQ</span>
+          </span>
+        </span>
       </Link>
       <div className="sidebar-workspace">
         <ContactAvatar name={data?.user.name || "Workspace"} />

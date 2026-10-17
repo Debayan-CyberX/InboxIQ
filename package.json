@@ -85,6 +85,7 @@
     "mailparser": "^3.9.40",
     "three": "^0.170.0",
     "@react-three/fiber": "^8.18.0",
+    "@shadergradient/react": "2.4.20",
     "gsap": "^3.13.0"
   },
   "devDependencies": {

@@ -89,8 +89,13 @@ export default function Header({
   }, [navigate, onCollapse]);
   useEffect(() => {
     const handler = () => setConnect(true);
+    const searchHandler = () => setSearch(true);
     window.addEventListener("inboxiq:connect", handler);
-    return () => window.removeEventListener("inboxiq:connect", handler);
+    window.addEventListener("inboxiq:search", searchHandler);
+    return () => {
+      window.removeEventListener("inboxiq:connect", handler);
+      window.removeEventListener("inboxiq:search", searchHandler);
+    };
   }, []);
   async function sync() {
     if (!active[0] || syncing) return;

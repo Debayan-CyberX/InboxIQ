@@ -30,6 +30,7 @@ import {
   useDrafts,
 } from "@/hooks/use-workspace-data";
 import { formatDistanceToNow } from "date-fns";
+import OpportunityDesk from "@/components/workspace/OpportunityDesk";
 export default function Overview() {
   const [params, setParams] = useSearchParams();
   useEffect(() => {
@@ -240,6 +241,12 @@ export default function Overview() {
               </Link>
             ))}
           </div>
+          <OpportunityDesk
+            leads={leads}
+            threads={threads}
+            drafts={drafts}
+            tasks={tasks}
+          />
           <div className="overview-columns">
             <div>
               <section
@@ -319,13 +326,18 @@ export default function Overview() {
                       <Check size={16} />
                     </span>
                     <div>
-                      <p className="text-sm">Nothing waiting on you right now.</p>
+                      <p className="text-sm">
+                        Nothing waiting on you right now.
+                      </p>
                       <p className="text-xs text-muted-foreground mt-1">
                         Review your pipeline or pick up a conversation in the
                         inbox.
                       </p>
                     </div>
-                    <Link to="/inbox" className="section-link queue-clear-action">
+                    <Link
+                      to="/inbox"
+                      className="section-link queue-clear-action"
+                    >
                       Open inbox
                       <ArrowRight size={12} />
                     </Link>
