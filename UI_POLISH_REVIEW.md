@@ -30,4 +30,4 @@ The landing experience and orb assets are intact. No dependencies, backend code,
 
 Browser data and API responses were isolated test fixtures outside the application source. No real messages were sent and no production records were modified. The existing database integration tests were not enabled for this frontend pass.
 
-Local review artifacts are in the workspace's `.deployment-tools/polish-before`, `.deployment-tools/polish-after`, and `.deployment-tools/polish-extra` directories. This branch has not been deployed to production.
+Local review artifacts are in the workspace's `.deployment-tools/polish-before`, `.deployment-tools/polish-after`, and `.deployment-tools/polish-extra` directories. This pass was first verified locally; production publishing is validated separately through the existing Git deployment pipeline.
