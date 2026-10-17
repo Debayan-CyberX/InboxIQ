@@ -48,3 +48,12 @@ lead/draft/task/send path, ownership isolation, repeat analysis, header validati
 idempotent delivery, and uncertain delivery. Real AI was also verified using a
 synthetic business inquiry. Delivery tests use a simulated Gmail transport and do
 not send email to contacts.
+
+## AI reply to any email
+
+Open any synced email, choose Reply (or Reply or draft with AI), and use Draft
+with AI in the composer. Choose a tone and optionally describe what you want to
+say. The selected message and preceding conversation provide context; no lead
+is required, including in archived conversations. Generated replies are saved
+as AI-assisted drafts, and regeneration reuses the current draft. Edit, undo AI
+changes, or save your response. Sending still requires your explicit confirmation.

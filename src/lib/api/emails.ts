@@ -11,6 +11,37 @@ import type {
 import { getApiBase } from "./base-url";
 
 export const emailsApi = {
+  async draftReply(
+    threadId: string,
+    emailId: string,
+    tone: string,
+    instructions = "",
+    draftId?: string | null,
+  ) {
+    const response = await fetch(
+      `${getApiBase()}/api/email-threads/${encodeURIComponent(threadId)}/draft-reply`,
+      {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ emailId, tone, instructions, draftId }),
+      },
+    );
+    const result = await response.json();
+    if (!response.ok)
+      throw new Error(
+        result.error ||
+          "Could not draft a reply. Your message has not changed.",
+      );
+    return result as {
+      id: string;
+      subject: string;
+      body: string;
+      to: string;
+      from: string;
+      engine: "ai";
+    };
+  },
   // Get all email threads for the current user
   async getThreads(
     betterAuthUserId: string,

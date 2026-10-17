@@ -17,7 +17,8 @@ test(
       email = `intelligence-test-${randomUUID()}@example.com`;
     let aiCalls = 0,
       sends = 0,
-      uncertain = false;
+      uncertain = false,
+      invalidReply = false;
     const request: typeof fetch = async (url, init) => {
       if (String(url).includes("api.groq.com")) {
         aiCalls++;
@@ -26,6 +27,11 @@ test(
             {
               message: {
                 content: JSON.stringify({
+                  ...(!invalidReply
+                    ? {
+                        body: "Thank you for the update. Could you share the next steps?",
+                      }
+                    : {}),
                   isLead: true,
                   category: "lead",
                   confidence: 0.98,
@@ -147,9 +153,13 @@ test(
         ])
       ).rows;
       assert.equal(leads.length, 1);
-    const ownLeads = await (await call("/api/leads")).json();
-    assert.equal(ownLeads.leads.length,1);
-    assert.equal((await (await call("/api/leads","GET",undefined,"outsider")).json()).leads.length,0);
+      const ownLeads = await (await call("/api/leads")).json();
+      assert.equal(ownLeads.leads.length, 1);
+      assert.equal(
+        (await (await call("/api/leads", "GET", undefined, "outsider")).json())
+          .leads.length,
+        0,
+      );
 
       const drafts = await (await call("/api/drafts")).json();
       assert.equal(drafts.drafts.length, 1);
@@ -197,6 +207,93 @@ test(
           })
         ).status,
         400,
+      );
+      const nonLead = (
+        await pool.query(
+          "SELECT t.id AS thread_id,e.id AS email_id FROM public.email_threads t JOIN public.emails e ON e.thread_id=t.id WHERE t.user_id=$1 AND t.subject='Weekly offers' AND e.status='sent'",
+          [owner],
+        )
+      ).rows[0];
+      const replyPath = `/api/email-threads/${nonLead.thread_id}/draft-reply`;
+      assert.equal(
+        (
+          await call(
+            replyPath,
+            "POST",
+            { emailId: nonLead.email_id },
+            "outsider",
+          )
+        ).status,
+        404,
+      );
+      assert.equal(
+        (
+          await call(replyPath, "POST", {
+            emailId: nonLead.email_id,
+            tone: "invalid",
+          })
+        ).status,
+        400,
+      );
+      assert.equal(
+        (
+          await call(replyPath, "POST", {
+            emailId: nonLead.email_id,
+            instructions: "x".repeat(1001),
+          })
+        ).status,
+        400,
+      );
+      const reply = await call(replyPath, "POST", {
+        emailId: nonLead.email_id,
+        tone: "short",
+        instructions: "Thank them and ask for next steps.",
+      });
+      assert.equal(reply.status, 200);
+      const generated = await reply.json();
+      assert(generated.id);
+      assert.equal(generated.to, "newsletter@vendor.com");
+      const row = (
+        await pool.query(
+          "SELECT is_ai_draft,lead_id FROM public.emails WHERE id=$1",
+          [generated.id],
+        )
+      ).rows[0];
+      assert.equal(row.is_ai_draft, true);
+      assert.equal(row.lead_id, null);
+      assert.equal(
+        (
+          await pool.query(
+            "SELECT count(*)::int AS count FROM public.leads WHERE user_id=$1",
+            [owner],
+          )
+        ).rows[0].count,
+        1,
+      );
+      const regen = await call(replyPath, "POST", {
+        emailId: nonLead.email_id,
+        draftId: generated.id,
+      });
+      assert.equal(regen.status, 200);
+      assert.equal((await regen.json()).id, generated.id);
+      invalidReply = true;
+      assert.equal(
+        (
+          await call(replyPath, "POST", {
+            emailId: nonLead.email_id,
+            draftId: generated.id,
+          })
+        ).status,
+        502,
+      );
+      invalidReply = false;
+      assert.equal(
+        (
+          await pool.query("SELECT body_text FROM public.emails WHERE id=$1", [
+            generated.id,
+          ])
+        ).rows[0].body_text,
+        generated.body,
       );
       const sent = await call("/api/emails/send", "POST", {
         emailId: draft.id,

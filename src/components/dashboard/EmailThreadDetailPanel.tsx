@@ -51,11 +51,13 @@ export default function EmailThreadDetailPanel({
     queryFn: () => emailsApi.getThreadEmails(thread!.id, id!),
     enabled: !!(thread && id && isOpen),
   });
-  const emails = [...(query.data || [])].sort(
-    (a, b) =>
-      new Date(a.received_at || a.sent_at || a.created_at).getTime() -
-      new Date(b.received_at || b.sent_at || b.created_at).getTime(),
-  );
+  const emails = [...(query.data || [])]
+    .filter((email) => email.status === "sent")
+    .sort(
+      (a, b) =>
+        new Date(a.received_at || a.sent_at || a.created_at).getTime() -
+        new Date(b.received_at || b.sent_at || b.created_at).getTime(),
+    );
   if (!isOpen) return null;
   const latest = emails[emails.length - 1];
   return (
@@ -223,7 +225,7 @@ export default function EmailThreadDetailPanel({
                 onClick={() => setCompose({ mode: "reply", email: latest })}
               >
                 <Reply size={13} />
-                Reply to conversation
+                Reply or draft with AI
               </Button>
               <span className="text-[9px] text-muted-foreground">
                 Review before sending
