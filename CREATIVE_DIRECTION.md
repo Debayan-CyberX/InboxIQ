@@ -17,3 +17,6 @@ Dependencies: React Three Fiber v8 for React 18, Three.js, GSAP. WebGL and scrol
 - Cinematic browser suite: actual WebGL rendering, scroll-away/return, keyboard tabs, forced GPU-context loss/static recovery, responsive hero, authentication/404/diagnostic pages at all three widths, and reduced-motion mode without Three.js/GSAP network downloads. No browser runtime errors.
 - Mobile art framing adjusted following screenshot review so the sculpture does not obscure supporting copy. Static auth art is masked to preserve text contrast.
 - Existing APIs and server files are unchanged.
+
+## Liquid intelligence hero update
+The hero now uses a single continuously deforming, dark chrome orb. GPU vertex displacement and recalculated surface normals produce flowing reflections; a smoothed pointer field locally pulls the surface and eases back on exit. Narrow procedural studio panels and a slowly changing reflection orientation create silver highlights. Five independent diagonal light shafts animate behind the orb with a moving soft light source. Reduced-motion/data-saving/static fallback, offscreen pause and the document-flow text spacing remain intact. No backend or API changes.

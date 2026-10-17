@@ -1,181 +1,180 @@
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef, type MutableRefObject } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import {
-  BufferGeometry,
-  Float32BufferAttribute,
-  Group,
-  Mesh,
-  PMREMGenerator,
-  Vector3,
-  MathUtils,
   ACESFilmicToneMapping,
+  BoxGeometry,
+  Color,
+  DoubleSide,
+  Group,
+  MathUtils,
+  Mesh,
+  MeshBasicMaterial,
+  MeshPhysicalMaterial,
+  PMREMGenerator,
+  Scene,
+  Vector3,
 } from "three";
-import { RoomEnvironment } from "three/examples/jsm/environments/RoomEnvironment.js";
 
-// A bespoke folded ribbon, not a downloaded model. Its closed route represents
-// the context preserved between a message, a relationship and a next action.
-function pathwayGeometry() {
-  const vertices: number[] = [],
-    indices: number[] = [];
-  const segments = 192,
-    sides = 12;
-  for (let i = 0; i <= segments; i++) {
-    const t = (i / segments) * Math.PI * 2;
-    const center = new Vector3(
-      2.1 * Math.cos(t),
-      1.16 * Math.sin(t),
-      0.25 * Math.sin(t * 2),
-    );
-    const tangent = new Vector3(
-      -2.1 * Math.sin(t),
-      1.16 * Math.cos(t),
-      0.5 * Math.cos(t * 2),
-    ).normalize();
-    const normal = new Vector3(Math.cos(t), Math.sin(t), 0)
-      .normalize()
-      .applyAxisAngle(tangent, 0.5 * Math.sin(t * 2));
-    const binormal = new Vector3().crossVectors(tangent, normal).normalize();
-    for (let j = 0; j <= sides; j++) {
-      const a = (j / sides) * Math.PI * 2;
-      const x =
-        Math.sign(Math.cos(a)) * Math.pow(Math.abs(Math.cos(a)), 0.45) * 0.27;
-      const y =
-        Math.sign(Math.sin(a)) * Math.pow(Math.abs(Math.sin(a)), 0.45) * 0.065;
-      const v = center
-        .clone()
-        .addScaledVector(normal, x)
-        .addScaledVector(binormal, y);
-      vertices.push(v.x, v.y, v.z);
-      if (i < segments && j < sides) {
-        const k = i * (sides + 1) + j;
-        indices.push(
-          k,
-          k + 1,
-          k + sides + 1,
-          k + 1,
-          k + sides + 2,
-          k + sides + 1,
-        );
-      }
-    }
-  }
-  const geometry = new BufferGeometry();
-  geometry.setAttribute("position", new Float32BufferAttribute(vertices, 3));
-  geometry.setIndex(indices);
-  geometry.computeVertexNormals();
-  return geometry;
+type Pointer = MutableRefObject<{ x: number; y: number; hover: number }>;
+const liquidVertex = `
+uniform float uTime;
+uniform vec3 uPointer;
+uniform float uHover;
+vec3 liquidShape(vec3 p) {
+ vec3 n=normalize(p);
+ float t=uTime;
+ float swell=sin(n.x*3.1+n.y*1.7+t*.66)*sin(n.z*2.7-n.y*1.8-t*.43);
+ float fold=sin(n.y*4.2+n.z*2.4+t*.52)*.025;
+ float current=sin(n.x*5.1-n.z*3.2-t*.74)*sin(n.y*3.6+t*.38)*.025;
+ float distanceToPointer=distance(n,uPointer);
+ float pull=exp(-distanceToPointer*distanceToPointer*5.5)*uHover;
+ vec3 displaced=p*(1.+swell*.1+fold+current+pull*.22);
+ displaced.x+=sin(n.y*3.+t*.5)*.09;
+ displaced.y+=sin(n.z*2.8-t*.4)*.07;
+ return displaced;
 }
+vec3 liquidNormal(vec3 p) {
+ vec3 n=normalize(p);
+ vec3 tangent=normalize(cross(abs(n.y)>.9?vec3(1.,0.,0.):vec3(0.,1.,0.),n));
+ vec3 bitangent=normalize(cross(n,tangent));
+ vec3 center=liquidShape(p);
+ return normalize(cross(liquidShape(p+tangent*.008)-center,liquidShape(p+bitangent*.008)-center));
+}
+`;
 function Studio() {
   const { gl, scene } = useThree();
   useEffect(() => {
-    const generator = new PMREMGenerator(gl);
-    const room = new RoomEnvironment();
-    const texture = generator.fromScene(room, 0.04);
+    const studio = new Scene();
+    studio.background = new Color("#030405");
+    const geometry = new BoxGeometry(1, 1, 1);
+    const materials: MeshBasicMaterial[] = [];
+    const panel = (
+      position: [number, number, number],
+      scale: [number, number, number],
+      brightness: number,
+      color: string,
+      rotation = 0,
+    ) => {
+      const material = new MeshBasicMaterial({
+        color: new Color(color).multiplyScalar(brightness),
+        side: DoubleSide,
+      });
+      materials.push(material);
+      const mesh = new Mesh(geometry, material);
+      mesh.position.set(...position);
+      mesh.scale.set(...scale);
+      mesh.rotation.z = rotation;
+      studio.add(mesh);
+    };
+    panel([0, 4, 1], [9, 0.04, 0.45], 5, "#eff3f6", -0.18);
+    panel([-4, 0.3, 1], [0.045, 7, 0.45], 3, "#c8d4df", -0.15);
+    panel([3.8, 1, -1], [0.04, 5, 0.5], 2, "#e1e8ee", 0.4);
+    panel([0.8, 1, 5], [5, 0.09, 0.05], 4, "#ffffff", -0.6);
+    panel([0, -3, -2], [7, 0.04, 0.45], 1.8, "#a5b6c4", 0.2);
+    panel([-2, 0, 4], [3, 4, 0.05], 0.14, "#8099b1");
+    const generator = new PMREMGenerator(gl),
+      texture = generator.fromScene(studio, 0.035);
     scene.environment = texture.texture;
     return () => {
       scene.environment = null;
       texture.dispose();
-      room.dispose();
       generator.dispose();
+      geometry.dispose();
+      materials.forEach((m) => m.dispose());
     };
   }, [gl, scene]);
   return (
     <>
-      <ambientLight intensity={0.25} />
-      <directionalLight position={[2, 6, 3]} intensity={4} />
-      <directionalLight position={[-4, -2, 4]} intensity={2} color="#c6d9dd" />
-      <spotLight
-        position={[1, 4, -3]}
-        intensity={45}
-        angle={0.6}
-        penumbra={1}
+      <ambientLight intensity={0.1} />
+      <directionalLight position={[1, 5, 3]} intensity={1.5} />
+      <directionalLight
+        position={[-3, -1, 1]}
+        intensity={0.4}
+        color="#a3b3c5"
       />
     </>
   );
 }
-function Sculpture({
+function LiquidOrb({
   progress,
   pointer,
 }: {
-  progress: React.MutableRefObject<number>;
-  pointer: React.MutableRefObject<{ x: number; y: number }>;
+  progress: MutableRefObject<number>;
+  pointer: Pointer;
 }) {
   const group = useRef<Group>(null);
-  const message = useRef<Mesh>(null);
-  const geometry = useMemo(pathwayGeometry, []);
-  useEffect(() => () => geometry.dispose(), [geometry]);
-  useFrame((state, delta) => {
-    if (!group.current) return;
-    const p = progress.current;
-    group.current.rotation.x = MathUtils.damp(
-      group.current.rotation.x,
-      -0.42 + pointer.current.y * 0.13 + p * 0.35,
-      3,
-      delta,
-    );
-    group.current.rotation.y = MathUtils.damp(
-      group.current.rotation.y,
-      -0.52 + pointer.current.x * 0.22 + p * 0.6,
-      3,
-      delta,
-    );
-    group.current.rotation.z = MathUtils.damp(
-      group.current.rotation.z,
-      -0.35 - p * 0.25,
-      3,
-      delta,
-    );
-    group.current.position.y = Math.sin(state.clock.elapsedTime * 0.3) * 0.035;
-    if (message.current) {
-      const t = state.clock.elapsedTime * 0.22;
-      message.current.position.set(
-        2.1 * Math.cos(t),
-        1.16 * Math.sin(t),
-        0.25 * Math.sin(t * 2),
+  const { size, scene } = useThree();
+  const target = useMemo(() => new Vector3(), []);
+  const uniforms = useMemo(
+    () => ({
+      uTime: { value: 0 },
+      uPointer: { value: new Vector3(0, 0, 1) },
+      uHover: { value: 0 },
+    }),
+    [],
+  );
+  const material = useMemo(() => {
+    const surface = new MeshPhysicalMaterial({
+      color: "#929da6",
+      metalness: 1,
+      roughness: 0.085,
+      clearcoat: 1,
+      clearcoatRoughness: 0.07,
+      iridescence: 0.24,
+      iridescenceIOR: 1.3,
+      iridescenceThicknessRange: [180, 340],
+      envMapIntensity: 1.15,
+    });
+    surface.onBeforeCompile = (shader) => {
+      Object.assign(shader.uniforms, uniforms);
+      shader.vertexShader = liquidVertex + shader.vertexShader;
+      shader.vertexShader = shader.vertexShader.replace(
+        "#include <beginnormal_vertex>",
+        "#include <beginnormal_vertex>\nobjectNormal=liquidNormal(position);",
       );
-      message.current.rotation.z = t + Math.PI / 2;
+      shader.vertexShader = shader.vertexShader.replace(
+        "#include <begin_vertex>",
+        "#include <begin_vertex>\ntransformed=liquidShape(position);",
+      );
+    };
+    surface.customProgramCacheKey = () => "inboxiq-liquid-orb-v1";
+    return surface;
+  }, [uniforms]);
+  useEffect(() => () => material.dispose(), [material]);
+  useFrame((state, delta) => {
+    // Accumulate active time so an offscreen pause resumes without a shape jump.
+    uniforms.uTime.value += Math.min(delta, 0.05);
+    uniforms.uHover.value = MathUtils.damp(
+      uniforms.uHover.value,
+      pointer.current.hover,
+      4,
+      delta,
+    );
+    target
+      .set(pointer.current.x * 0.8, -pointer.current.y * 0.8, 1)
+      .normalize();
+    scene.environmentRotation.y = Math.sin(uniforms.uTime.value * 0.16) * 0.18;
+    uniforms.uPointer.value.lerp(target, 1 - Math.exp(-5 * delta));
+    if (group.current) {
+      group.current.rotation.y = MathUtils.damp(
+        group.current.rotation.y,
+        pointer.current.x * 0.12 + progress.current * 0.25,
+        2,
+        delta,
+      );
+      group.current.rotation.x = MathUtils.damp(
+        group.current.rotation.x,
+        pointer.current.y * 0.1,
+        2,
+        delta,
+      );
+      group.current.position.y = Math.sin(uniforms.uTime.value * 0.35) * 0.07;
     }
   });
   return (
-    <group ref={group} scale={1.12}>
-      <mesh geometry={geometry}>
-        <meshPhysicalMaterial
-          color="#c7ccce"
-          metalness={1}
-          roughness={0.21}
-          clearcoat={1}
-          clearcoatRoughness={0.12}
-        />
-      </mesh>
-      <mesh geometry={geometry} rotation={[0.9, 0.45, 0.45]} scale={0.83}>
-        <meshPhysicalMaterial
-          color="#afb8ba"
-          metalness={0.94}
-          roughness={0.16}
-          clearcoat={1}
-        />
-      </mesh>
-      <mesh geometry={geometry} rotation={[-0.75, -0.3, -0.55]} scale={0.61}>
-        <meshPhysicalMaterial
-          color="#8aada8"
-          metalness={0.45}
-          roughness={0.12}
-          transmission={0.45}
-          thickness={0.3}
-          ior={1.45}
-          transparent
-          opacity={0.9}
-        />
-      </mesh>
-      <mesh ref={message}>
-        <boxGeometry args={[0.15, 0.11, 0.14]} />
-        <meshStandardMaterial
-          color="#bed9c6"
-          metalness={0.45}
-          roughness={0.25}
-          emissive="#405b4c"
-          emissiveIntensity={0.2}
-        />
+    <group ref={group} scale={size.width < 700 ? 1 : 0.9}>
+      <mesh material={material}>
+        <sphereGeometry args={[1.92, 112, 80]} />
       </mesh>
     </group>
   );
@@ -187,8 +186,8 @@ export default function ConversationScene({
   onUnavailable,
   active,
 }: {
-  progress: React.MutableRefObject<number>;
-  pointer: React.MutableRefObject<{ x: number; y: number }>;
+  progress: MutableRefObject<number>;
+  pointer: Pointer;
   active: boolean;
   onReady: () => void;
   onUnavailable: () => void;
@@ -201,7 +200,7 @@ export default function ConversationScene({
       gl={{ antialias: true, alpha: true, powerPreference: "low-power" }}
       onCreated={({ gl }) => {
         gl.toneMapping = ACESFilmicToneMapping;
-        gl.toneMappingExposure = 1.05;
+        gl.toneMappingExposure = 1.1;
         gl.domElement.addEventListener("webglcontextlost", onUnavailable, {
           once: true,
         });
@@ -211,7 +210,7 @@ export default function ConversationScene({
       aria-hidden="true"
     >
       <Studio />
-      <Sculpture progress={progress} pointer={pointer} />
+      <LiquidOrb progress={progress} pointer={pointer} />
     </Canvas>
   );
 }

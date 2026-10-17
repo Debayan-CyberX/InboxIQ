@@ -360,6 +360,12 @@ export default function Landing() {
             <span>INTELLIGENCE, IN THE LOOP.</span>
             <span>YOUR INBOX. RECONSIDERED.</span>
           </div>
+          <div className="silver-atmosphere" aria-hidden="true">
+            <div className="silver-source" />
+            {[0, 1, 2, 3, 4].map((i) => (
+              <span className={`silver-shaft shaft-${i}`} key={i} />
+            ))}
+          </div>
           <ConversationVisual />
           <div className="hero-type">
             <h1

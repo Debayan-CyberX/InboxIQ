@@ -36,68 +36,54 @@ export function ConversationFallback({
       aria-hidden="true"
     >
       <defs>
+        <radialGradient id="orb-body" cx=".36" cy=".23" r=".75">
+          <stop stopColor="#8c959e" />
+          <stop offset=".2" stopColor="#151b21" />
+          <stop offset=".65" stopColor="#030506" />
+          <stop offset=".88" stopColor="#11191f" />
+          <stop offset="1" stopColor="#a2b1bc" />
+        </radialGradient>
         <linearGradient
-          id="loop-silver"
-          x1="-300"
-          y1="-160"
-          x2="300"
-          y2="160"
+          id="orb-rim"
+          x1="240"
+          y1="150"
+          x2="650"
+          y2="570"
           gradientUnits="userSpaceOnUse"
         >
-          <stop stopColor="#14171a" />
-          <stop offset=".18" stopColor="#e2e5e5" />
-          <stop offset=".25" stopColor="#737e84" />
-          <stop offset=".44" stopColor="#101315" />
-          <stop offset=".7" stopColor="#bec7c9" />
-          <stop offset=".76" stopColor="#edf0ed" />
-          <stop offset="1" stopColor="#202729" />
-        </linearGradient>
-        <linearGradient id="loop-edge">
-          <stop stopColor="#687877" />
-          <stop offset=".5" stopColor="#e8eeee" />
-          <stop offset="1" stopColor="#242c2f" />
+          <stop stopColor="#fff" />
+          <stop offset=".25" stopColor="#8b9ba8" />
+          <stop offset=".45" stopColor="#121a20" />
+          <stop offset=".8" stopColor="#161e25" />
+          <stop offset="1" stopColor="#dce6e9" />
         </linearGradient>
       </defs>
-      <g transform="translate(450 355) rotate(-25)">
-        <ellipse
-          rx="296"
-          ry="158"
-          stroke="url(#loop-silver)"
-          strokeWidth="45"
-        />
-        <ellipse rx="298" ry="158" stroke="url(#loop-edge)" strokeWidth="1" />
-        <g transform="rotate(65)">
-          <ellipse
-            rx="232"
-            ry="120"
-            stroke="url(#loop-silver)"
-            strokeWidth="36"
-          />
-          <ellipse
-            rx="233"
-            ry="119"
-            stroke="#c8d2d0"
-            strokeOpacity=".4"
-            strokeWidth="1"
-          />
-        </g>
-        <g transform="rotate(-55)">
-          <ellipse
-            rx="158"
-            ry="86"
-            stroke="url(#loop-silver)"
-            strokeWidth="26"
-          />
-          <ellipse rx="157" ry="86" stroke="#b6d0c4" strokeOpacity=".5" />
-        </g>
-      </g>
+      <path
+        d="M452 129C563 107 650 185 674 289C701 393 638 526 533 568C423 613 282 562 236 461C194 367 215 236 304 169C350 134 397 139 452 129Z"
+        fill="url(#orb-body)"
+        stroke="url(#orb-rim)"
+        strokeWidth="3"
+      />
+      <path
+        d="M278 231C353 144 514 135 614 215"
+        stroke="#dce5e9"
+        strokeOpacity=".65"
+        strokeWidth="9"
+        strokeLinecap="round"
+      />
+      <path
+        d="M282 451C356 533 508 593 600 520"
+        stroke="#7b91a1"
+        strokeOpacity=".4"
+        strokeWidth="3"
+      />
     </svg>
   );
 }
 export default function ConversationVisual() {
   const root = useRef<HTMLDivElement>(null),
     progress = useRef(0),
-    pointer = useRef({ x: 0, y: 0 });
+    pointer = useRef({ x: 0, y: 0, hover: 0 });
   const [enabled, setEnabled] = useState(false),
     [ready, setReady] = useState(false),
     [failed, setFailed] = useState(false),
@@ -140,16 +126,17 @@ export default function ConversationVisual() {
       ref={root}
       className={`conversation-visual ${ready && !failed && enabled ? "is-rendered" : ""}`}
       role="img"
-      aria-label="Three interlocking metallic pathways: a message, its context, and its next opportunity."
+      aria-label="A reflective liquid-metal orb, continuously flowing and deforming toward your pointer."
       onPointerMove={(e) => {
         const r = e.currentTarget.getBoundingClientRect();
         pointer.current = {
           x: ((e.clientX - r.left) / r.width - 0.5) * 2,
           y: ((e.clientY - r.top) / r.height - 0.5) * 2,
+          hover: 1,
         };
       }}
       onPointerLeave={() => {
-        pointer.current = { x: 0, y: 0 };
+        pointer.current = { x: 0, y: 0, hover: 0 };
       }}
     >
       <ConversationFallback />
@@ -167,7 +154,7 @@ export default function ConversationVisual() {
         </SceneBoundary>
       )}
       <span className="sculpture-caption">
-        FIG. 01 <span>THE CONVERSATION LOOP</span>
+        FIG. 01 <span>INTELLIGENCE IN MOTION</span>
       </span>
     </div>
   );
