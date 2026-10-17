@@ -12,23 +12,16 @@ export const leadsApi = {
     status?: "hot" | "warm" | "cold",
     searchQuery?: string,
   ): Promise<Lead[]> {
-    if (!supabase) {
-      throw new Error("Supabase client not initialized");
-    }
-
-    // Use database function that accepts Better Auth TEXT ID
-    const { data, error } = await supabase.rpc("get_user_leads", {
-      p_better_auth_id: userId, // Pass Better Auth ID directly
-      p_status: status || null,
-      p_search_query: searchQuery || null,
+    const params = new URLSearchParams({
+      ...(status ? { status } : {}),
+      ...(searchQuery ? { search: searchQuery } : {}),
     });
-
-    if (error) {
-      console.error("Error fetching leads:", error);
-      throw new Error(`Failed to fetch leads: ${error.message}`);
-    }
-
-    return data || [];
+    const response = await fetch(`${getApiBase()}/api/leads?${params}`, {
+      credentials: "include",
+    });
+    const result = await response.json();
+    if (!response.ok) throw new Error(result.error || "Could not load leads.");
+    return result.leads || [];
   },
 
   // Get a single lead by ID
@@ -238,9 +231,7 @@ export const leadsApi = {
   },
 
   // Detect leads from email threads
-  async detectLeads(
-    betterAuthUserId: string,
-  ): Promise<{
+  async detectLeads(betterAuthUserId: string): Promise<{
     success: boolean;
     leadsCreated: number;
     threadsUpdated: number;

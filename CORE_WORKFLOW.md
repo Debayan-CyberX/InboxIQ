@@ -25,7 +25,9 @@ drafts remain available; templates are never presented as AI-generated responses
 
 ## Server configuration
 
-- Keep the existing DATABASE_URL and Better Auth configuration.
+- Keep the existing database and Better Auth configuration. Use the Supabase shared
+  session pooler on port 5432 for DATABASE_URL. Port 6543 transaction pooling does
+  not preserve the session locks used to serialize sync and analysis jobs.
 - Set GROQ_API_KEY and GROQ_MODEL on Render, never in VITE-prefixed variables.
 - The verified model for this deployment is `openai/gpt-oss-20b`.
 - Gmail uses the existing GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET and the

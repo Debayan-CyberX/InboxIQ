@@ -147,6 +147,10 @@ test(
         ])
       ).rows;
       assert.equal(leads.length, 1);
+    const ownLeads = await (await call("/api/leads")).json();
+    assert.equal(ownLeads.leads.length,1);
+    assert.equal((await (await call("/api/leads","GET",undefined,"outsider")).json()).leads.length,0);
+
       const drafts = await (await call("/api/drafts")).json();
       assert.equal(drafts.drafts.length, 1);
       const draft = drafts.drafts[0];

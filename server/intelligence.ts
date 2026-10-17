@@ -145,6 +145,24 @@ export function createIntelligenceRouter(options: Options) {
     ).rows.map((row) => row.email as string);
   }
   router.get(
+    "/api/leads",
+    handle(async (req, res, user) => {
+      const status = ["hot", "warm", "cold"].includes(String(req.query.status))
+        ? String(req.query.status)
+        : null;
+      const search =
+        typeof req.query.search === "string"
+          ? req.query.search.slice(0, 200)
+          : "";
+      const result = await database().query(
+        "SELECT l.*,GREATEST(0,FLOOR(EXTRACT(EPOCH FROM (NOW()-COALESCE(l.last_contact_at,l.created_at)))/86400))::int AS days_since_contact,EXISTS(SELECT 1 FROM public.emails e WHERE e.lead_id=l.id AND e.user_id=l.user_id AND e.status='draft' AND e.is_ai_draft=true) AS has_ai_draft FROM public.leads l WHERE l.user_id=$1 AND ($2::text IS NULL OR l.status=$2) AND ($3='' OR l.contact_name ILIKE '%'||$3||'%' OR l.company ILIKE '%'||$3||'%' OR l.email ILIKE '%'||$3||'%') ORDER BY l.updated_at DESC",
+        [user, status, search],
+      );
+      res.setHeader("Cache-Control", "no-store");
+      res.json({ leads: result.rows });
+    }),
+  );
+  router.get(
     "/api/drafts",
     handle(async (_req, res, user) => {
       const result = await database().query(
@@ -329,7 +347,7 @@ export function createIntelligenceRouter(options: Options) {
     try {
       locked = !!(
         await db.query("SELECT pg_try_advisory_lock(hashtext($1)) AS locked", [
-          `inboxiq-intelligence:${user}`,
+          `inboxiq-intelligence-v2:${user}`,
         ])
       ).rows[0].locked;
       if (!locked)
@@ -535,7 +553,7 @@ export function createIntelligenceRouter(options: Options) {
         [user, version(prefs.aiEnabled)],
       );
       await db.query("SELECT pg_advisory_unlock(hashtext($1))", [
-        `inboxiq-intelligence:${user}`,
+        `inboxiq-intelligence-v2:${user}`,
       ]);
       locked = false;
       res.json({
@@ -550,7 +568,7 @@ export function createIntelligenceRouter(options: Options) {
       if (locked)
         await db
           .query("SELECT pg_advisory_unlock(hashtext($1))", [
-            `inboxiq-intelligence:${user}`,
+            `inboxiq-intelligence-v2:${user}`,
           ])
           .catch(() => {});
       db.release();
@@ -757,7 +775,7 @@ export function createIntelligenceRouter(options: Options) {
         locked = !!(
           await db.query(
             "SELECT pg_try_advisory_lock(hashtext($1)) AS locked",
-            [`inboxiq-send:${emailId}`],
+            [`inboxiq-send-v2:${emailId}`],
           )
         ).rows[0].locked;
         if (!locked)
@@ -963,7 +981,7 @@ export function createIntelligenceRouter(options: Options) {
         if (locked)
           await db
             .query("SELECT pg_advisory_unlock(hashtext($1))", [
-              `inboxiq-send:${emailId}`,
+              `inboxiq-send-v2:${emailId}`,
             ])
             .catch(() => {});
         db.release();

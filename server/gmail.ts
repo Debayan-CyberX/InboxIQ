@@ -673,7 +673,7 @@ export function createGmailRouter(options: RouterOptions) {
         (
           await db.query(
             "SELECT pg_try_advisory_lock(hashtext($1)) AS acquired",
-            [`inboxiq-mail:${user}`],
+            [`inboxiq-mail-v2:${user}`],
           )
         ).rows[0]?.acquired,
       );
@@ -825,7 +825,7 @@ export function createGmailRouter(options: RouterOptions) {
       );
       // Release before replying: the browser can request the next page immediately.
       await db.query("SELECT pg_advisory_unlock(hashtext($1))", [
-        `inboxiq-mail:${user}`,
+        `inboxiq-mail-v2:${user}`,
       ]);
       locked = false;
       res.json({
@@ -855,7 +855,7 @@ export function createGmailRouter(options: RouterOptions) {
         if (locked)
           await db
             .query("SELECT pg_advisory_unlock(hashtext($1))", [
-              `inboxiq-mail:${user}`,
+              `inboxiq-mail-v2:${user}`,
             ])
             .catch(() => {});
         db.release();

@@ -27,6 +27,7 @@ import {
   useQueue,
   useInsights,
   useThreads,
+  useDrafts,
 } from "@/hooks/use-workspace-data";
 import { formatDistanceToNow } from "date-fns";
 export default function Overview() {
@@ -42,22 +43,23 @@ export default function Overview() {
   const queue = useQueue();
   const insight = useInsights();
   const threadsQuery = useThreads();
+  const draftsQuery = useDrafts();
   const leads = leadsQuery.data || [];
   const connections = (connectionsQuery.data || []).filter((c) => c.is_active);
   const tasks = queue.data || [];
   const threads = threadsQuery.data || [];
   const connect = () =>
     window.dispatchEvent(new CustomEvent("inboxiq:connect"));
-  const due = leads.filter((l) => l.days_since_contact >= 3);
+  const due = tasks.filter((task) => task.type === "followup");
   const risk = leads.filter((l) => l.days_since_contact >= 5);
-  const drafts = leads.filter((l) => l.has_ai_draft);
+  const drafts = draftsQuery.data || [];
   const recent = [...threads]
     .sort(
       (a, b) =>
         new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime(),
     )
     .slice(0, 4);
-  const needsOnboarding = leads.length === 0;
+  const needsOnboarding = connections.length === 0 && threads.length === 0;
   return (
     <DashboardLayout>
       <PageHeader
