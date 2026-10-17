@@ -1,3 +1,4 @@
+import { createIntelligenceRouter } from "./intelligence.js";
 import { createGmailRouter } from "./gmail.js";
 import type { gmail_v1 } from "googleapis";
 import type { Lead } from "../src/types/database.js";
@@ -202,19 +203,15 @@ app.get("/health", (req, res) => {
   res.json({ status: "ok", service: "better-auth" });
 });
 
-// Gmail identity is derived from the signed-in session, not browser input.
-app.use(
-  createGmailRouter({
-    sessionUserId: async (req) => {
-      const headers = new Headers();
-      for (const [key, value] of Object.entries(req.headers))
-        if (value)
-          headers.set(key, Array.isArray(value) ? value.join(", ") : value);
-      const session = await auth.api.getSession({ headers });
-      return session?.user?.id || null;
-    },
-  }),
-);
+// All product actions derive workspace ownership from the signed-in session.
+const sessionUserId = async (req: ExpressRequest) => {
+  const headers = new Headers();
+  for (const [key,value] of Object.entries(req.headers)) if(value) headers.set(key,Array.isArray(value)?value.join(", "):value);
+  const session = await auth.api.getSession({headers});
+  return session?.user?.id || null;
+};
+app.use(createIntelligenceRouter({sessionUserId}));
+app.use(createGmailRouter({sessionUserId}));
 
 // Test endpoint to verify CORS and connection
 app.get("/api/test", (req, res) => {

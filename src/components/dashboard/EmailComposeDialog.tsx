@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/dialog";
 import { ConfirmAction } from "@/components/WorkspaceUI";
 import { useUserId } from "@/hooks/useUserId";
-import { useSession } from "@/lib/auth-client";
+import { useConnections } from "@/hooks/use-workspace-data";
 import { emailsApi } from "@/lib/api";
 import type { Email } from "@/types/database";
 import { emailText, emailHtml, errorMessage } from "@/lib/format";
@@ -39,7 +39,11 @@ export default function EmailComposeDialog({
   onSent,
 }: Props) {
   const id = useUserId();
-  const { data } = useSession();
+  const { data: connections = [] } = useConnections();
+  const mailboxes = connections.filter(
+    (connection) => connection.provider === "gmail" && connection.is_active,
+  );
+  const [from, setFrom] = useState("");
   const client = useQueryClient();
   const [to, setTo] = useState("");
   const [subject, setSubject] = useState("");
@@ -51,7 +55,9 @@ export default function EmailComposeDialog({
     setDraftId(null);
     setTo(
       mode === "reply" && originalEmail
-        ? originalEmail.from_email
+        ? originalEmail.direction === "outbound"
+          ? originalEmail.to_email
+          : originalEmail.from_email
         : defaultTo || "",
     );
     setSubject(
@@ -65,8 +71,21 @@ export default function EmailComposeDialog({
         : defaultBody || "",
     );
   }, [isOpen, mode, originalEmail, defaultTo, defaultSubject, defaultBody]);
+  useEffect(() => {
+    if (!isOpen || from) return;
+    const preferred =
+      originalEmail?.direction === "outbound"
+        ? originalEmail.from_email
+        : originalEmail?.to_email;
+    const matching = mailboxes.find((connection) =>
+      preferred?.toLowerCase().includes(connection.email.toLowerCase()),
+    );
+    if (matching) setFrom(matching.email);
+  }, [isOpen, from, originalEmail, mailboxes]);
+  const sender = from || mailboxes[0]?.email || "";
   const valid = !!(
     id &&
+    sender &&
     to.trim() &&
     /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(to) &&
     subject.trim() &&
@@ -79,7 +98,7 @@ export default function EmailComposeDialog({
       thread_id: threadId || null,
       lead_id: originalEmail?.lead_id || null,
       direction: "outbound" as const,
-      from_email: data?.user.email || "",
+      from_email: sender,
       to_email: to.trim(),
       cc_emails: null,
       bcc_emails: null,
@@ -125,6 +144,23 @@ export default function EmailComposeDialog({
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-4 mt-3">
+          <label className="form-field">
+            <span>From</span>
+            <select
+              className="form-input"
+              value={sender}
+              onChange={(event) => setFrom(event.target.value)}
+            >
+              <option value="" disabled>
+                Select a connected Gmail account
+              </option>
+              {mailboxes.map((connection) => (
+                <option key={connection.id} value={connection.email}>
+                  {connection.email}
+                </option>
+              ))}
+            </select>
+          </label>
           <label className="form-field">
             <span>To</span>
             <input

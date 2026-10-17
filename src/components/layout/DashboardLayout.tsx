@@ -11,6 +11,7 @@ import Sidebar from "./Sidebar";
 import Header from "./Header";
 import BottomNav from "./BottomNav";
 import { useGmailSync } from "@/hooks/use-gmail-sync";
+import IntelligenceStatus from "@/components/dashboard/IntelligenceStatus";
 export default function DashboardLayout({ children }: { children: ReactNode }) {
   useGmailSync();
   const [collapsed, setCollapsed] = useState(
@@ -75,6 +76,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
       <div className="app-workspace">
         <Header onMenu={() => setMobile(true)} onCollapse={collapse} />
         <main id="main-content" className="app-main">
+          <IntelligenceStatus />
           {children}
         </main>
       </div>

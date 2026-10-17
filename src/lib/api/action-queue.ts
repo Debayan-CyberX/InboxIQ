@@ -8,6 +8,7 @@ export interface ActionQueueTask {
   description: string;
   leadId?: string;
   emailId?: string;
+  threadId?: string;
   priority: "high" | "medium" | "low";
 }
 
@@ -30,10 +31,15 @@ export const actionQueueApi = {
       credentials: "include", // Include cookies for auth
     });
 
-
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({ error: "Unknown error" }));
-      throw new Error(errorData.message || errorData.error || `Failed to fetch action queue: ${response.statusText}`);
+      const errorData = await response
+        .json()
+        .catch(() => ({ error: "Unknown error" }));
+      throw new Error(
+        errorData.message ||
+          errorData.error ||
+          `Failed to fetch action queue: ${response.statusText}`,
+      );
     }
 
     const data: ActionQueueResponse = await response.json();

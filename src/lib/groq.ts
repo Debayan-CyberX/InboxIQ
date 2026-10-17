@@ -1,6 +1,6 @@
 import Groq from "groq-sdk";
 
-const GROQ_MODEL = "llama-3.1-8b-instant";
+const GROQ_MODEL = process.env.GROQ_MODEL || "openai/gpt-oss-20b";
 // Fast, free-tier friendly, production-safe
 
 // Centralized tone instructions
@@ -75,12 +75,16 @@ export async function generateAI(
         },
       ],
       temperature,
-      max_tokens: maxTokens,
+      max_completion_tokens: Math.max(1500, maxTokens + 1000),
+      reasoning_effort: "low",
     });
 
     return completion.choices[0]?.message?.content?.trim() || "";
   } catch (err: unknown) {
-    console.error("Groq API error:", err);
+    console.error(
+      "Groq API request failed",
+      err instanceof Error ? err.name : "UnknownError",
+    );
     throw new Error("AI generation failed");
   }
 }

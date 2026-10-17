@@ -1,3 +1,4 @@
+import { intelligenceApi } from "./intelligence";
 // API service for Leads
 import { supabase } from "@/lib/supabase";
 import type { Lead, InsertLead, UpdateLead } from "@/types/database";
@@ -6,7 +7,11 @@ import { getApiBase } from "./base-url";
 export const leadsApi = {
   // Get all leads for the current user
   // userId is the Better Auth TEXT ID, function will convert to UUID internally
-  async getAll(userId: string, status?: "hot" | "warm" | "cold", searchQuery?: string): Promise<Lead[]> {
+  async getAll(
+    userId: string,
+    status?: "hot" | "warm" | "cold",
+    searchQuery?: string,
+  ): Promise<Lead[]> {
     if (!supabase) {
       throw new Error("Supabase client not initialized");
     }
@@ -28,15 +33,21 @@ export const leadsApi = {
 
   // Get a single lead by ID
   // Note: This still needs the UUID, so we'll need to get it first
-  async getById(leadId: string, betterAuthUserId: string): Promise<Lead | null> {
+  async getById(
+    leadId: string,
+    betterAuthUserId: string,
+  ): Promise<Lead | null> {
     if (!supabase) {
       throw new Error("Supabase client not initialized");
     }
 
     // First get the user UUID
-    const { data: userUuidData, error: uuidError } = await supabase.rpc("get_user_uuid_from_better_auth_id", {
-      p_better_auth_id: betterAuthUserId,
-    });
+    const { data: userUuidData, error: uuidError } = await supabase.rpc(
+      "get_user_uuid_from_better_auth_id",
+      {
+        p_better_auth_id: betterAuthUserId,
+      },
+    );
 
     if (uuidError || !userUuidData) {
       console.error("Error getting user UUID:", uuidError);
@@ -72,13 +83,18 @@ export const leadsApi = {
     }
 
     // Get the user UUID from Better Auth ID
-    const { data: userUuidData, error: uuidError } = await supabase.rpc("get_user_uuid_from_better_auth_id", {
-      p_better_auth_id: betterAuthUserId,
-    });
+    const { data: userUuidData, error: uuidError } = await supabase.rpc(
+      "get_user_uuid_from_better_auth_id",
+      {
+        p_better_auth_id: betterAuthUserId,
+      },
+    );
 
     if (uuidError || !userUuidData) {
       console.error("Error getting user UUID:", uuidError);
-      throw new Error(`Failed to get user UUID: ${uuidError?.message || "Unknown error"}`);
+      throw new Error(
+        `Failed to get user UUID: ${uuidError?.message || "Unknown error"}`,
+      );
     }
 
     const userUuid = userUuidData as unknown as string;
@@ -104,19 +120,28 @@ export const leadsApi = {
   },
 
   // Update a lead
-  async update(leadId: string, betterAuthUserId: string, updates: UpdateLead): Promise<Lead> {
+  async update(
+    leadId: string,
+    betterAuthUserId: string,
+    updates: UpdateLead,
+  ): Promise<Lead> {
     if (!supabase) {
       throw new Error("Supabase client not initialized");
     }
 
     // Get the user UUID from Better Auth ID
-    const { data: userUuidData, error: uuidError } = await supabase.rpc("get_user_uuid_from_better_auth_id", {
-      p_better_auth_id: betterAuthUserId,
-    });
+    const { data: userUuidData, error: uuidError } = await supabase.rpc(
+      "get_user_uuid_from_better_auth_id",
+      {
+        p_better_auth_id: betterAuthUserId,
+      },
+    );
 
     if (uuidError || !userUuidData) {
       console.error("Error getting user UUID:", uuidError);
-      throw new Error(`Failed to get user UUID: ${uuidError?.message || "Unknown error"}`);
+      throw new Error(
+        `Failed to get user UUID: ${uuidError?.message || "Unknown error"}`,
+      );
     }
 
     const userUuid = userUuidData as unknown as string;
@@ -144,13 +169,18 @@ export const leadsApi = {
     }
 
     // Get the user UUID from Better Auth ID
-    const { data: userUuidData, error: uuidError } = await supabase.rpc("get_user_uuid_from_better_auth_id", {
-      p_better_auth_id: betterAuthUserId,
-    });
+    const { data: userUuidData, error: uuidError } = await supabase.rpc(
+      "get_user_uuid_from_better_auth_id",
+      {
+        p_better_auth_id: betterAuthUserId,
+      },
+    );
 
     if (uuidError || !userUuidData) {
       console.error("Error getting user UUID:", uuidError);
-      throw new Error(`Failed to get user UUID: ${uuidError?.message || "Unknown error"}`);
+      throw new Error(
+        `Failed to get user UUID: ${uuidError?.message || "Unknown error"}`,
+      );
     }
 
     const userUuid = userUuidData as unknown as string;
@@ -168,7 +198,10 @@ export const leadsApi = {
   },
 
   // Get leads by status (uses getAll with status filter)
-  async getByStatus(userId: string, status: "hot" | "warm" | "cold"): Promise<Lead[]> {
+  async getByStatus(
+    userId: string,
+    status: "hot" | "warm" | "cold",
+  ): Promise<Lead[]> {
     return this.getAll(userId, status);
   },
 
@@ -193,33 +226,31 @@ export const leadsApi = {
       throw new Error(`Failed to fetch statistics: ${error.message}`);
     }
 
-    return data?.[0] || {
-      total_leads: 0,
-      hot_leads: 0,
-      warm_leads: 0,
-      cold_leads: 0,
-      needs_follow_up: 0,
-    };
+    return (
+      data?.[0] || {
+        total_leads: 0,
+        hot_leads: 0,
+        warm_leads: 0,
+        cold_leads: 0,
+        needs_follow_up: 0,
+      }
+    );
   },
 
   // Detect leads from email threads
-  async detectLeads(betterAuthUserId: string): Promise<{ success: boolean; leadsCreated: number; threadsUpdated: number }> {
-    const authServerUrl = getApiBase();
-
-    const response = await fetch(`${authServerUrl}/api/leads/detect`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      credentials: "include",
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({ error: "Unknown error" }));
-      throw new Error(errorData.message || errorData.error || `Failed to detect leads: ${response.statusText}`);
-    }
-
-    return await response.json();
+  async detectLeads(
+    betterAuthUserId: string,
+  ): Promise<{
+    success: boolean;
+    leadsCreated: number;
+    threadsUpdated: number;
+  }> {
+    const result = await intelligenceApi.analyzeAll(betterAuthUserId);
+    return {
+      success: true,
+      leadsCreated: result.leadsCreated,
+      threadsUpdated: result.threadsUpdated,
+    };
   },
 
   // Get email threads for a lead
@@ -229,9 +260,12 @@ export const leadsApi = {
     }
 
     // Get user UUID first
-    const { data: userUuidData, error: uuidError } = await supabase.rpc("get_user_uuid_from_better_auth_id", {
-      p_better_auth_id: betterAuthUserId,
-    });
+    const { data: userUuidData, error: uuidError } = await supabase.rpc(
+      "get_user_uuid_from_better_auth_id",
+      {
+        p_better_auth_id: betterAuthUserId,
+      },
+    );
 
     if (uuidError || !userUuidData) {
       throw new Error("User not found in database");
@@ -255,21 +289,34 @@ export const leadsApi = {
   },
 
   // Generate AI follow-up for a lead (creates a new draft)
-  async generateFollowUp(leadId: string, betterAuthUserId: string, tone?: "professional" | "short" | "confident" | "polite" | "sales-focused"): Promise<{ id: string; subject: string; body: string }> {
+  async generateFollowUp(
+    leadId: string,
+    betterAuthUserId: string,
+    tone?: "professional" | "short" | "confident" | "polite" | "sales-focused",
+  ): Promise<{ id: string; subject: string; body: string }> {
     const authServerUrl = getApiBase();
 
-    const response = await fetch(`${authServerUrl}/api/leads/${leadId}/generate-followup`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
+    const response = await fetch(
+      `${authServerUrl}/api/leads/${leadId}/generate-followup`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify({ tone }),
       },
-      credentials: "include",
-      body: JSON.stringify({ tone }),
-    });
+    );
 
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({ error: "Unknown error" }));
-      throw new Error(errorData.message || errorData.error || `Failed to generate follow-up: ${response.statusText}`);
+      const errorData = await response
+        .json()
+        .catch(() => ({ error: "Unknown error" }));
+      throw new Error(
+        errorData.message ||
+          errorData.error ||
+          `Failed to generate follow-up: ${response.statusText}`,
+      );
     }
 
     const result = await response.json();
@@ -277,21 +324,34 @@ export const leadsApi = {
   },
 
   // Generate follow-up text only (doesn't create a draft - for regeneration)
-  async generateFollowUpText(leadId: string, betterAuthUserId: string, tone?: "professional" | "short" | "confident" | "polite" | "sales-focused"): Promise<{ subject: string; body: string }> {
+  async generateFollowUpText(
+    leadId: string,
+    betterAuthUserId: string,
+    tone?: "professional" | "short" | "confident" | "polite" | "sales-focused",
+  ): Promise<{ subject: string; body: string }> {
     const authServerUrl = getApiBase();
 
-    const response = await fetch(`${authServerUrl}/api/leads/${leadId}/generate-followup-text`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
+    const response = await fetch(
+      `${authServerUrl}/api/leads/${leadId}/generate-followup-text`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify({ tone }),
       },
-      credentials: "include",
-      body: JSON.stringify({ tone }),
-    });
+    );
 
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({ error: "Unknown error" }));
-      throw new Error(errorData.message || errorData.error || `Failed to generate follow-up text: ${response.statusText}`);
+      const errorData = await response
+        .json()
+        .catch(() => ({ error: "Unknown error" }));
+      throw new Error(
+        errorData.message ||
+          errorData.error ||
+          `Failed to generate follow-up text: ${response.statusText}`,
+      );
     }
 
     const result = await response.json();
@@ -301,4 +361,3 @@ export const leadsApi = {
     };
   },
 };
-

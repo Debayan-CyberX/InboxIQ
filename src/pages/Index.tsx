@@ -279,9 +279,13 @@ export default function Overview() {
                         <p>{task.description}</p>
                         <Link
                           to={
-                            task.type === "followup"
-                              ? `/leads${task.leadId ? `?lead=${task.leadId}` : ""}`
-                              : "/drafts"
+                            task.emailId
+                              ? `/drafts?draft=${task.emailId}`
+                              : task.leadId
+                                ? `/leads?lead=${task.leadId}`
+                                : task.threadId
+                                  ? `/inbox?thread=${task.threadId}`
+                                  : "/inbox"
                           }
                           className="section-link mt-2"
                         >

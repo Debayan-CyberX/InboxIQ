@@ -823,6 +823,11 @@ export function createGmailRouter(options: RouterOptions) {
         "UPDATE public.email_connections SET last_sync_at=NOW(),error_message=NULL,updated_at=NOW() WHERE id=$1 AND user_id=$2",
         [connectionId, user],
       );
+      // Release before replying: the browser can request the next page immediately.
+      await db.query("SELECT pg_advisory_unlock(hashtext($1))", [
+        `inboxiq-mail:${user}`,
+      ]);
+      locked = false;
       res.json({
         success: true,
         threadsSynced,
