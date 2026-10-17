@@ -179,7 +179,7 @@ export default function EmailComposeDialog({
         }
       }}
     >
-      <DialogContent className="sm:max-w-[650px] max-h-[90dvh] overflow-auto">
+      <DialogContent className="compose-dialog sm:max-w-[650px] max-h-[90dvh] overflow-auto">
         <DialogHeader>
           <DialogTitle className="text-lg">
             {mode === "reply"
@@ -255,7 +255,7 @@ export default function EmailComposeDialog({
                   </button>
                 )}
               </div>
-              <p className="text-[10px] text-muted-foreground">
+              <p className="text-[11px] text-muted-foreground">
                 Uses this email and its conversation context. The result is
                 saved as a draft; nothing is sent automatically.
               </p>

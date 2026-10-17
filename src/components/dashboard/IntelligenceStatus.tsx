@@ -65,7 +65,7 @@ export default function IntelligenceStatus() {
   if (!connected) return null;
   return (
     <div
-      className="flex items-center gap-3 border-b pb-3 mb-5 text-xs"
+      className="intelligence-status flex items-center gap-3 border-b pb-3 mb-5 text-xs"
       role="status"
       aria-live="polite"
     >

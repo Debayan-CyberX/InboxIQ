@@ -253,7 +253,7 @@ export default function Leads() {
               </div>
             </div>
           </div>
-          <div className="flex justify-between items-center text-[10px] text-muted-foreground mb-4">
+          <div className="flex justify-between items-center text-[11px] text-muted-foreground mb-4">
             <span>
               {filtered.length} of {leads.length} relationships
             </span>
@@ -350,7 +350,7 @@ export default function Leads() {
                             <strong className="block text-[12px] font-medium">
                               {l.contact_name || "Unnamed contact"}
                             </strong>
-                            <small className="text-[10px] text-muted-foreground">
+                            <small className="text-[11px] text-muted-foreground">
                               {l.email}
                             </small>
                           </span>
@@ -361,7 +361,7 @@ export default function Leads() {
                         <StatusLabel status={l.status} />
                       </td>
                       <td>
-                        <span className="text-[10px] text-muted-foreground">
+                        <span className="text-[11px] text-muted-foreground">
                           {l.last_contact_at
                             ? new Date(l.last_contact_at).toLocaleDateString(
                                 undefined,
@@ -370,7 +370,7 @@ export default function Leads() {
                             : "No recorded contact"}
                         </span>
                         {l.days_since_contact > 0 && (
-                          <small className="block text-[10px] text-muted-foreground mt-1">
+                          <small className="block text-[11px] text-muted-foreground mt-1">
                             {l.days_since_contact} days ago
                           </small>
                         )}
@@ -459,7 +459,7 @@ export default function Leads() {
                       </article>
                     ))}
                   {!filtered.some((l) => l.status === s) && (
-                    <p className="text-[10px] text-muted-foreground px-3 py-8 text-center">
+                    <p className="text-[11px] text-muted-foreground px-3 py-8 text-center">
                       No leads in this stage.
                     </p>
                   )}

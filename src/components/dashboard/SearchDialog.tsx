@@ -111,7 +111,7 @@ export default function SearchDialog({
               >
                 <p.icon className="mr-2 h-4 w-4 text-muted-foreground" />
                 {p.label}
-                <span className="ml-auto text-[9px] text-muted-foreground">
+                <span className="ml-auto text-[11px] text-muted-foreground">
                   Page
                 </span>
               </CommandItem>
@@ -130,7 +130,7 @@ export default function SearchDialog({
                   <p className="text-xs truncate">
                     {l.company || l.contact_name}
                   </p>
-                  <p className="text-[10px] text-muted-foreground truncate">
+                  <p className="text-[11px] text-muted-foreground truncate">
                     {l.contact_name} / {l.email}
                   </p>
                 </div>
@@ -153,7 +153,7 @@ export default function SearchDialog({
                   <p className="text-xs truncate">
                     {e.subject || "Untitled conversation"}
                   </p>
-                  <p className="text-[10px] text-muted-foreground truncate">
+                  <p className="text-[11px] text-muted-foreground truncate">
                     {e.from_email}
                   </p>
                 </div>
@@ -167,7 +167,7 @@ export default function SearchDialog({
           </CommandEmpty>
         )}
       </CommandList>
-      <div className="border-t px-4 py-2 text-[9px] text-muted-foreground">
+      <div className="border-t px-4 py-2 text-[11px] text-muted-foreground">
         Arrow keys to navigate <span className="mx-2">/</span> Enter to open{" "}
         <span className="mx-2">/</span> Esc to close
       </div>

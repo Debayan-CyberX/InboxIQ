@@ -189,7 +189,7 @@ export default function Analytics() {
                   No new leads in this reporting period.
                 </div>
               )}
-              <p className="text-[10px] text-muted-foreground mt-9 border-t pt-4">
+              <p className="text-[11px] text-muted-foreground mt-9 border-t pt-4">
                 Each bar covers one of seven equal intervals. Lead counts use
                 their recorded creation time.
               </p>
@@ -200,7 +200,11 @@ export default function Analytics() {
                   <h2>Pipeline composition</h2>
                   <p>Current status, independent of the date filter.</p>
                 </div>
-                <Link to="/leads" className="section-link">
+                <Link
+                  to="/leads"
+                  className="section-link"
+                  aria-label="View pipeline"
+                >
                   <ArrowUpRight size={13} />
                 </Link>
               </div>
@@ -260,7 +264,7 @@ export default function Analytics() {
                   </div>
                 </div>
               ))}
-              <p className="text-[10px] text-muted-foreground border-t pt-4 mt-7">
+              <p className="text-[11px] text-muted-foreground border-t pt-4 mt-7">
                 No inferred opens or reply-rate estimates. Counts come from the
                 messages synced to your workspace.
               </p>
@@ -271,7 +275,11 @@ export default function Analytics() {
                   <h2>Room to reconnect</h2>
                   <p>Relationships without a recorded contact in 5+ days.</p>
                 </div>
-                <Link to="/leads?filter=risk" className="section-link">
+                <Link
+                  to="/leads?filter=risk"
+                  className="section-link"
+                  aria-label="View relationships at risk"
+                >
                   <ArrowUpRight size={13} />
                 </Link>
               </div>
@@ -285,7 +293,7 @@ export default function Analytics() {
                       >
                         {l.company || l.contact_name}
                       </Link>
-                      <span className="text-[10px] text-muted-foreground">
+                      <span className="text-[11px] text-muted-foreground">
                         {l.days_since_contact} days
                       </span>
                     </li>

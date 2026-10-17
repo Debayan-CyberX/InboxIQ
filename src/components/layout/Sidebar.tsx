@@ -44,7 +44,7 @@ export default function Sidebar({
               ? `${data.user.name.split(" ")[0]}'s workspace`
               : "Your workspace"}
           </p>
-          <p className="text-[10px] text-muted-foreground">
+          <p className="text-[11px] text-muted-foreground">
             Personal workspace
           </p>
         </div>
@@ -110,7 +110,7 @@ export default function Sidebar({
             <p className="text-[11px] truncate">
               {data?.user.name || "Account"}
             </p>
-            <p className="text-[9px] text-muted-foreground truncate">
+            <p className="text-[11px] text-muted-foreground truncate">
               {data?.user.email}
             </p>
           </div>

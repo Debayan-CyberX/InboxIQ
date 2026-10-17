@@ -66,7 +66,7 @@ export default function Overview() {
         title="Overview"
         description="The conversations and decisions that need your attention."
       >
-        <span className="text-[10px] text-muted-foreground hidden sm:block">
+        <span className="text-[11px] text-muted-foreground hidden sm:block">
           {new Date().toLocaleDateString(undefined, {
             weekday: "long",
             month: "short",
@@ -115,7 +115,7 @@ export default function Overview() {
                   Connect your email
                 </Button>
               )}
-              <p className="!text-[10px] !mt-4">
+              <p className="!text-[11px] !mt-4">
                 You're in control of every connection and every send.
               </p>
             </div>
@@ -297,22 +297,28 @@ export default function Overview() {
                           <ArrowRight size={11} />
                         </Link>
                       </div>
-                      <span className="text-[10px] text-muted-foreground capitalize mt-1">
+                      <span className="text-[11px] text-muted-foreground capitalize mt-1">
                         {task.priority}
                       </span>
                     </li>
                   ))}
                 </ul>
               ) : (
-                <div className="border-y py-9">
-                  <p className="text-sm">Nothing waiting on you right now.</p>
-                  <p className="text-xs text-muted-foreground mt-2">
-                    Review your pipeline or pick up a conversation in the inbox.
-                  </p>
-                  <Link to="/inbox" className="section-link mt-4">
-                    Open inbox
-                    <ArrowRight size={12} />
-                  </Link>
+                <div className="queue-clear">
+                  <span className="queue-clear-icon" aria-hidden="true">
+                    <Check size={16} />
+                  </span>
+                  <div>
+                    <p className="text-sm">Nothing waiting on you right now.</p>
+                    <p className="text-xs text-muted-foreground mt-2">
+                      Review your pipeline or pick up a conversation in the
+                      inbox.
+                    </p>
+                    <Link to="/inbox" className="section-link mt-4">
+                      Open inbox
+                      <ArrowRight size={12} />
+                    </Link>
+                  </div>
                 </div>
               )}
               {recent.length > 0 && (
@@ -365,7 +371,11 @@ export default function Overview() {
               <section className="mt-9">
                 <div className="section-heading">
                   <h2>Pipeline snapshot</h2>
-                  <Link to="/leads" className="section-link">
+                  <Link
+                    to="/leads"
+                    className="section-link"
+                    aria-label="View pipeline"
+                  >
                     <ArrowUpRight size={13} />
                   </Link>
                 </div>

@@ -8,6 +8,7 @@ import {
   Search,
   Mail,
   RefreshCw,
+  ArrowUpRight,
 } from "lucide-react";
 import DashboardLayout from "@/components/layout/DashboardLayout";
 import {
@@ -17,6 +18,11 @@ import {
   ConfirmAction,
 } from "@/components/WorkspaceUI";
 import { Button } from "@/components/ui/button";
+import {
+  ResizableHandle,
+  ResizablePanel,
+  ResizablePanelGroup,
+} from "@/components/ui/resizable";
 import { LoadingState } from "@/components/LoadingState";
 import { ErrorState } from "@/components/ErrorState";
 import { useThreads, useConnections } from "@/hooks/use-workspace-data";
@@ -222,181 +228,216 @@ export default function Inbox() {
               </Link>
             </div>
           </nav>
-          <section className="inbox-list-panel" aria-label="Conversations">
-            <div className="inbox-list-search">
-              <Search size={13} />
-              <input
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                placeholder="Search conversations..."
-                aria-label="Search conversations"
-              />
-            </div>
-            <div className="inbox-mobile-folders">
-              <select
-                aria-label="Mailbox folder"
-                value={folder}
-                onChange={(e) => {
-                  setFolder(e.target.value as "active" | "archived");
-                  close();
-                  setChecked([]);
-                }}
-              >
-                <option value="active">Conversations</option>
-                <option value="archived">Archived</option>
-              </select>
-              <Link to="/drafts">Drafts</Link>
-            </div>
-            <div className="inbox-list-controls">
-              <select
-                aria-label="Filter conversations"
-                value={category}
-                onChange={(e) => {
-                  setCategory(e.target.value);
-                  close();
-                }}
-              >
-                <option value="all">All conversations</option>
-                <option value="lead">Sales inquiries</option>
-                <option value="follow_up_needed">Follow-ups</option>
-                <option value="important">Important</option>
-                <option value="promo">Promotions</option>
-                <option value="newsletter">Newsletters</option>
-                <option value="spam">Spam</option>
-              </select>
-              <select
-                aria-label="Sort conversations"
-                value={sort}
-                onChange={(e) => setSort(e.target.value)}
-              >
-                <option value="newest">Newest</option>
-                <option value="oldest">Oldest</option>
-              </select>
-            </div>
-            {checked.length > 0 && (
-              <div className="inbox-bulk">
-                <span>{checked.length} selected</span>
-                <ConfirmAction
-                  title="Archive selected conversations?"
-                  description="These conversations will move to your archived folder."
-                  confirmLabel="Archive conversations"
-                  onConfirm={async () => {
-                    if (!id) return;
-                    await Promise.all(
-                      checked.map((t) => emailsApi.archiveThread(t, id)),
-                    );
-                    setChecked([]);
-                    await client.invalidateQueries({ queryKey: ["threads"] });
-                    toast.success("Conversations archived");
-                  }}
-                >
-                  <button className="section-link">
-                    <Archive size={12} />
-                    Archive
-                  </button>
-                </ConfirmAction>
-              </div>
-            )}
-            <div className="inbox-message-list">
-              {filtered.length === 0 ? (
-                <EmptyState
-                  icon={InboxIcon}
-                  title={
-                    search || category !== "all"
-                      ? "No matching conversations"
-                      : "An inbox with room to work."
-                  }
-                  description={
-                    search || category !== "all"
-                      ? "Try another search or classification filter."
-                      : "Your synced conversations will appear here. Connect your email or sync from the top bar."
-                  }
-                >
-                  {!connections.some((c) => c.is_active) && (
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() =>
-                        window.dispatchEvent(new CustomEvent("inboxiq:connect"))
+          <ResizablePanelGroup
+            direction="horizontal"
+            autoSaveId="inboxiq.conversation-layout"
+            className="inbox-split"
+          >
+            <ResizablePanel
+              defaultSize={42}
+              minSize={35}
+              maxSize={58}
+              className="inbox-list-resizable"
+            >
+              <section className="inbox-list-panel" aria-label="Conversations">
+                <div className="inbox-list-search">
+                  <Search size={13} />
+                  <input
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    placeholder="Search conversations..."
+                    aria-label="Search conversations"
+                  />
+                </div>
+                <div className="inbox-mobile-folders">
+                  <select
+                    aria-label="Mailbox folder"
+                    value={folder}
+                    onChange={(e) => {
+                      setFolder(e.target.value as "active" | "archived");
+                      close();
+                      setChecked([]);
+                    }}
+                  >
+                    <option value="active">Conversations</option>
+                    <option value="archived">Archived</option>
+                  </select>
+                  <Link to="/drafts">Drafts</Link>
+                </div>
+                <div className="inbox-list-controls">
+                  <select
+                    aria-label="Filter conversations"
+                    value={category}
+                    onChange={(e) => {
+                      setCategory(e.target.value);
+                      close();
+                    }}
+                  >
+                    <option value="all">All conversations</option>
+                    <option value="lead">Sales inquiries</option>
+                    <option value="follow_up_needed">Follow-ups</option>
+                    <option value="important">Important</option>
+                    <option value="promo">Promotions</option>
+                    <option value="newsletter">Newsletters</option>
+                    <option value="spam">Spam</option>
+                  </select>
+                  <select
+                    aria-label="Sort conversations"
+                    value={sort}
+                    onChange={(e) => setSort(e.target.value)}
+                  >
+                    <option value="newest">Newest</option>
+                    <option value="oldest">Oldest</option>
+                  </select>
+                </div>
+                {checked.length > 0 && (
+                  <div className="inbox-bulk">
+                    <span>{checked.length} selected</span>
+                    <ConfirmAction
+                      title="Archive selected conversations?"
+                      description="These conversations will move to your archived folder."
+                      confirmLabel="Archive conversations"
+                      onConfirm={async () => {
+                        if (!id) return;
+                        await Promise.all(
+                          checked.map((t) => emailsApi.archiveThread(t, id)),
+                        );
+                        setChecked([]);
+                        await client.invalidateQueries({
+                          queryKey: ["threads"],
+                        });
+                        toast.success("Conversations archived");
+                      }}
+                    >
+                      <button className="section-link">
+                        <Archive size={12} />
+                        Archive
+                      </button>
+                    </ConfirmAction>
+                  </div>
+                )}
+                <div className="inbox-message-list">
+                  {filtered.length === 0 ? (
+                    <EmptyState
+                      icon={InboxIcon}
+                      title={
+                        search || category !== "all"
+                          ? "No matching conversations"
+                          : "An inbox with room to work."
+                      }
+                      description={
+                        search || category !== "all"
+                          ? "Try another search or classification filter."
+                          : "Your synced conversations will appear here. Connect your email or sync from the top bar."
                       }
                     >
-                      Connect email
-                    </Button>
+                      {!connections.some((c) => c.is_active) && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() =>
+                            window.dispatchEvent(
+                              new CustomEvent("inboxiq:connect"),
+                            )
+                          }
+                        >
+                          Connect email
+                        </Button>
+                      )}
+                    </EmptyState>
+                  ) : (
+                    filtered.map((thread) => (
+                      <article
+                        key={thread.id}
+                        className={`inbox-message ${activeThread?.id === thread.id ? "selected" : ""} ${thread.is_read === false ? "is-unread" : ""}`}
+                      >
+                        <label className="inbox-check">
+                          <input
+                            type="checkbox"
+                            aria-label={`Select ${thread.subject}`}
+                            checked={checked.includes(thread.id)}
+                            onChange={(e) =>
+                              setChecked((s) =>
+                                e.target.checked
+                                  ? [...s, thread.id]
+                                  : s.filter((v) => v !== thread.id),
+                              )
+                            }
+                          />
+                        </label>
+                        <button
+                          onClick={() => choose(thread)}
+                          className="inbox-message-content"
+                          aria-label={`Open ${thread.subject}`}
+                          aria-current={
+                            activeThread?.id === thread.id ? "true" : undefined
+                          }
+                        >
+                          <div className="flex justify-between gap-2 items-center">
+                            <strong>
+                              {thread.lead_contact_name ||
+                                thread.lead_email?.split("@")[0] ||
+                                "Conversation"}
+                            </strong>
+                            <time>
+                              {formatDistanceToNow(
+                                new Date(thread.updated_at),
+                                {
+                                  addSuffix: false,
+                                },
+                              )}
+                            </time>
+                          </div>
+                          <h2>
+                            {thread.is_read === false && (
+                              <span className="unread-dot" />
+                            )}
+                            {thread.subject || "Untitled conversation"}
+                          </h2>
+                          <p>
+                            {thread.lead_company ||
+                              thread.lead_email ||
+                              "Open to read this conversation"}
+                          </p>
+                          {thread.ai_category === "lead" && (
+                            <span className="inbox-classification">
+                              Sales inquiry
+                            </span>
+                          )}
+                          {thread.ai_category === "follow_up_needed" && (
+                            <span className="inbox-classification">
+                              Follow-up needed
+                            </span>
+                          )}
+                        </button>
+                      </article>
+                    ))
                   )}
-                </EmptyState>
-              ) : (
-                filtered.map((thread) => (
-                  <article
-                    key={thread.id}
-                    className={`inbox-message ${activeThread?.id === thread.id ? "selected" : ""}`}
-                  >
-                    <label className="inbox-check">
-                      <input
-                        type="checkbox"
-                        aria-label={`Select ${thread.subject}`}
-                        checked={checked.includes(thread.id)}
-                        onChange={(e) =>
-                          setChecked((s) =>
-                            e.target.checked
-                              ? [...s, thread.id]
-                              : s.filter((v) => v !== thread.id),
-                          )
-                        }
-                      />
-                    </label>
-                    <button
-                      onClick={() => choose(thread)}
-                      className="inbox-message-content"
-                      aria-label={`Open ${thread.subject}`}
-                    >
-                      <div className="flex justify-between gap-2 items-center">
-                        <strong>
-                          {thread.lead_contact_name ||
-                            thread.lead_email?.split("@")[0] ||
-                            "Conversation"}
-                        </strong>
-                        <time>
-                          {formatDistanceToNow(new Date(thread.updated_at), {
-                            addSuffix: false,
-                          })}
-                        </time>
-                      </div>
-                      <h2>
-                        {thread.is_read === false && (
-                          <span className="unread-dot" />
-                        )}
-                        {thread.subject || "Untitled conversation"}
-                      </h2>
-                      <p>
-                        {thread.lead_company ||
-                          thread.lead_email ||
-                          "Open to read this conversation"}
-                      </p>
-                      {thread.ai_category === "lead" && (
-                        <span className="inbox-classification">
-                          Sales inquiry
-                        </span>
-                      )}
-                      {thread.ai_category === "follow_up_needed" && (
-                        <span className="inbox-classification">
-                          Follow-up needed
-                        </span>
-                      )}
-                    </button>
-                  </article>
-                ))
-              )}
-            </div>
-            <div className="inbox-list-bottom">
-              {filtered.length} conversation{filtered.length === 1 ? "" : "s"}
-            </div>
-          </section>
-          <EmailThreadDetailPanel
-            embedded
-            thread={activeThread}
-            onClose={close}
-            onArchived={close}
-          />
+                </div>
+                <div className="inbox-list-bottom">
+                  {filtered.length} conversation
+                  {filtered.length === 1 ? "" : "s"}
+                </div>
+              </section>
+            </ResizablePanel>
+            <ResizableHandle
+              className="inbox-resize-handle"
+              aria-label="Resize conversation list"
+              title="Drag or use arrow keys to resize"
+            />
+            <ResizablePanel
+              defaultSize={58}
+              minSize={42}
+              className="inbox-reader-resizable"
+            >
+              <EmailThreadDetailPanel
+                embedded
+                thread={activeThread}
+                onClose={close}
+                onArchived={close}
+              />
+            </ResizablePanel>
+          </ResizablePanelGroup>
         </div>
       )}
       <EmailComposeDialog
@@ -409,5 +450,5 @@ export default function Inbox() {
   );
 }
 function ArrowSmall() {
-  return <span aria-hidden="true"> ?</span>;
+  return <ArrowUpRight aria-hidden="true" size={12} />;
 }

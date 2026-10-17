@@ -101,7 +101,7 @@ export default function SignUp() {
               />
             </label>
           </div>
-          <p className="text-[9px] text-muted-foreground">
+          <p className="text-[11px] text-muted-foreground">
             Use at least 8 characters.
           </p>
           {error && (

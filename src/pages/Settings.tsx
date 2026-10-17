@@ -238,7 +238,7 @@ export default function Settings() {
                       value={session?.user.email || ""}
                       readOnly
                     />
-                    <small className="text-[10px] text-muted-foreground">
+                    <small className="text-[11px] text-muted-foreground">
                       Managed by your sign-in account.
                     </small>
                   </label>
@@ -296,7 +296,7 @@ export default function Settings() {
                     </select>
                   </label>
                 </div>
-                <p className="text-[10px] text-muted-foreground mt-6">
+                <p className="text-[11px] text-muted-foreground mt-6">
                   Your language preference is saved to your account. The current
                   interface is available in English.
                 </p>
@@ -327,18 +327,18 @@ export default function Settings() {
                             <p className="text-xs font-medium break-all">
                               {c.email}
                             </p>
-                            <p className="text-[10px] text-muted-foreground mt-1 capitalize">
+                            <p className="text-[11px] text-muted-foreground mt-1 capitalize">
                               {c.provider} <span className="mx-1">/</span>
                               {c.is_active ? "Connected" : "Disconnected"}
                             </p>
                             {c.last_sync_at && (
-                              <p className="text-[10px] text-muted-foreground mt-2">
+                              <p className="text-[11px] text-muted-foreground mt-2">
                                 Last synced{" "}
                                 {new Date(c.last_sync_at).toLocaleString()}
                               </p>
                             )}
                             {c.error_message && (
-                              <p className="text-[10px] text-destructive mt-2">
+                              <p className="text-[11px] text-destructive mt-2">
                                 {c.error_message}
                               </p>
                             )}
@@ -583,7 +583,7 @@ export default function Settings() {
                     />
                   </label>
                 </div>
-                <p className="text-[10px] text-muted-foreground mt-7">
+                <p className="text-[11px] text-muted-foreground mt-7">
                   AI-assisted features depend on the services enabled for your
                   workspace. Suggestions always need your judgment.
                 </p>
@@ -708,7 +708,7 @@ export default function Settings() {
                     <p className="text-[12px] text-muted-foreground mt-1">
                       {session?.user.email}
                     </p>
-                    <p className="text-[10px] text-muted-foreground mt-3 leading-relaxed">
+                    <p className="text-[11px] text-muted-foreground mt-3 leading-relaxed">
                       Production sign-in uses secure, HTTP-only session cookies.
                       Signing out ends your current session.
                     </p>

@@ -126,7 +126,7 @@ export default function ChatBot() {
           )}
           {messages.map((m, i) => (
             <div key={i} className={`mb-6 ${m.role === "user" ? "pl-6" : ""}`}>
-              <p className="text-[9px] text-muted-foreground mb-2 uppercase tracking-wider">
+              <p className="text-[11px] text-muted-foreground mb-2 uppercase tracking-wider">
                 {m.role === "user" ? "You" : "Assistant"}
               </p>
               <p
@@ -189,7 +189,7 @@ export default function ChatBot() {
               <Send size={14} />
             </Button>
           </div>
-          <p className="text-[9px] text-muted-foreground mt-2">
+          <p className="text-[11px] text-muted-foreground mt-2">
             AI suggestions can be imperfect. Review before acting.
           </p>
         </form>

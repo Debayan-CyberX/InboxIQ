@@ -151,7 +151,7 @@ export default function Drafts() {
                   <p>
                     {edits[d.id]?.body || emailText(d.body_text, d.body_html)}
                   </p>
-                  <div className="flex justify-between items-center mt-3 text-[8px] text-muted-foreground">
+                  <div className="flex justify-between items-center mt-3 text-[11px] text-muted-foreground">
                     <span>
                       {d.is_ai_draft
                         ? "AI-assisted / awaiting review"
@@ -272,7 +272,7 @@ function DraftEditor({
         >
           <ArrowLeft size={14} />
         </button>
-        <span className="text-[10px] text-muted-foreground flex-1">
+        <span className="text-[11px] text-muted-foreground flex-1">
           {reviewed ? "Reviewed in this session" : "Awaiting your review"}
         </span>
         <button
@@ -340,7 +340,7 @@ function DraftEditor({
               </p>
             ) : originalEmail ? (
               <div>
-                <strong className="text-[10px] font-medium">
+                <strong className="text-[11px] font-medium">
                   {originalEmail.subject}
                 </strong>
                 <p className="whitespace-pre-wrap">
@@ -380,7 +380,7 @@ function DraftEditor({
           />
         </label>
         <div className="draft-options">
-          <span className="text-[10px] text-muted-foreground">
+          <span className="text-[11px] text-muted-foreground">
             {body.length} characters{" "}
             {draft.ai_confidence != null &&
               ` / ${Math.round(draft.ai_confidence * 100)}% classification confidence`}
@@ -477,7 +477,7 @@ function DraftEditor({
             Send email
           </Button>
         </ConfirmAction>
-        <p className="text-[10px] text-muted-foreground w-full mt-1">
+        <p className="text-[11px] text-muted-foreground w-full mt-1">
           {reviewed
             ? "Reviewed for this session. Sending still requires your confirmation."
             : "Review the draft to enable sending. Nothing is sent automatically."}

@@ -34,7 +34,7 @@ export default function NotificationsPanel() {
                   {task.title}
                   <ArrowUpRight size={12} />
                 </p>
-                <p className="text-[10px] text-muted-foreground mt-1 leading-relaxed">
+                <p className="text-[11px] text-muted-foreground mt-1 leading-relaxed">
                   {task.description}
                 </p>
               </Link>

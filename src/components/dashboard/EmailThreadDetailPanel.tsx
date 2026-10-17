@@ -18,6 +18,7 @@ import { useUserId } from "@/hooks/useUserId";
 import { emailsApi } from "@/lib/api";
 import type { Email, EmailThread } from "@/types/database";
 import EmailComposeDialog from "./EmailComposeDialog";
+import EmailBodyText from "./EmailBodyText";
 import { emailText, errorMessage } from "@/lib/format";
 import { toast } from "sonner";
 export type ThreadWithContact = EmailThread & {
@@ -81,7 +82,7 @@ export default function EmailThreadDetailPanel({
             >
               <ArrowLeft size={14} />
             </button>
-            <span className="text-[10px] text-muted-foreground flex-1 truncate">
+            <span className="text-[11px] text-muted-foreground flex-1 truncate">
               {thread.status === "archived"
                 ? "Archived conversation"
                 : "Conversation"}
@@ -142,7 +143,7 @@ export default function EmailThreadDetailPanel({
             )}
             {thread.ai_reason && (
               <div className="reader-intelligence">
-                <span className="text-[9px] uppercase tracking-wider text-muted-foreground">
+                <span className="text-[11px] uppercase tracking-wider text-muted-foreground">
                   Conversation context
                 </span>
                 <p>{thread.ai_reason}</p>
@@ -189,7 +190,9 @@ export default function EmailThreadDetailPanel({
                     </time>
                   </div>
                   <p className="reader-email-body">
-                    {emailText(email.body_text, email.body_html)}
+                    <EmailBodyText
+                      text={emailText(email.body_text, email.body_html)}
+                    />
                   </p>
                   <div className="flex gap-4 mt-5">
                     <button
@@ -207,7 +210,7 @@ export default function EmailThreadDetailPanel({
                       Forward
                     </button>
                     {i === emails.length - 1 && email.ai_confidence != null && (
-                      <span className="text-[9px] text-muted-foreground ml-auto">
+                      <span className="text-[11px] text-muted-foreground ml-auto">
                         Classification confidence{" "}
                         {Math.round(email.ai_confidence * 100)}%
                       </span>
@@ -227,7 +230,7 @@ export default function EmailThreadDetailPanel({
                 <Reply size={13} />
                 Reply or draft with AI
               </Button>
-              <span className="text-[9px] text-muted-foreground">
+              <span className="text-[11px] text-muted-foreground">
                 Review before sending
               </span>
             </div>

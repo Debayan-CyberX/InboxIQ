@@ -31,7 +31,7 @@ type CommandDialogProps = DialogProps;
 const CommandDialog = ({ children, ...props }: CommandDialogProps) => {
   return (
     <Dialog {...props}>
-      <DialogContent className="overflow-hidden p-0 shadow-lg">
+      <DialogContent className="command-surface overflow-hidden p-0 shadow-lg">
         <DialogTitle className="sr-only">Search workspace</DialogTitle>
         <DialogDescription className="sr-only">
           Search conversations, leads, or navigate to a workspace page.
