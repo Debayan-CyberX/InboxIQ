@@ -172,7 +172,7 @@ export default function Overview() {
               ))}
             </div>
           </section>
-          <div className="flex flex-wrap gap-6 mt-7 text-[11px] text-muted-foreground">
+          <div className="flex flex-wrap gap-6 mt-7 text-[12px] text-muted-foreground">
             <Link
               to="/settings?tab=appearance"
               className="hover:text-foreground"
@@ -291,7 +291,7 @@ export default function Overview() {
                           <ArrowRight size={11} />
                         </Link>
                       </div>
-                      <span className="text-[9px] text-muted-foreground capitalize mt-1">
+                      <span className="text-[10px] text-muted-foreground capitalize mt-1">
                         {task.priority}
                       </span>
                     </li>
@@ -369,7 +369,7 @@ export default function Overview() {
                     <div key={status} className="py-3 border-t">
                       <div className="flex justify-between">
                         <StatusLabel status={status} />
-                        <span className="text-[11px]">{n}</span>
+                        <span className="text-[12px]">{n}</span>
                       </div>
                       <div className="h-1 rounded-full bg-muted mt-3">
                         <div
@@ -382,7 +382,7 @@ export default function Overview() {
                 })}
               </section>
               <section className="mt-8 border-t pt-5">
-                <p className="text-[11px] text-muted-foreground leading-relaxed">
+                <p className="text-[12px] text-muted-foreground leading-relaxed">
                   Need a second perspective on your next step?
                 </p>
                 <button

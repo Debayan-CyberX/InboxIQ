@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { Link } from "react-router-dom";
 import Brand from "@/components/Brand";
+import { ConversationFallback } from "@/components/marketing/ConversationVisual";
 export function AuthLayout({ children }: { children: ReactNode }) {
   return (
     <div className="auth-page">
@@ -8,13 +9,17 @@ export function AuthLayout({ children }: { children: ReactNode }) {
         <Link to="/">
           <Brand />
         </Link>
-        <div>
+        <ConversationFallback className="auth-sculpture" />
+        <div className="auth-editorial-copy">
           <span className="label-overline block mb-6">
             THE INTELLIGENT SALES INBOX
           </span>
           <h2>
-            Every conversation.
-            <br />A clearer next step.
+            Every
+            <br />
+            conversation.
+            <br />
+            <em>An opportunity.</em>
           </h2>
           <p>
             A considered workspace for the relationships, decisions, and

@@ -23,6 +23,16 @@ export function PageHeader({
   return (
     <div className="page-header">
       <div>
+        <span className="page-kicker">
+          {{
+            Overview: "YOUR DAY, IN FOCUS",
+            Inbox: "CONVERSATIONS",
+            Leads: "RELATIONSHIPS",
+            Drafts: "REVIEW & RESPOND",
+            Analytics: "WORKSPACE INTELLIGENCE",
+            Settings: "YOUR WORKSPACE",
+          }[title] || "INBOXIQ"}
+        </span>
         <h1>{title}</h1>
         {description && <p>{description}</p>}
       </div>
@@ -43,7 +53,31 @@ export function EmptyState({
 }) {
   return (
     <div className="empty-state">
-      <Icon aria-hidden="true" />
+      <div className="empty-illustration" aria-hidden="true">
+        <svg viewBox="0 0 120 82" fill="none">
+          <path d="M17 29h86v43H17z" stroke="currentColor" opacity=".16" />
+          <path
+            d="M24 21h72v43H24z"
+            fill="hsl(var(--card))"
+            stroke="currentColor"
+            opacity=".35"
+          />
+          <path
+            d="M32 13h56v43H32z"
+            fill="hsl(var(--card))"
+            stroke="currentColor"
+            opacity=".65"
+          />
+          <path
+            d="m32 14 28 22 28-22M40 44h20"
+            stroke="currentColor"
+            opacity=".5"
+          />
+        </svg>
+        <span>
+          <Icon size={14} />
+        </span>
+      </div>
       <h2>{title}</h2>
       <p>{description}</p>
       {children}

@@ -347,16 +347,16 @@ export default function Leads() {
                         >
                           <ContactAvatar name={l.contact_name || l.company} />
                           <span className="ml-2.5">
-                            <strong className="block text-[11px] font-medium">
+                            <strong className="block text-[12px] font-medium">
                               {l.contact_name || "Unnamed contact"}
                             </strong>
-                            <small className="text-[9px] text-muted-foreground">
+                            <small className="text-[10px] text-muted-foreground">
                               {l.email}
                             </small>
                           </span>
                         </button>
                       </td>
-                      <td className="text-[11px]">{l.company || "?"}</td>
+                      <td className="text-[12px]">{l.company || "?"}</td>
                       <td>
                         <StatusLabel status={l.status} />
                       </td>
@@ -370,7 +370,7 @@ export default function Leads() {
                             : "No recorded contact"}
                         </span>
                         {l.days_since_contact > 0 && (
-                          <small className="block text-[9px] text-muted-foreground mt-1">
+                          <small className="block text-[10px] text-muted-foreground mt-1">
                             {l.days_since_contact} days ago
                           </small>
                         )}
@@ -554,7 +554,7 @@ function LeadDetails({
           <ContactAvatar name={lead.contact_name} />
           <div>
             <h2 className="text-sm">{lead.contact_name}</h2>
-            <p className="text-[11px] text-muted-foreground mt-1">
+            <p className="text-[12px] text-muted-foreground mt-1">
               {lead.company}
             </p>
           </div>

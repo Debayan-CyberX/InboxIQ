@@ -238,7 +238,7 @@ export default function Settings() {
                       value={session?.user.email || ""}
                       readOnly
                     />
-                    <small className="text-[9px] text-muted-foreground">
+                    <small className="text-[10px] text-muted-foreground">
                       Managed by your sign-in account.
                     </small>
                   </label>
@@ -332,7 +332,7 @@ export default function Settings() {
                               {c.is_active ? "Connected" : "Disconnected"}
                             </p>
                             {c.last_sync_at && (
-                              <p className="text-[9px] text-muted-foreground mt-2">
+                              <p className="text-[10px] text-muted-foreground mt-2">
                                 Last synced{" "}
                                 {new Date(c.last_sync_at).toLocaleString()}
                               </p>
@@ -705,7 +705,7 @@ export default function Settings() {
                   />
                   <div>
                     <h3 className="text-xs tracking-normal">Current account</h3>
-                    <p className="text-[11px] text-muted-foreground mt-1">
+                    <p className="text-[12px] text-muted-foreground mt-1">
                       {session?.user.email}
                     </p>
                     <p className="text-[10px] text-muted-foreground mt-3 leading-relaxed">
@@ -738,7 +738,7 @@ function SettingsHeading({
   return (
     <div>
       <h2 className="text-base font-medium">{title}</h2>
-      <p className="text-[11px] text-muted-foreground mt-2 leading-relaxed">
+      <p className="text-[12px] text-muted-foreground mt-2 leading-relaxed">
         {description}
       </p>
     </div>

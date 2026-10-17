@@ -1,29 +1,25 @@
-import { useLocation } from "react-router-dom";
-import { useEffect } from "react";
-
-const NotFound = () => {
-  const location = useLocation();
-
-  useEffect(() => {
-    console.error(
-      "404 Error: User attempted to access non-existent route:",
-      location.pathname,
-    );
-  }, [location.pathname]);
-
+import { Link } from "react-router-dom";
+import { ArrowUpRight } from "lucide-react";
+import Brand from "@/components/Brand";
+export default function NotFound() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-muted">
-      <div className="text-center">
-        <h1 className="mb-4 text-4xl font-bold">404</h1>
-        <p className="mb-4 text-xl text-muted-foreground">
-          Oops! Page not found
+    <div className="not-found-page">
+      <Link to="/" aria-label="InboxIQ home">
+        <Brand />
+      </Link>
+      <main className="not-found-content">
+        <span>404 / A THREAD OUT OF PLACE</span>
+        <h1>Let's reconnect.</h1>
+        <p>
+          This page isn't part of the conversation. Head back to InboxIQ to find
+          your next move.
         </p>
-        <a href="/" className="text-primary underline hover:text-primary/90">
-          Return to Home
-        </a>
-      </div>
+        <Link to="/">
+          Return to InboxIQ
+          <ArrowUpRight size={17} />
+        </Link>
+      </main>
+      <p className="not-found-footer">EVERY CONVERSATION. AN OPPORTUNITY.</p>
     </div>
   );
-};
-
-export default NotFound;
+}

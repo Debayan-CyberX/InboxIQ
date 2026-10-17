@@ -1,20 +1,27 @@
-// Simple test page to verify React is working
-const Test = () => {
+import { Link } from "react-router-dom";
+import { Check, ArrowUpRight } from "lucide-react";
+import Brand from "@/components/Brand";
+export default function Test() {
   return (
-    <div
-      style={{
-        padding: "2rem",
-        fontFamily: "system-ui",
-        background: "#000",
-        color: "#fff",
-        minHeight: "100vh",
-      }}
-    >
-      <h1 style={{ color: "#10b981" }}>✅ React is Working!</h1>
-      <p>If you can see this, React is rendering correctly.</p>
-      <p>Time: {new Date().toLocaleTimeString()}</p>
+    <div className="not-found-page">
+      <Link to="/">
+        <Brand />
+      </Link>
+      <main className="not-found-content">
+        <span>INBOXIQ / RENDER CHECK</span>
+        <h1>All connected.</h1>
+        <p>
+          <Check size={15} className="inline mr-2" />
+          React is rendering correctly.
+          <br />
+          Local browser time: {new Date().toLocaleTimeString()}
+        </p>
+        <Link to="/dashboard">
+          Open your workspace
+          <ArrowUpRight size={17} />
+        </Link>
+      </main>
+      <p className="not-found-footer">FRONTEND DIAGNOSTIC</p>
     </div>
   );
-};
-
-export default Test;
+}

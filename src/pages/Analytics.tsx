@@ -155,7 +155,7 @@ export default function Analytics() {
                   <h2>New relationships</h2>
                   <p>Leads added during the selected period.</p>
                 </div>
-                <span className="text-[11px] text-muted-foreground">
+                <span className="text-[12px] text-muted-foreground">
                   {totalAdded} total
                 </span>
               </div>
@@ -189,7 +189,7 @@ export default function Analytics() {
                   No new leads in this reporting period.
                 </div>
               )}
-              <p className="text-[9px] text-muted-foreground mt-9 border-t pt-4">
+              <p className="text-[10px] text-muted-foreground mt-9 border-t pt-4">
                 Each bar covers one of seven equal intervals. Lead counts use
                 their recorded creation time.
               </p>
@@ -209,7 +209,7 @@ export default function Analytics() {
                   <div key={s.status}>
                     <div className="flex items-center justify-between">
                       <StatusLabel status={s.status} />
-                      <span className="text-[11px]">
+                      <span className="text-[12px]">
                         {s.n}
                         <span className="text-muted-foreground ml-3">
                           {leads.length
@@ -230,7 +230,7 @@ export default function Analytics() {
                 ))}
               </div>
               <div className="border-t mt-7 pt-5">
-                <p className="text-[11px] text-muted-foreground">
+                <p className="text-[12px] text-muted-foreground">
                   Every stage reflects your actual saved leads.
                 </p>
               </div>
@@ -247,7 +247,7 @@ export default function Analytics() {
                 { label: "Received", n: email.received },
               ].map((row) => (
                 <div key={row.label} className="my-6">
-                  <div className="flex justify-between text-[11px]">
+                  <div className="flex justify-between text-[12px]">
                     <span className="text-muted-foreground">{row.label}</span>
                     <span>{row.n}</span>
                   </div>
@@ -260,7 +260,7 @@ export default function Analytics() {
                   </div>
                 </div>
               ))}
-              <p className="text-[9px] text-muted-foreground border-t pt-4 mt-7">
+              <p className="text-[10px] text-muted-foreground border-t pt-4 mt-7">
                 No inferred opens or reply-rate estimates. Counts come from the
                 messages synced to your workspace.
               </p>
@@ -281,7 +281,7 @@ export default function Analytics() {
                     <li key={l.id}>
                       <Link
                         to={`/leads?lead=${l.id}`}
-                        className="text-[11px] flex-1"
+                        className="text-[12px] flex-1"
                       >
                         {l.company || l.contact_name}
                       </Link>

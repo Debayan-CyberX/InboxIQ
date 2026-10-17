@@ -1,4 +1,7 @@
 import { useEffect, useRef, useState } from "react";
+import ConversationVisual from "@/components/marketing/ConversationVisual";
+import SignalChapter from "@/components/marketing/SignalChapter";
+import { useLandingMotion } from "@/hooks/use-landing-motion";
 import { Link, Navigate } from "react-router-dom";
 import {
   ArrowRight,
@@ -289,6 +292,8 @@ function Lifecycle({ active }: { active: number }) {
   );
 }
 export default function Landing() {
+  const root = useRef<HTMLDivElement>(null);
+  useLandingMotion(root);
   const { data } = useSession();
   const [stage, setStage] = useState(0);
   const [nav, setNav] = useState(false);
@@ -312,7 +317,7 @@ export default function Landing() {
   }, []);
   if (data?.session) return <Navigate to="/dashboard" replace />;
   return (
-    <div className="marketing">
+    <div className="marketing cinematic" ref={root}>
       <a className="marketing-skip" href="#main">
         Skip to content
       </a>
@@ -350,38 +355,94 @@ export default function Landing() {
         </div>
       </header>
       <main id="main">
-        <section className="marketing-hero marketing-container">
-          <div className="marketing-hero-top">
-            <div>
-              <span className="marketing-eyebrow">
-                THE INTELLIGENT SALES INBOX
+        <section className="cinema-hero" aria-labelledby="hero-title">
+          <div className="hero-topline">
+            <span>INTELLIGENCE, IN THE LOOP.</span>
+            <span>YOUR INBOX. RECONSIDERED.</span>
+          </div>
+          <ConversationVisual />
+          <div className="hero-type">
+            <h1
+              id="hero-title"
+              aria-label="Every conversation. An opportunity."
+            >
+              <span className="hero-line">
+                <span>Every</span>
               </span>
-              <h1>
-                Every conversation.
-                <br />
-                <span>Every opportunity.</span>
-              </h1>
-            </div>
-            <div className="marketing-hero-copy">
-              <p>
-                Your best opportunities are already in your inbox. Bring
-                conversations, leads, and follow-ups into one considered
-                workspace.
-              </p>
-              <div className="flex gap-4 items-center">
-                <Link to="/sign-up" className="marketing-button">
-                  Open your workspace
-                  <ArrowUpRight size={14} />
-                </Link>
-                <a href="#product" className="marketing-text-link">
-                  See it in action
-                  <ArrowRight size={13} />
-                </a>
-              </div>
-              <span className="marketing-subnote">
-                Built around your judgment. Not another autopilot.
+              <span className="hero-line">
+                <span>conversation.</span>
               </span>
-            </div>
+              <span className="hero-line hero-last">
+                <span>An opportunity.</span>
+              </span>
+            </h1>
+          </div>
+          <div className="hero-aside">
+            <span className="chapter-label">
+              01 &mdash; A CLEARER CONNECTION
+            </span>
+            <p>
+              See the potential in every message. Bring your conversations,
+              leads, and next moves into focus.
+            </p>
+            <Link to="/sign-up" className="cinema-cta">
+              Enter your workspace
+              <ArrowUpRight size={17} />
+            </Link>
+            <a href="#signal" className="hero-explore">
+              Explore the connection
+              <ChevronDown size={13} />
+            </a>
+          </div>
+          <div className="hero-baseline">
+            <span>CONVERSATION &rarr; CONTEXT &rarr; OPPORTUNITY</span>
+            <span>
+              SCROLL TO CONNECT THE DOTS <span className="scroll-line" />
+            </span>
+          </div>
+        </section>
+        <section className="editorial-manifesto" id="workflow">
+          <div className="editorial-top">
+            <span>THE INBOX, RECONSIDERED.</span>
+            <span>INBOXIQ / 002</span>
+          </div>
+          <div className="manifesto-type">
+            <span className="reveal-line">Less noise.</span>
+            <span className="reveal-line">
+              More <em>signal.</em>
+            </span>
+          </div>
+          <div className="manifesto-bottom">
+            <span className="editorial-index">&#8627;</span>
+            <h2>
+              A message is just
+              <br />
+              the beginning.
+            </h2>
+            <p>
+              Somewhere between the new inquiry and the next reply, an
+              opportunity takes shape. InboxIQ keeps the thread intact &mdash;
+              so you can spend less time finding the context, and more time
+              moving the conversation forward.
+            </p>
+          </div>
+        </section>
+        <SignalChapter />
+        <section className="product-reveal marketing-container" id="product">
+          <div className="product-reveal-head">
+            <span className="chapter-label">
+              03 &mdash; A WORKSPACE WITH INTENT
+            </span>
+            <h2 className="reveal-line">
+              The big picture.
+              <br />
+              <span>Down to the detail.</span>
+            </h2>
+            <p>
+              All the context. One considered workspace.
+              <br />
+              Explore a conversation, from first message to next move.
+            </p>
           </div>
           <div className="marketing-demo-layout" id="product">
             <div>
@@ -414,28 +475,16 @@ export default function Landing() {
             </div>
           </div>
         </section>
-        <section className="marketing-statement marketing-container">
-          <p>
-            The inbox wasn't built
-            <br />
-            to manage opportunities.
-          </p>
-          <p>
-            InboxIQ connects the message to the relationship, the relationship
-            to the next step, and the next step to your day. Less context
-            switching. More considered work.
-          </p>
-        </section>
         <section
           className="marketing-container marketing-before-after"
-          id="workflow"
+          id="comparison"
         >
           <div className="marketing-section-head">
             <div>
               <span className="marketing-eyebrow">
                 CHANGE THE WORKFLOW, NOT YOUR VOICE
               </span>
-              <h2>
+              <h2 className="reveal-line">
                 The same conversation.
                 <br />
                 <span>A different way forward.</span>
@@ -538,7 +587,7 @@ export default function Landing() {
           <div className="marketing-story-index">
             <span className="marketing-eyebrow">DESIGNED FOR THE WORK</span>
             <h2>
-              Less software
+              Less friction
               <br />
               to think about.
               <br />
@@ -786,7 +835,7 @@ export default function Landing() {
                 Give them a place to move forward.
               </p>
               <Link to="/sign-up" className="marketing-button">
-                Get started with InboxIQ
+                Make your next move
                 <ArrowUpRight size={14} />
               </Link>
               <Link to="/sign-in" className="marketing-text-link">
@@ -796,6 +845,9 @@ export default function Landing() {
             </div>
           </div>
         </section>
+        <div className="closing-wordmark" aria-hidden="true">
+          InboxIQ<span>&#8599;</span>
+        </div>
       </main>
       <footer className="marketing-footer marketing-container">
         <Link to="/">
@@ -806,7 +858,7 @@ export default function Landing() {
           <a href="#product">Product</a>
           <a href="#workflow">Workflow</a>
           <Link to="/sign-in">Log in</Link>
-          <span>? {new Date().getFullYear()} InboxIQ</span>
+          <span>&copy; {new Date().getFullYear()} InboxIQ</span>
         </div>
       </footer>
     </div>

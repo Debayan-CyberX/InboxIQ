@@ -380,7 +380,7 @@ function DraftEditor({
           />
         </label>
         <div className="draft-options">
-          <span className="text-[9px] text-muted-foreground">
+          <span className="text-[10px] text-muted-foreground">
             {body.length} characters{" "}
             {draft.ai_confidence != null &&
               ` / ${Math.round(draft.ai_confidence * 100)}% classification confidence`}
@@ -477,7 +477,7 @@ function DraftEditor({
             Send email
           </Button>
         </ConfirmAction>
-        <p className="text-[9px] text-muted-foreground w-full mt-1">
+        <p className="text-[10px] text-muted-foreground w-full mt-1">
           {reviewed
             ? "Reviewed for this session. Sending still requires your confirmation."
             : "Review the draft to enable sending. Nothing is sent automatically."}

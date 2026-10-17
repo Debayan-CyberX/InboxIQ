@@ -7,6 +7,7 @@ import {
   Sun,
   Moon,
   MessageSquare,
+  PanelTop,
 } from "lucide-react";
 import { useTheme } from "next-themes";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -118,7 +119,8 @@ export default function Header({
           >
             <Menu size={17} />
           </button>
-          <span className="text-[11px] text-muted-foreground hidden sm:inline">
+          <span className="workspace-breadcrumb text-[11px] text-muted-foreground hidden sm:inline-flex">
+            <PanelTop size={14} strokeWidth={1.5} />
             Workspace <span className="mx-2 text-border">/</span>
             <span className="text-foreground">
               {names[pathname] || "Overview"}

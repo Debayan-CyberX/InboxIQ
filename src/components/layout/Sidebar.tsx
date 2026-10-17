@@ -49,7 +49,12 @@ export default function Sidebar({
           </p>
         </div>
       </div>
-      <div className="sidebar-label">Workspace</div>
+      <div className="sidebar-label">
+        <span>WORKSPACE</span>
+        <span className="sidebar-route-mark" aria-hidden="true">
+          &#8984;
+        </span>
+      </div>
       <nav aria-label="Main navigation">
         {items.map((item) => (
           <Link
