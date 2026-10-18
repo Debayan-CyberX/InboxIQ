@@ -1725,14 +1725,14 @@
   transform: translateX(-50%);
   gap: 4px;
   padding: 5px;
-  border: 1px solid #d4e5ff38;
+  border: 1px solid #ffffff26;
   border-radius: 40px;
-  background: linear-gradient(150deg, #b9d2f024, #45566b35), #111824c9;
-  backdrop-filter: blur(20px) saturate(1.25);
-  -webkit-backdrop-filter: blur(20px) saturate(1.25);
-  box-shadow: inset 0 1px 2px #e5f0ff40, inset 0 -1px 1px #aac9ee20, 0 8px 30px #0003;
+  background: linear-gradient(150deg, #eeeee80c, #abb1b105), #111313dc;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  box-shadow: inset 0 1px 0 #eeeee81f, 0 8px 30px #0003;
   font-size: 11px;
-  color: #d7e2f0;
+  color: var(--cinema-silver);
 }
 .cinematic .marketing-header nav a {
   position: relative;
@@ -1757,11 +1757,11 @@
   transform: scaleX(1);
 }
 .cinematic .marketing-header nav a:hover {
-  background: #d4e5ff12;
-  color: #f3f6fa;
+  background: #eeeee80c;
+  color: var(--cinema-paper);
 }
 .cinematic .marketing-header nav a:focus-visible {
-  outline: 2px solid #b9d5f5;
+  outline: 2px solid var(--cinema-paper);
   outline-offset: 2px;
 }
 .cinematic .marketing-header-actions {
@@ -2601,7 +2601,7 @@
     top: 74px;
     transform: none;
     position: absolute;
-    background: #111824ed;
+    background: #111313ed;
     padding: 8px;
     border-radius: 22px;
     justify-content: center;

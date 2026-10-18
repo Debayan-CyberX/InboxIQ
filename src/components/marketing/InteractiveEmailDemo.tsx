@@ -45,18 +45,16 @@ export default function InteractiveEmailDemo() {
       aria-label="Interactive sample workspace"
     >
       <div className="signal-demo-intro">
-        <div>
-          <span className="signal-eyebrow">YOUR TURN / NO ACCOUNT NEEDED</span>
-          <h2>
-            Take the next step.
-            <br />
-            <span>See how it feels.</span>
-          </h2>
-        </div>
-        <p>
-          Choose a conversation. Explore its context.
+        <span className="chapter-label">03 &mdash; A WORKSPACE WITH INTENT</span>
+        <h2 className="reveal-line">
+          The big picture.
           <br />
-          Make the reply your own.
+          <span>Down to the detail.</span>
+        </h2>
+        <p>
+          All the context. One considered workspace.
+          <br />
+          Explore a conversation, from first message to next move.
         </p>
       </div>
       <div
@@ -83,8 +81,8 @@ export default function InteractiveEmailDemo() {
             <i />
             <i />
           </span>
-          <span>inboxiq / your workspace</span>
-          <span className="signal-sample-badge">Interactive demo</span>
+          <span>inboxiq / workspace</span>
+          <span className="signal-sample-badge">Sample workspace</span>
         </div>
         <div className="signal-demo-body">
           <aside className="signal-demo-nav">
@@ -106,12 +104,12 @@ export default function InteractiveEmailDemo() {
               <small>3</small>
             </button>
             <button
-              aria-label="Demo relationships"
+              aria-label="Demo leads"
               aria-pressed={map}
               onClick={() => setMap(true)}
             >
               <Orbit size={15} />
-              <span>Relationships</span>
+              <span>Leads</span>
             </button>
             <span className="signal-demo-nav-bottom">
               <Sparkles size={14} />
@@ -122,9 +120,9 @@ export default function InteractiveEmailDemo() {
             <div className="signal-demo-map">
               <div className="signal-demo-map-heading">
                 <span className="signal-eyebrow">
-                  YOUR RELATIONSHIPS, IN ORBIT
+                  THE THREAD, IN FOCUS
                 </span>
-                <h3>Every connection has a next step.</h3>
+                <h3>Every conversation, connected.</h3>
                 <p>Select a connection to read the conversation.</p>
               </div>
               <div className="signal-demo-orbit">
@@ -295,14 +293,14 @@ export default function InteractiveEmailDemo() {
                       className="signal-demo-draft-button"
                       onClick={() => setDrafting(true)}
                     >
-                      <Sparkles size={14} /> Explore a suggested reply{" "}
+                      <Sparkles size={14} /> Review a suggested reply{" "}
                       <ArrowRight size={14} />
                     </button>
                   )}
                 </div>
                 <div className="signal-demo-reader-footer">
                   <span>
-                    <Check size={12} /> Your words. Your approval.
+                    <Check size={12} /> Considered by you.
                   </span>
                   <span>Sample conversation</span>
                 </div>
@@ -310,7 +308,7 @@ export default function InteractiveEmailDemo() {
             </>
           )}
           <aside className="signal-demo-context">
-            <span className="signal-eyebrow">RELATIONSHIP CONTEXT</span>
+            <span className="signal-eyebrow">THE CONTEXT, CONNECTED</span>
             <div className="signal-demo-contact">
               <span className="signal-avatar">{sample.initials}</span>
               <div>
@@ -348,7 +346,7 @@ export default function InteractiveEmailDemo() {
               onClick={() => setMap(!map)}
             >
               {map ? <Inbox size={13} /> : <LayoutDashboard size={13} />}
-              {map ? "Back to inbox" : "Explore relationships"}
+              {map ? "Back to inbox" : "Explore your leads"}
               <ArrowUpRight size={12} />
             </button>
           </aside>
@@ -356,11 +354,10 @@ export default function InteractiveEmailDemo() {
       </div>
       <p className="signal-demo-disclaimer">
         <span>
-          <i /> A working demonstration, with fictional sample data.
+          <i /> Fictional sample data. No emails are sent.
         </span>
         <span>
-          Sample replies are prewritten. Edits stay in this demo. No emails are
-          sent.
+          Prewritten suggestions. Your edits stay in this sample workspace.
         </span>
       </p>
     </div>

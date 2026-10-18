@@ -138,7 +138,7 @@ export default function Landing() {
               Product
             </a>
             <a href="#workflow" onClick={() => setNav(false)}>
-              The workflow
+              Workflow
             </a>
             <a href="#principles" onClick={() => setNav(false)}>
               Our approach

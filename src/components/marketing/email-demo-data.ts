@@ -2,7 +2,7 @@ export type DemoTone = "professional" | "warm" | "concise";
 export const scenarios = [
   {
     id: "inquiry",
-    label: "A new project",
+    label: "A new inquiry",
     name: "Maya Patel",
     company: "Northline",
     email: "maya@example.com",
@@ -27,7 +27,7 @@ export const scenarios = [
   },
   {
     id: "followup",
-    label: "A quiet conversation",
+    label: "A clearer next step",
     name: "Oliver Chen",
     company: "Aperture",
     email: "oliver@example.com",
@@ -53,7 +53,7 @@ export const scenarios = [
   },
   {
     id: "reply",
-    label: "A thoughtful reply",
+    label: "A reply in your voice",
     name: "Elena Ruiz",
     company: "Oak Studio",
     email: "elena@example.com",
