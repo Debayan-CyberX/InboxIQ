@@ -1,8 +1,10 @@
 import { useState } from "react";
+import { ArrowUpRight, LoaderCircle } from "lucide-react";
 import { Link, Navigate, useNavigate } from "react-router-dom";
 import { signIn, useSession } from "@/lib/auth-client";
 import { Button } from "@/components/ui/button";
 import { AuthLayout } from "@/components/auth/AuthLayout";
+import { PasswordField } from "@/components/auth/PasswordField";
 import { errorMessage } from "@/lib/format";
 export default function SignIn() {
   const { data } = useSession();
@@ -15,12 +17,11 @@ export default function SignIn() {
   return (
     <AuthLayout>
       <div className="auth-form-inner">
-        <h1 className="text-[27px] tracking-tight font-medium">
-          Welcome back.
+        <span className="auth-eyebrow">PICK UP THE CONVERSATION</span>
+        <h1 className="auth-title">
+          Welcome <em>back.</em>
         </h1>
-        <p className="text-xs text-muted-foreground mt-3 mb-8">
-          Sign in to your InboxIQ workspace.
-        </p>
+        <p className="auth-description">Sign in to your InboxIQ workspace.</p>
         <form
           onSubmit={async (e) => {
             e.preventDefault();
@@ -41,7 +42,8 @@ export default function SignIn() {
               setPending(false);
             }
           }}
-          className="space-y-5"
+          className="auth-fields"
+          aria-busy={pending}
         >
           <label className="form-field">
             <span>Email</span>
@@ -56,42 +58,32 @@ export default function SignIn() {
               disabled={pending}
             />
           </label>
-          <label className="form-field">
-            <span>Password</span>
-            <input
-              className="form-input"
-              type="password"
-              autoComplete="current-password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              disabled={pending}
-            />
-          </label>
+          <PasswordField
+            label="Password"
+            autoComplete="current-password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+            disabled={pending}
+          />
           {error && (
-            <p
-              role="alert"
-              className="text-xs text-destructive leading-relaxed"
-            >
+            <p role="alert" className="auth-error">
               {error}
             </p>
           )}
-          <Button className="w-full" type="submit" disabled={pending}>
-            {pending ? "Signing in..." : "Sign In"}
+          <Button className="auth-submit" type="submit" disabled={pending}>
+            {pending ? "Signing in..." : "Log in to your workspace"}
+            {pending ? (
+              <LoaderCircle className="auth-spinner" size={16} aria-hidden="true" />
+            ) : (
+              <ArrowUpRight size={16} aria-hidden="true" />
+            )}
           </Button>
         </form>
-        <p className="text-[11px] text-muted-foreground mt-6">
+        <p className="auth-alternate">
           New to InboxIQ?{" "}
-          <Link
-            to="/sign-up"
-            className="text-foreground underline underline-offset-4"
-          >
-            Create a workspace
-          </Link>
+          <Link to="/sign-up">Create a workspace</Link>
         </p>
-        <Link to="/" className="section-link mt-9">
-          Back to InboxIQ
-        </Link>
       </div>
     </AuthLayout>
   );

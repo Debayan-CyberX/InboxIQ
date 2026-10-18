@@ -1,8 +1,10 @@
 import { useState } from "react";
+import { ArrowUpRight, LoaderCircle } from "lucide-react";
 import { Link, Navigate, useNavigate } from "react-router-dom";
 import { signUp, useSession } from "@/lib/auth-client";
 import { Button } from "@/components/ui/button";
 import { AuthLayout } from "@/components/auth/AuthLayout";
+import { PasswordField } from "@/components/auth/PasswordField";
 import { errorMessage } from "@/lib/format";
 export default function SignUp() {
   const { data } = useSession();
@@ -17,16 +19,16 @@ export default function SignUp() {
   return (
     <AuthLayout>
       <div className="auth-form-inner">
-        <h1 className="text-[27px] tracking-tight font-medium">
+        <span className="auth-eyebrow">A CLEARER CONNECTION</span>
+        <h1 className="auth-title">
           Your next chapter,
           <br />
-          in one workspace.
+          <em>in one workspace.</em>
         </h1>
-        <p className="text-xs text-muted-foreground mt-3 mb-7">
-          Create your InboxIQ account.
-        </p>
+        <p className="auth-description">Create your InboxIQ account.</p>
         <form
-          className="space-y-4"
+          className="auth-fields"
+          aria-busy={pending}
           onSubmit={async (e) => {
             e.preventDefault();
             setError("");
@@ -54,6 +56,7 @@ export default function SignUp() {
             <input
               className="form-input"
               autoComplete="name"
+              placeholder="Alex Morgan"
               value={name}
               onChange={(e) => setName(e.target.value)}
               required
@@ -73,57 +76,47 @@ export default function SignUp() {
               disabled={pending}
             />
           </label>
-          <div className="form-row">
-            <label className="form-field">
-              <span>Password</span>
-              <input
-                className="form-input"
-                type="password"
-                autoComplete="new-password"
-                minLength={8}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                disabled={pending}
-              />
-            </label>
-            <label className="form-field">
-              <span>Confirm password</span>
-              <input
-                className="form-input"
-                type="password"
-                autoComplete="new-password"
-                minLength={8}
-                value={confirm}
-                onChange={(e) => setConfirm(e.target.value)}
-                required
-                disabled={pending}
-              />
-            </label>
+          <div className="auth-password-row">
+            <PasswordField
+              label="Password"
+              autoComplete="new-password"
+              minLength={8}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              aria-describedby="password-hint"
+              required
+              disabled={pending}
+            />
+            <PasswordField
+              label="Confirm password"
+              autoComplete="new-password"
+              minLength={8}
+              value={confirm}
+              onChange={(e) => setConfirm(e.target.value)}
+              required
+              disabled={pending}
+            />
           </div>
-          <p className="text-[11px] text-muted-foreground">
+          <p className="auth-hint" id="password-hint">
             Use at least 8 characters.
           </p>
           {error && (
-            <p
-              role="alert"
-              className="text-xs text-destructive leading-relaxed"
-            >
+            <p role="alert" className="auth-error">
               {error}
             </p>
           )}
-          <Button className="w-full" type="submit" disabled={pending}>
+          <Button className="auth-submit" type="submit" disabled={pending}>
             {pending ? "Creating workspace..." : "Create workspace"}
+            {pending ? (
+              <LoaderCircle className="auth-spinner" size={16} aria-hidden="true" />
+            ) : (
+              <ArrowUpRight size={16} aria-hidden="true" />
+            )}
           </Button>
         </form>
-        <p className="text-[11px] text-muted-foreground mt-6">
+        <p className="auth-alternate">
           Already have an account?{" "}
-          <Link
-            to="/sign-in"
-            className="text-foreground underline underline-offset-4"
-          >
-            Log in
-          </Link>
+          <Link to="/sign-in">Log in</Link>
         </p>
       </div>
     </AuthLayout>
